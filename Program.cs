@@ -1,13 +1,32 @@
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using UniSportUAQ_API.Data;
+using UniSportUAQ_API.Data.Models;
+
 namespace UniSportUAQ_API
 {
 	public class Program
 	{
+		public static IConfiguration? Configuration { get; private set; }
+
 		public static void Main(string[] args)
 		{
 			var builder = WebApplication.CreateBuilder(args);
 
 			// Add services to the container.
 			builder.Services.AddControllersWithViews();
+
+			Configuration = builder.Configuration;
+
+			builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnectionString")))
+				.AddIdentityCore<ApplicationUser>()
+				.AddRoles<IdentityRole>()
+				.AddEntityFrameworkStores<AppDbContext>();
+
+
+			builder.Services.AddControllers();
+			builder.Services.AddHttpContextAccessor();
 
 			var app = builder.Build();
 
@@ -24,6 +43,7 @@ namespace UniSportUAQ_API
 
 			app.UseRouting();
 
+			app.UseAuthentication();
 			app.UseAuthorization();
 
 			app.MapControllerRoute(
