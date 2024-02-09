@@ -6,6 +6,8 @@ namespace UniSportUAQ_API.Data
 {
 	public class Student : ApplicationUser
 	{
+		//pendiente key int
+
 		[Required]
 		public int Group { get; set; }
 
@@ -14,6 +16,7 @@ namespace UniSportUAQ_API.Data
 
 		public bool IsInOfficialGroup { get; set; }
 		public bool IsSuscribed { get; set; }
+
 		public string? StudyPlan { get; set; }
 
 		[NotMapped]
