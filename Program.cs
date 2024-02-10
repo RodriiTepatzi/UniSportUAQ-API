@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using UniSportUAQ_API.Data;
 using UniSportUAQ_API.Data.Models;
+using UniSportUAQ_API.Data.Services;
 
 namespace UniSportUAQ_API
 {
@@ -24,6 +25,7 @@ namespace UniSportUAQ_API
 				.AddRoles<IdentityRole>()
 				.AddEntityFrameworkStores<AppDbContext>();
 
+			builder.Services.AddTransient<IStudentsService, StudentsService>();
 
 			builder.Services.AddControllers();
 			builder.Services.AddHttpContextAccessor();
@@ -49,6 +51,9 @@ namespace UniSportUAQ_API
 			app.MapControllerRoute(
 				name: "default",
 				pattern: "{controller=Home}/{action=Index}/{id?}");
+
+			DatabaseInitializer.FeedUsersAndRoles(app);
+			DatabaseInitializer.FeedDatabase(app);
 
 			app.Run();
 		}

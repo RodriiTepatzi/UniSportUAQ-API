@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace UniSportUAQ_API.Migrations
 {
     /// <inheritdoc />
-    public partial class addinrestart : Migration
+    public partial class updatingids : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -17,6 +17,8 @@ namespace UniSportUAQ_API.Migrations
                 {
                     Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     Expediente = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    LastName = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     UserName = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     NormalizedUserName = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Email = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -100,17 +102,17 @@ namespace UniSportUAQ_API.Migrations
                 name: "Courses",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     CourseName = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    InstructorId = table.Column<string>(type: "nvarchar(450)", nullable: true)
+                    InstructorId = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    IdInstructor = table.Column<string>(type: "nvarchar(450)", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Courses", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Courses_Instructors_InstructorId",
-                        column: x => x.InstructorId,
+                        name: "FK_Courses_Instructors_IdInstructor",
+                        column: x => x.IdInstructor,
                         principalTable: "Instructors",
                         principalColumn: "Id");
                 });
@@ -124,7 +126,7 @@ namespace UniSportUAQ_API.Migrations
                     Day = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false),
                     Hour = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Quota = table.Column<int>(type: "int", nullable: false),
-                    Id_Course = table.Column<int>(type: "int", nullable: false)
+                    Id_Course = table.Column<string>(type: "nvarchar(450)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -133,34 +135,32 @@ namespace UniSportUAQ_API.Migrations
                         name: "FK_CourseClasses_Courses_Id_Course",
                         column: x => x.Id_Course,
                         principalTable: "Courses",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
                 name: "Inscriptions",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     DateInscription = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    released = table.Column<bool>(type: "bit", nullable: false),
-                    In_Info = table.Column<bool>(type: "bit", nullable: false),
-                    Id_Student = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    Id_course = table.Column<int>(type: "int", nullable: false)
+                    Released = table.Column<bool>(type: "bit", nullable: false),
+                    InInfo = table.Column<bool>(type: "bit", nullable: false),
+                    StudentId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    CourseId = table.Column<string>(type: "nvarchar(450)", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Inscriptions", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Inscriptions_Courses_Id_course",
-                        column: x => x.Id_course,
+                        name: "FK_Inscriptions_Courses_CourseId",
+                        column: x => x.CourseId,
                         principalTable: "Courses",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Inscriptions_Students_Id_Student",
-                        column: x => x.Id_Student,
+                        name: "FK_Inscriptions_Students_StudentId",
+                        column: x => x.StudentId,
                         principalTable: "Students",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -172,19 +172,19 @@ namespace UniSportUAQ_API.Migrations
                 column: "Id_Course");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Courses_InstructorId",
+                name: "IX_Courses_IdInstructor",
                 table: "Courses",
-                column: "InstructorId");
+                column: "IdInstructor");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Inscriptions_Id_course",
+                name: "IX_Inscriptions_CourseId",
                 table: "Inscriptions",
-                column: "Id_course");
+                column: "CourseId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Inscriptions_Id_Student",
+                name: "IX_Inscriptions_StudentId",
                 table: "Inscriptions",
-                column: "Id_Student");
+                column: "StudentId");
         }
 
         /// <inheritdoc />

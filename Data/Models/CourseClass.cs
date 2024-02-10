@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 
-namespace UniSportUAQ_API.Data
+namespace UniSportUAQ_API.Data.Models
 {
     public class CourseClass
     {
@@ -21,10 +21,10 @@ namespace UniSportUAQ_API.Data
         public int Quota { get; set; }
 
         [Required]
-        public int Id_Course;
+        public int IdCourse;
 
         [ForeignKey("Id_Course")]
-        public virtual Course Course { get; set; }
+        public virtual Course? Course { get; set; }
 
 
 

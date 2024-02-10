@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel;
 
-namespace UniSportUAQ_API.Data
+namespace UniSportUAQ_API.Data.Models
 {
     public class Attendance
     {
@@ -10,21 +10,18 @@ namespace UniSportUAQ_API.Data
         public int Id { get; set; }
 
         [Required]
-        public string? Id_Student { get; set; }
+        public string? IdStudent { get; set; }
 
         [Required]
-        public int Id_Course { get; set;}
+        public int IdCourse { get; set; }
 
         [DefaultValue("True")]
-        public bool Attendance_Class { get; set; }
+        public bool AttendanceClass { get; set; }
 
         [ForeignKey("Id_Student")]
-        public virtual Student Student { get; set; }
+        public virtual Student? Student { get; set; }
 
         [ForeignKey("Id_Course")]
-        public virtual Course Course { get; set; }
-
-
-
+        public virtual Course? Course { get; set; }
     }
 }

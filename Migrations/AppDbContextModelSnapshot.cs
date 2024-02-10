@@ -22,91 +22,6 @@ namespace UniSportUAQ_API.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("UniSportUAQ_API.Data.Course", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("CourseName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("InstructorId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("InstructorId");
-
-                    b.ToTable("Courses");
-                });
-
-            modelBuilder.Entity("UniSportUAQ_API.Data.CourseClass", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Day")
-                        .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
-
-                    b.Property<string>("Hour")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("Id_Course")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Quota")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Id_Course");
-
-                    b.ToTable("CourseClasses");
-                });
-
-            modelBuilder.Entity("UniSportUAQ_API.Data.Inscription", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("DateInscription")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Id_Student")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<int>("Id_course")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("In_Info")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("released")
-                        .HasColumnType("bit");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Id_Student");
-
-                    b.HasIndex("Id_course");
-
-                    b.ToTable("Inscriptions");
-                });
-
             modelBuilder.Entity("UniSportUAQ_API.Data.Models.ApplicationUser", b =>
                 {
                     b.Property<string>("Id")
@@ -127,11 +42,17 @@ namespace UniSportUAQ_API.Migrations
                     b.Property<string>("Expediente")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("LastName")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("bit");
 
                     b.Property<DateTimeOffset?>("LockoutEnd")
                         .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("NormalizedEmail")
                         .HasColumnType("nvarchar(max)");
@@ -164,7 +85,92 @@ namespace UniSportUAQ_API.Migrations
                     b.UseTptMappingStrategy();
                 });
 
-            modelBuilder.Entity("UniSportUAQ_API.Data.Admin", b =>
+            modelBuilder.Entity("UniSportUAQ_API.Data.Models.Course", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("CourseName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("IdInstructor")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("InstructorId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IdInstructor");
+
+                    b.ToTable("Courses");
+                });
+
+            modelBuilder.Entity("UniSportUAQ_API.Data.Models.CourseClass", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Day")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("Hour")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Id_Course")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("Quota")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Id_Course");
+
+                    b.ToTable("CourseClasses");
+                });
+
+            modelBuilder.Entity("UniSportUAQ_API.Data.Models.Inscription", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("CourseId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("DateInscription")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("InInfo")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("Released")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("StudentId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CourseId");
+
+                    b.HasIndex("StudentId");
+
+                    b.ToTable("Inscriptions");
+                });
+
+            modelBuilder.Entity("UniSportUAQ_API.Data.Models.Admin", b =>
                 {
                     b.HasBaseType("UniSportUAQ_API.Data.Models.ApplicationUser");
 
@@ -178,7 +184,7 @@ namespace UniSportUAQ_API.Migrations
                     b.ToTable("Instructors", (string)null);
                 });
 
-            modelBuilder.Entity("UniSportUAQ_API.Data.Student", b =>
+            modelBuilder.Entity("UniSportUAQ_API.Data.Models.Student", b =>
                 {
                     b.HasBaseType("UniSportUAQ_API.Data.Models.ApplicationUser");
 
@@ -209,37 +215,35 @@ namespace UniSportUAQ_API.Migrations
                     b.ToTable("Students", (string)null);
                 });
 
-            modelBuilder.Entity("UniSportUAQ_API.Data.Course", b =>
+            modelBuilder.Entity("UniSportUAQ_API.Data.Models.Course", b =>
                 {
                     b.HasOne("UniSportUAQ_API.Data.Models.Instructor", "Instructor")
                         .WithMany()
-                        .HasForeignKey("InstructorId");
+                        .HasForeignKey("IdInstructor");
 
                     b.Navigation("Instructor");
                 });
 
-            modelBuilder.Entity("UniSportUAQ_API.Data.CourseClass", b =>
+            modelBuilder.Entity("UniSportUAQ_API.Data.Models.CourseClass", b =>
                 {
-                    b.HasOne("UniSportUAQ_API.Data.Course", "Course")
+                    b.HasOne("UniSportUAQ_API.Data.Models.Course", "Course")
                         .WithMany()
-                        .HasForeignKey("Id_Course")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("Id_Course");
 
                     b.Navigation("Course");
                 });
 
-            modelBuilder.Entity("UniSportUAQ_API.Data.Inscription", b =>
+            modelBuilder.Entity("UniSportUAQ_API.Data.Models.Inscription", b =>
                 {
-                    b.HasOne("UniSportUAQ_API.Data.Student", "Student")
+                    b.HasOne("UniSportUAQ_API.Data.Models.Course", "Course")
                         .WithMany()
-                        .HasForeignKey("Id_Student")
+                        .HasForeignKey("CourseId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("UniSportUAQ_API.Data.Course", "Course")
+                    b.HasOne("UniSportUAQ_API.Data.Models.Student", "Student")
                         .WithMany()
-                        .HasForeignKey("Id_course")
+                        .HasForeignKey("StudentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -248,11 +252,11 @@ namespace UniSportUAQ_API.Migrations
                     b.Navigation("Student");
                 });
 
-            modelBuilder.Entity("UniSportUAQ_API.Data.Admin", b =>
+            modelBuilder.Entity("UniSportUAQ_API.Data.Models.Admin", b =>
                 {
                     b.HasOne("UniSportUAQ_API.Data.Models.ApplicationUser", null)
                         .WithOne()
-                        .HasForeignKey("UniSportUAQ_API.Data.Admin", "Id")
+                        .HasForeignKey("UniSportUAQ_API.Data.Models.Admin", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -266,11 +270,11 @@ namespace UniSportUAQ_API.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("UniSportUAQ_API.Data.Student", b =>
+            modelBuilder.Entity("UniSportUAQ_API.Data.Models.Student", b =>
                 {
                     b.HasOne("UniSportUAQ_API.Data.Models.ApplicationUser", null)
                         .WithOne()
-                        .HasForeignKey("UniSportUAQ_API.Data.Student", "Id")
+                        .HasForeignKey("UniSportUAQ_API.Data.Models.Student", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
