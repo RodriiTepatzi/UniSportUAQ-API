@@ -14,6 +14,7 @@ namespace UniSportUAQ_API.Controllers
 			_studentsService = studentsService;   
         }
 
+		[HttpGet]
         [Route("email/{email}")]
 		public async Task<IActionResult> GetUserByEmail(string email)
 		{
