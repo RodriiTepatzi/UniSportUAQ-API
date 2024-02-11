@@ -6,9 +6,8 @@ namespace UniSportUAQ_API.Data.Models
     public class CourseClass
     {
         [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         [Required]
-        public int Id { get; set; }
+        public string? Id { get; set; }
 
         [Required]
         [StringLength(10)]
@@ -21,7 +20,7 @@ namespace UniSportUAQ_API.Data.Models
         public int Quota { get; set; }
 
         [Required]
-        public int IdCourse;
+        public string IdCourse;
 
         [ForeignKey("Id_Course")]
         public virtual Course? Course { get; set; }

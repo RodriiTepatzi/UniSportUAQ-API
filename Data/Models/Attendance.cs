@@ -7,16 +7,18 @@ namespace UniSportUAQ_API.Data.Models
     public class Attendance
     {
         [Key]
-        public int Id { get; set; }
+        public string? Id { get; set; }
 
         [Required]
         public string? IdStudent { get; set; }
 
         [Required]
-        public int IdCourse { get; set; }
+        public string? IdCourse { get; set; }
 
-        [DefaultValue("True")]
+        
         public bool AttendanceClass { get; set; }
+
+        //foreign keys
 
         [ForeignKey("Id_Student")]
         public virtual Student? Student { get; set; }

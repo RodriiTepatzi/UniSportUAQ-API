@@ -1,11 +1,12 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace UniSportUAQ_API.Data.Models
 {
     public class Student : ApplicationUser
     {
-        //pendiente key int
+        
 
         [Required]
         public int Group { get; set; }
@@ -13,9 +14,11 @@ namespace UniSportUAQ_API.Data.Models
         [Required]
         public int Semester { get; set; }
 
+        [DefaultValue("False")]
         public bool IsInOfficialGroup { get; set; }
         public bool IsSuscribed { get; set; }
 
+        [StringLength(10)]
         public string? StudyPlan { get; set; }
 
         [NotMapped]
@@ -23,9 +26,15 @@ namespace UniSportUAQ_API.Data.Models
 
         public string? FinishedCoursesJson { get; set; }
         public DateTime SuscribedDateTime { get; set; }
-        public int CurrentCourse { get; set; }
 
-		public Dictionary<string, object> ToDictionaryForEmailRequest()
+
+        //foreign key
+        public string? CurrentCourse { get; set; }
+
+        [ForeignKey("CurrentCourse")]
+        public virtual CourseClass CourseClass { get; set; }
+
+        public Dictionary<string, object> ToDictionaryForEmailRequest()
 		{
 			return new Dictionary<string, object>
 			{

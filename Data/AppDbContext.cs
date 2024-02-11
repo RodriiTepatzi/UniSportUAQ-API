@@ -46,5 +46,7 @@ namespace UniSportUAQ_API.Data
 		public DbSet<Inscription> Inscriptions { get; set; }
 
 		public DbSet<CourseClass> CourseClasses { get; set; }
+
+		public DbSet<Attendance> Attendances { get; set; }
     }
 }
