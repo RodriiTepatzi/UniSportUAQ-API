@@ -33,6 +33,7 @@ namespace UniSportUAQ_API
 
 			builder.Services.AddTransient<IStudentsService, StudentsService>();
 			builder.Services.AddTransient<IInstructorsService, InstructorsService>();
+            builder.Services.AddTransient<IAdminsService, AdminsService>();
 
 			builder.Services.AddControllers();
 			builder.Services.AddHttpContextAccessor();
