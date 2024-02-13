@@ -35,5 +35,16 @@ namespace UniSportUAQ_API.Controllers
 
             return Ok(result);
         }
-	}
+
+        [HttpGet]
+        [Route("email/{email}")]
+        public async Task<IActionResult> GetInstructorByEmail(string email)
+        {
+            var result = await _instructorsService.GetInstructorByExpAsync(email);
+
+            if (result.Count > 0) return Ok(result[0].ToDictionaryForIdRetrieve());
+
+            return Ok(result);
+        }
+    }
 }

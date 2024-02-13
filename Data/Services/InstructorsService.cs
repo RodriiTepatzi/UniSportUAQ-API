@@ -34,5 +34,13 @@ namespace UniSportUAQ_API.Data.Services
 			return result;
 		}
 
+		public async Task<List<Instructor>> GetInstructorByEmailAsync(string email)
+		{
+			var result = await _context.Instructors.Where(
+				i => i.Email == email)
+				.ToListAsync();
+
+			return result;
+		}
     }
 }
