@@ -4,7 +4,7 @@ using UniSportUAQ_API.Data.Services;
 namespace UniSportUAQ_API.Controllers
 {
 	[ApiController]
-	[Route("users/instructors")]
+	[Route("api/users/instructors")]
 	public class InstructorsController : Controller
 	{
 		private readonly IInstructorsService _instructorsService;
@@ -24,5 +24,16 @@ namespace UniSportUAQ_API.Controllers
 
 			return Ok(result);
 		}
+
+		[HttpGet]
+		[Route("exp/{exp}")]
+		public async Task<IActionResult> GetInstructorByExp(string exp)
+		{
+			var result = await _instructorsService.GetInstructorByExpAsync(exp);
+
+            if (result.Count > 0) return Ok(result[0].ToDictionaryForIdRetrieve());
+
+            return Ok(result);
+        }
 	}
 }

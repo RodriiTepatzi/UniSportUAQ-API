@@ -24,5 +24,15 @@ namespace UniSportUAQ_API.Data.Services
 
 			return result;
 		}
-	}
+
+		public async Task<List<Instructor>> GetInstructorByExpAsync(string exp)
+		{
+			var result = await _context.Instructors.Where(
+					i => i.Expediente == exp
+				).ToListAsync();
+
+			return result;
+		}
+
+    }
 }

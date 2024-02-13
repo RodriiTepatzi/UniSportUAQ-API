@@ -6,5 +6,6 @@ namespace UniSportUAQ_API.Data.Services
 	{
 		Task<Instructor> CreateInstructorAsync(Instructor instructor);
 		Task<List<Instructor>> GetInstructorByIdAsync(string id);
-	}
+        Task<List<Instructor>> GetInstructorByExpAsync(string id);
+    }
 }
