@@ -32,6 +32,7 @@ namespace UniSportUAQ_API
 				.AddEntityFrameworkStores<AppDbContext>();
 
 			builder.Services.AddTransient<IStudentsService, StudentsService>();
+			builder.Services.AddTransient<IInstructorsService, InstructorsService>();
 
 			builder.Services.AddControllers();
 			builder.Services.AddHttpContextAccessor();

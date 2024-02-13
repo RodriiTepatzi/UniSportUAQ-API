@@ -30,6 +30,18 @@ namespace UniSportUAQ_API.Data
 			modelBuilder.Entity<Admin>()
 				.Property(e => e.Id);
 
+			modelBuilder.Entity<Attendance>()
+				.HasOne(a => a.Student)
+				.WithMany(s => s.Attendances)
+				.HasForeignKey(a => a.StudentId)
+				.OnDelete(DeleteBehavior.Restrict);
+
+			modelBuilder.Entity<Inscription>()
+				.HasOne(i => i.Student)
+				.WithMany(s => s.Inscriptions)
+				.HasForeignKey(i => i.StudentId)
+				.OnDelete(DeleteBehavior.Restrict);
+
 			base.OnModelCreating(modelBuilder);
 		}
 

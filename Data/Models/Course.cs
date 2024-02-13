@@ -6,6 +6,7 @@ namespace UniSportUAQ_API.Data.Models
     public class Course
     {
         [Key]
+		[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public string? Id { get; set; }
 
 

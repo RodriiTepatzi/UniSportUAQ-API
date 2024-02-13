@@ -21,6 +21,9 @@ namespace UniSportUAQ_API.Data
 				if (context!.CourseClasses.Any()) return;
 
 				var instructorUser = await userManager.FindByEmailAsync("rodrif19@hotmail.com");
+
+
+
 				var instructorFilled = context.Instructors.Where(
 					i => i.Email == instructorUser!.Email
 				)

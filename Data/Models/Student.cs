@@ -34,7 +34,12 @@ namespace UniSportUAQ_API.Data.Models
         [ForeignKey("CurrentCourse")]
         public virtual CourseClass CourseClass { get; set; }
 
-        public Dictionary<string, object> ToDictionaryForEmailRequest()
+		[NotMapped]
+		public List<Attendance>? Attendances { get; set; }
+		[NotMapped]
+		public List<Inscription>? Inscriptions { get; set; }
+
+		public Dictionary<string, object> ToDictionaryForEmailRequest()
 		{
 			return new Dictionary<string, object>
 			{

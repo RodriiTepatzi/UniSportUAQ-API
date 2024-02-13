@@ -7,7 +7,8 @@ namespace UniSportUAQ_API.Data.Models
     {
         [Required]
         [Key]
-        public string Id { get; set; }
+		[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+		public string Id { get; set; }
 
         [Required]
         public DateTime DateInscription { get; set; }
