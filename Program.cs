@@ -119,7 +119,7 @@ namespace UniSportUAQ_API
 				pattern: "{controller=Home}/{action=Index}/{id?}");
 
 			DatabaseInitializer.FeedUsersAndRoles(app);
-			DatabaseInitializer.FeedDatabase(app);
+			//DatabaseInitializer.FeedDatabase(app);
 
 			app.Run();
 		}
