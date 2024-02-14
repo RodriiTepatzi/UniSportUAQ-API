@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.Text.RegularExpressions;
 using UniSportUAQ_API.Data.Services;
+using UniSportUAQ_API.Data.Models;
+using UniSportUAQ_API.Data.Consts;
 
 namespace UniSportUAQ_API.Controllers
 {
@@ -43,13 +45,15 @@ namespace UniSportUAQ_API.Controllers
 			{
 				//asign
 				var result = await _studentsService.GetStudentByIdAsync(Id);
-				if (result.Count > 0) return Ok(result[0].ToDictionaryForIdRequest());
+				if (result.Count > 0) return Ok(new DataResponse{ Data = result[0].ToDictionaryForIdRequest(), ErrorMessage = null });
 				//return in case result>0
-				return Ok(result);
+				return Ok(new DataResponse { Data = result, ErrorMessage = null});
 
 			}
 			else {
-				return BadRequest("It is not a valid Id");
+
+				return Ok(new DataResponse { Data =  null, ErrorMessage= ResponseMessages.OBJECT_NOT_FOUND});
+
 			}
 
 			
