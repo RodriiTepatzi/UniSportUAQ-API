@@ -21,5 +21,16 @@ namespace UniSportUAQ_API.Data.Services
 			if (result is not null) return result;
 			else return new List<Student>();
 		}
+
+		public async Task<List<Student>> GetStudentByIdAsync(string id){
+		
+			var result = await _context.Students.Where(
+					s => s.Id == id
+				).
+				ToListAsync();
+
+            if (result is not null) return result;
+            else return new List<Student>();
+        }
 	}
 }

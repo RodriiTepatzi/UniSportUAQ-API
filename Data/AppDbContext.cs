@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using UniSportUAQ_API.Data.Models;
 
 namespace UniSportUAQ_API.Data
@@ -10,7 +11,14 @@ namespace UniSportUAQ_API.Data
 
 		}
 
-		protected override void OnModelCreating(ModelBuilder modelBuilder)
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            
+            // Habilitamos el registro de datos sensibles
+            optionsBuilder.EnableSensitiveDataLogging();
+        }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
             //inheritance from users
             modelBuilder.Entity<Student>().ToTable("Students");
@@ -43,7 +51,9 @@ namespace UniSportUAQ_API.Data
 				.OnDelete(DeleteBehavior.Restrict);
 
 			base.OnModelCreating(modelBuilder);
-		}
+
+            
+        }
 
 		public DbSet<ApplicationUser> ApplicationUsers { get; set; }
 		

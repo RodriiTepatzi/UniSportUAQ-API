@@ -28,5 +28,32 @@ namespace UniSportUAQ_API.Controllers
 
 			return Ok(result);
 		}
+		
+
+		//email
+		
+
+
+		[HttpGet]
+		[Route("id/{id}")]
+
+		public async Task<IActionResult> GetUserById(string Id) {
+			//validation
+			if (Guid.TryParse(Id, out _))
+			{
+				//asign
+				var result = await _studentsService.GetStudentByIdAsync(Id);
+				if (result.Count > 0) return Ok(result[0].ToDictionaryForIdRequest());
+				//return in case result>0
+				return Ok(result);
+
+			}
+			else {
+				return BadRequest("It is not a valid Id");
+			}
+
+			
+			
+		}
 	}
 }
