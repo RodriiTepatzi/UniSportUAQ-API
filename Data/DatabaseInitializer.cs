@@ -23,23 +23,24 @@ namespace UniSportUAQ_API.Data
 
 				var instructorUser = await userManager.FindByEmailAsync("rodrif19@hotmail.com");
 
-
-
-				var instructorFilled = context.Instructors.Where(
-					i => i.Email == instructorUser!.Email
-				)
-				.ToList();
-
-				var courses = new List<Course>
+				if (instructorUser != null)
 				{
-					new Course
-					{
-						CourseName = "Curso de C#",
-						InstructorId = instructorFilled[0].Id,
-					},
-				};
+					var instructorFilled = context.Instructors.Where(
+						i => i.Email == instructorUser!.Email
+					)
+					.ToList();
 
-				context.Courses.AddRange(courses);
+					var courses = new List<Course>
+					{
+						new Course
+						{
+							CourseName = "Curso de C#",
+							InstructorId = instructorFilled[0].Id,
+						},
+					};
+
+					context.Courses.AddRange(courses);
+				}
 
 				context.SaveChanges();
 			}
