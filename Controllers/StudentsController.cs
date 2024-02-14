@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using System.Text.RegularExpressions;
+using UniSportUAQ_API.Data.Schemas;
 using UniSportUAQ_API.Data.Services;
 using UniSportUAQ_API.Data.Models;
 using UniSportUAQ_API.Data.Consts;
@@ -7,7 +9,7 @@ using UniSportUAQ_API.Data.Consts;
 namespace UniSportUAQ_API.Controllers
 {
 	[ApiController]
-	[Route("users/students")]
+	[Route("api/users/students")]
 	public class StudentsController : Controller
 	{
 		private readonly IStudentsService _studentsService;
@@ -18,6 +20,7 @@ namespace UniSportUAQ_API.Controllers
 
 		[HttpGet]
         [Route("email/{email}")]
+		[Authorize]
 		public async Task<IActionResult> GetUserByEmail(string email)
 		{
 			var emailValidator = new Regex(@"^([\w\.\-]+)@([\w\-]+)((\.(\w){2,3})+)$");
@@ -30,15 +33,10 @@ namespace UniSportUAQ_API.Controllers
 
 			return Ok(result);
 		}
-		
-
-		//email
-		
-
 
 		[HttpGet]
 		[Route("id/{id}")]
-
+		[Authorize]
 		public async Task<IActionResult> GetUserById(string Id) {
 			//validation
 			if (Guid.TryParse(Id, out _))
@@ -55,9 +53,28 @@ namespace UniSportUAQ_API.Controllers
 				return Ok(new DataResponse { Data =  null, ErrorMessage= ResponseMessages.OBJECT_NOT_FOUND});
 
 			}
+		}
 
-			
-			
+		[HttpGet]
+		[Route("all/range/{start}/{end}")]
+		[Authorize]
+		public async Task<IActionResult> GetStudentsByRange(int start, int end)
+		{
+			var result = await _studentsService.GetAllInRangeAsync(start, end);
+			if (result.Count > 0) return Ok(result[0].ToDictionaryForIdRequest());
+			//return in case result>0
+			return Ok(result);
+		}
+
+		[HttpPost]
+		[Route("create")]
+		[AllowAnonymous]
+		public async Task<IActionResult> CreateStudentByRange([FromBody] StudentSchema student)
+		{
+			// TODO: more work to do here... such as validations and stuff.
+			var result = await _studentsService.CreateStudentAsync(student);
+
+			return Ok(result);
 		}
 	}
 }

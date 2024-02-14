@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using UniSportUAQ_API.Data.Consts;
 using UniSportUAQ_API.Data.Models;
@@ -22,6 +23,7 @@ namespace UniSportUAQ_API.Controllers
 
 		[HttpGet]
 		[Route("all")]
+		[Authorize]
         public async Task<IActionResult> GetAllUsers()
         {
             var result = await _usersService.GetAllAsync();
@@ -33,6 +35,7 @@ namespace UniSportUAQ_API.Controllers
 
 		[HttpGet]
 		[Route("email/{email}")]
+		[Authorize]
 		public async Task<IActionResult> GetUserByEmail(string email)
 		{
 			var result = await _usersService.GetUserByEmailAsync(email);
@@ -41,6 +44,18 @@ namespace UniSportUAQ_API.Controllers
 
 			return Ok(new DataResponse { Data = result, ErrorMessage = null});
 		}
-    }
+
+		[HttpGet]
+		[Route("all/range/{start}/{end}")]
+		[Authorize]
+		public async Task<IActionResult> GetAllUsersInRange(int start, int end)
+		{
+			var result = await _usersService.GetAllInRangeAsync(start, end);
+
+			if (result.Count == 0) return Ok(new DataResponse { Data = result, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+
+			return Ok(new DataResponse { Data = result, ErrorMessage = null });
+		}
+	}
 }
 
