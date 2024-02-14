@@ -115,6 +115,13 @@ namespace UniSportUAQ_API.Controllers
 				if (idEntity.Count > 0) return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.ENTITY_EXISTS });
 			}
 
+			if (!string.IsNullOrEmpty(student.Expediente))
+			{
+				var idEntity = await _studentsService.GetStudentByExpAsync(student.Expediente);
+
+				if (idEntity.Count > 0) return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.ENTITY_EXISTS });
+			}
+
 			var result = await _studentsService.CreateStudentAsync(student);
 
 			return Ok(new DataResponse { Data = result, ErrorMessage = null});
