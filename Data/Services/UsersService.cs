@@ -17,6 +17,17 @@ namespace UniSportUAQ_API.Data.Services
             return await _context.ApplicationUsers.ToListAsync();
         }
 
+		public async Task<List<ApplicationUser>> GetAllInRangeAsync(int start, int end)
+		{
+			int range = end - start + 1;
+
+			return await _context.ApplicationUsers
+				.OrderBy(u => u.UserName)
+				.Skip(start)
+				.Take(range)
+				.ToListAsync();
+		}
+
 		public async Task<List<ApplicationUser>> GetUserByEmailAsync(string email)
 		{
 			return await _context.ApplicationUsers.Where(

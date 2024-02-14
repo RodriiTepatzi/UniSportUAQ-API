@@ -42,5 +42,16 @@ namespace UniSportUAQ_API.Data.Services
 
 			return result;
 		}
-    }
+
+		public async Task<List<Instructor>> GetAllInRangeAsync(int start, int end)
+		{
+			int range = end - start + 1;
+
+			return await _context.Instructors
+				.OrderBy(u => u.UserName)
+				.Skip(start)
+				.Take(range)
+				.ToListAsync();
+		}
+	}
 }
