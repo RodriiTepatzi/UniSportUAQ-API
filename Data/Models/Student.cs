@@ -62,5 +62,17 @@ namespace UniSportUAQ_API.Data.Models
                 { nameof(Semester), Semester }
             };
         }
+
+        public Dictionary<string, object> ToDictionaryExpRequest()
+        {
+            return new Dictionary<string, object>
+            {
+                { nameof(Id), Id },
+                { nameof(Name), Name is not null ? Name : "" },
+                { nameof(Email), Email is not null ? Email : "" },
+                { nameof(UserName), UserName is not null ? UserName : "" },
+                { nameof(Semester), Semester }
+            };
+        }
     }
 }

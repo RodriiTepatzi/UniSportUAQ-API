@@ -12,7 +12,7 @@ using UniSportUAQ_API.Data;
 namespace UniSportUAQ_API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20240213223334_bd-start")]
+    [Migration("20240214164359_bd-start")]
     partial class bdstart
     {
         /// <inheritdoc />

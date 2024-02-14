@@ -5,6 +5,8 @@ using UniSportUAQ_API.Data.Consts;
 using UniSportUAQ_API.Data.Models;
 using UniSportUAQ_API.Data.Schemas;
 using UniSportUAQ_API.Data.Services;
+using UniSportUAQ_API.Data.Models;
+using UniSportUAQ_API.Data.Consts;
 
 namespace UniSportUAQ_API.Controllers
 {
@@ -18,6 +20,8 @@ namespace UniSportUAQ_API.Controllers
 			_studentsService = studentsService;   
         }
 
+
+		//get by email
 		[HttpGet]
         [Route("email/{email}")]
 		[Authorize]
@@ -34,6 +38,8 @@ namespace UniSportUAQ_API.Controllers
 			return Ok(result);
 		}
 
+		//get by id
+
 		[HttpGet]
 		[Route("id/{id}")]
 		[Authorize]
@@ -43,15 +49,39 @@ namespace UniSportUAQ_API.Controllers
 			{
 				//asign
 				var result = await _studentsService.GetStudentByIdAsync(Id);
-				if (result.Count > 0) return Ok(result[0].ToDictionaryForIdRequest());
+				if (result.Count > 0) return Ok(new DataResponse{ Data = result[0].ToDictionaryForIdRequest(), ErrorMessage = null });
 				//return in case result>0
-				return Ok(result);
+				return Ok(new DataResponse { Data = result, ErrorMessage = null});
 
 			}
 			else {
-				return BadRequest("It is not a valid Id");
+
+				return Ok(new DataResponse { Data =  null, ErrorMessage= ResponseMessages.OBJECT_NOT_FOUND});
+
 			}
 		}
+
+		//get user by exp
+
+		[HttpGet]
+		[Route("exp/{exp}")]
+		[Authorize]
+		public async Task<IActionResult> GetUserByExp(string exp) {
+
+			//validation
+			
+
+			
+			//asign result
+			var result = await _studentsService.GetStudentByExpAsync(exp);
+
+			if (result.Count > 0) return Ok(new DataResponse { Data = result[0].ToDictionaryExpRequest(), ErrorMessage = null });
+
+            //return result
+
+            return Ok(new DataResponse { Data = result, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND }); ;
+		}
+
 
 		[HttpGet]
 		[Route("all/range/{start}/{end}")]
