@@ -18,6 +18,8 @@ namespace UniSportUAQ_API.Controllers
 			_studentsService = studentsService;   
         }
 
+
+		//get by email
 		[HttpGet]
         [Route("email/{email}")]
 		[Authorize]
@@ -33,6 +35,8 @@ namespace UniSportUAQ_API.Controllers
 
 			return Ok(result);
 		}
+
+		//get by id
 
 		[HttpGet]
 		[Route("id/{id}")]
@@ -54,6 +58,28 @@ namespace UniSportUAQ_API.Controllers
 
 			}
 		}
+
+		//get user by exp
+
+		[HttpGet]
+		[Route("exp/{exp}")]
+		[Authorize]
+		public async Task<IActionResult> GetUserByExp(string exp) {
+
+			//validation
+			
+
+			
+			//asign result
+			var result = await _studentsService.GetStudentByExpAsync(exp);
+
+			if (result.Count > 0) return Ok(new DataResponse { Data = result[0].ToDictionaryExpRequest(), ErrorMessage = null });
+
+            //return result
+
+            return Ok(new DataResponse { Data = result, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND }); ;
+		}
+
 
 		[HttpGet]
 		[Route("all/range/{start}/{end}")]
