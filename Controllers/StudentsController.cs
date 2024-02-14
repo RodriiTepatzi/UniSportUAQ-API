@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.RegularExpressions;
+using UniSportUAQ_API.Data.Schemas;
 using UniSportUAQ_API.Data.Services;
 
 namespace UniSportUAQ_API.Controllers
@@ -58,6 +59,17 @@ namespace UniSportUAQ_API.Controllers
 			var result = await _studentsService.GetAllInRangeAsync(start, end);
 			if (result.Count > 0) return Ok(result[0].ToDictionaryForIdRequest());
 			//return in case result>0
+			return Ok(result);
+		}
+
+		[HttpPost]
+		[Route("create")]
+		[AllowAnonymous]
+		public async Task<IActionResult> CreateStudentByRange([FromBody] StudentSchema student)
+		{
+			// TODO: more work to do here... such as validations and stuff.
+			var result = await _studentsService.CreateStudentAsync(student);
+
 			return Ok(result);
 		}
 	}
