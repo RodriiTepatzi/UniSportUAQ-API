@@ -8,6 +8,7 @@ namespace UniSportUAQ_API.Data.Services
 		Task<List<Admin>> GetAdminByIdAsync(string id);
         Task<List<Admin>> GetAdminByExpAsync(string exp);
         Task<List<Admin>> GetAdminByEmailAsync(string email);
-    }
+		Task<List<Admin>> GetAllInRangeAsync(int start, int end);
+	}
 }
 

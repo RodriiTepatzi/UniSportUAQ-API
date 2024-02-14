@@ -7,6 +7,7 @@ namespace UniSportUAQ_API.Data.Services
 	{
 		Task<List<ApplicationUser>> GetAllAsync();
 		Task<List<ApplicationUser>> GetUserByEmailAsync(string email);
+		Task<List<ApplicationUser>> GetAllInRangeAsync(int start, int end);
 	}
 }
 

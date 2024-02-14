@@ -11,7 +11,18 @@ namespace UniSportUAQ_API.Data.Services
 			_context = context;
         }
 
-        public async Task<List<Student>> GetStudentByEmailAsync(string email)
+		public async Task<List<Student>> GetAllInRangeAsync(int start, int end)
+		{
+			int range = end - start + 1;
+
+			return await _context.Students
+				.OrderBy(u => u.UserName)
+				.Skip(start)
+				.Take(range)
+				.ToListAsync();
+		}
+
+		public async Task<List<Student>> GetStudentByEmailAsync(string email)
 		{
 			var result = await _context.Students.Where(
 				s => s.Email == email
