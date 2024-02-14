@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.RegularExpressions;
+using UniSportUAQ_API.Data.Consts;
+using UniSportUAQ_API.Data.Models;
 using UniSportUAQ_API.Data.Schemas;
 using UniSportUAQ_API.Data.Services;
 
@@ -65,12 +67,27 @@ namespace UniSportUAQ_API.Controllers
 		[HttpPost]
 		[Route("create")]
 		[AllowAnonymous]
-		public async Task<IActionResult> CreateStudentByRange([FromBody] StudentSchema student)
+		public async Task<IActionResult> CreateStudent([FromBody] StudentSchema student)
 		{
 			// TODO: more work to do here... such as validations and stuff.
+
+			if (!string.IsNullOrEmpty(student.Email))
+			{
+				var emailEntity = await _studentsService.GetStudentByEmailAsync(student.Email);
+
+				if (emailEntity.Count > 0) return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.ENTITY_EXISTS});
+			}
+
+			if (!string.IsNullOrEmpty(student.Id))
+			{
+				var idEntity = await _studentsService.GetStudentByIdAsync(student.Id);
+
+				if (idEntity.Count > 0) return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.ENTITY_EXISTS });
+			}
+
 			var result = await _studentsService.CreateStudentAsync(student);
 
-			return Ok(result);
+			return Ok(new DataResponse { Data = result, ErrorMessage = null});
 		}
 	}
 }

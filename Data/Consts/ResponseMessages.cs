@@ -6,5 +6,6 @@
 		public const string UNAUTHORIZED = "You do not have access to this endpoint.";
 		public const string BAD_REQUEST = "The data you provided was not properly provided. Please check our documentation.";
 		public const string INTERNAL_ERROR = "Internal error. Please contact and provide us some details about how this was generated.";
+		public const string ENTITY_EXISTS = "An entity with this email, id or expediente already exists. Please verify the data to avoid duplicates.";
 	}
 }
