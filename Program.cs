@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -31,9 +32,31 @@ namespace UniSportUAQ_API
 				.AddRoles<IdentityRole>()
 				.AddEntityFrameworkStores<AppDbContext>();
 
+			builder.Services.AddAuthentication(options =>
+			{
+				options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+				options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+				options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+			}).AddJwtBearer(o =>
+			{
+				o.TokenValidationParameters = new TokenValidationParameters
+				{
+					ValidIssuer = builder.Configuration["Jwt:Issuer"],
+					ValidAudience = builder.Configuration["Jwt:Audience"],
+					IssuerSigningKey = new SymmetricSecurityKey
+					(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)),
+					ValidateIssuer = true,
+					ValidateAudience = true,
+					ValidateLifetime = false, // Change to 'true' on production to avoid creating multiple tokens.
+					ValidateIssuerSigningKey = true,
+					ClockSkew = TimeSpan.Zero,
+				};
+			});
+
 			builder.Services.AddTransient<IStudentsService, StudentsService>();
 			builder.Services.AddTransient<IInstructorsService, InstructorsService>();
             builder.Services.AddTransient<IAdminsService, AdminsService>();
+			builder.Services.AddTransient<IUsersService, UsersService>();
 
 			builder.Services.AddControllers();
 			builder.Services.AddHttpContextAccessor();

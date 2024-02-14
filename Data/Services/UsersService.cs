@@ -16,6 +16,13 @@ namespace UniSportUAQ_API.Data.Services
         {
             return await _context.ApplicationUsers.ToListAsync();
         }
-    }
+
+		public async Task<List<ApplicationUser>> GetUserByEmailAsync(string email)
+		{
+			return await _context.ApplicationUsers.Where(
+				u => u.Email == email
+			).ToListAsync();
+		}
+	}
 }
 

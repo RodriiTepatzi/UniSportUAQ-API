@@ -6,6 +6,7 @@ namespace UniSportUAQ_API.Data.Services
 	public interface IUsersService
 	{
 		Task<List<ApplicationUser>> GetAllAsync();
+		Task<List<ApplicationUser>> GetUserByEmailAsync(string email);
 	}
 }
 
