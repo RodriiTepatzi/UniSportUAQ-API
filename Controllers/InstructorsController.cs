@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using UniSportUAQ_API.Data.Consts;
 using UniSportUAQ_API.Data.Models;
+using UniSportUAQ_API.Data.Schemas;
 using UniSportUAQ_API.Data.Services;
 
 namespace UniSportUAQ_API.Controllers
@@ -63,6 +64,40 @@ namespace UniSportUAQ_API.Controllers
 			if (result.Count > 0) return Ok(new DataResponse { Data = result[0].ToDictionaryForIdRetrieve(), ErrorMessage = null });
 
 			return Ok(new DataResponse { Data = result, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+		}
+
+		[HttpPost]
+		[Route("create")]
+		[AllowAnonymous]
+		public async Task<IActionResult> CreateStudent([FromBody] InstructorSchema instructor)
+		{
+
+			if (!string.IsNullOrEmpty(instructor.Email))
+			{
+				var emailEntity = await _instructorsService.GetInstructorByEmailAsync(instructor.Email);
+
+				if (emailEntity.Count > 0) return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.ENTITY_EXISTS });
+			}
+
+			if (!string.IsNullOrEmpty(instructor.Id))
+			{
+				var idEntity = await _instructorsService.GetInstructorByIdAsync(instructor.Id);
+
+				if (idEntity.Count > 0) return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.ENTITY_EXISTS });
+			}
+
+			if (!string.IsNullOrEmpty(instructor.Expediente))
+			{
+				var idEntity = await _instructorsService.GetInstructorByExpAsync(instructor.Expediente);
+
+				if (idEntity.Count > 0) return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.ENTITY_EXISTS });
+			}
+
+			if (string.IsNullOrEmpty(instructor.Password)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+
+			var result = await _instructorsService.CreateInstructorAsync(instructor);
+
+			return Ok(new DataResponse { Data = result, ErrorMessage = null });
 		}
 	}
 }
