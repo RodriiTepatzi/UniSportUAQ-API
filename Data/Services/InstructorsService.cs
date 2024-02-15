@@ -1,19 +1,36 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using UniSportUAQ_API.Data.Models;
+using UniSportUAQ_API.Data.Schemas;
 
 namespace UniSportUAQ_API.Data.Services
 {
 	public class InstructorsService : IInstructorsService
 	{
 		private readonly AppDbContext _context;
-        public InstructorsService(AppDbContext context)
-        {
-			_context = context;
-        }
+		private readonly UserManager<ApplicationUser> _userManager;
 
-        public Task<Instructor> CreateInstructorAsync(Instructor instructor)
+		public InstructorsService(AppDbContext context, UserManager<ApplicationUser> userManager)
 		{
-			throw new NotImplementedException();
+			_context = context;
+			_userManager = userManager;
+		}
+
+        public async Task<Instructor> CreateInstructorAsync(InstructorSchema instructorSchema)
+		{
+			var student = new Instructor
+			{
+				UserName = instructorSchema.Expediente,
+				Name = instructorSchema.Name,
+				LastName = instructorSchema.LastName,
+				Email = instructorSchema.Email,
+				PhoneNumber = instructorSchema.PhoneNumber,
+				Expediente = instructorSchema.Expediente,
+			};
+
+			await _userManager.CreateAsync(student, instructorSchema.Password!);
+
+			return student;
 		}
 
 		public async Task<List<Instructor>> GetInstructorByIdAsync(string id)

@@ -19,7 +19,6 @@ namespace UniSportUAQ_API.Data.Services
 		{
 			var student = new Student
 			{
-				Id = studentSchema.Id is null ? "" : studentSchema.Id,
 				UserName = studentSchema.Expediente,
 				Name = studentSchema.Name,
 				LastName = studentSchema.LastName,

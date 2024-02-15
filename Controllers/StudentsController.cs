@@ -99,7 +99,6 @@ namespace UniSportUAQ_API.Controllers
 		[AllowAnonymous]
 		public async Task<IActionResult> CreateStudent([FromBody] StudentSchema student)
 		{
-			// TODO: more work to do here... such as validations and stuff.
 
 			if (!string.IsNullOrEmpty(student.Email))
 			{
@@ -121,6 +120,8 @@ namespace UniSportUAQ_API.Controllers
 
 				if (idEntity.Count > 0) return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.ENTITY_EXISTS });
 			}
+
+			if (string.IsNullOrEmpty(student.Password)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
 
 			var result = await _studentsService.CreateStudentAsync(student);
 
