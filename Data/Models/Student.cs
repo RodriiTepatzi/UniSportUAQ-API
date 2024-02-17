@@ -39,6 +39,7 @@ namespace UniSportUAQ_API.Data.Models
 		[NotMapped]
 		public List<Inscription>? Inscriptions { get; set; }
 
+       /***********************************/
 		public Dictionary<string, object> ToDictionaryForEmailRequest()
 		{
 			return new Dictionary<string, object>
