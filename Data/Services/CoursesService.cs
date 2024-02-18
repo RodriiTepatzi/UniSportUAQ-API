@@ -34,11 +34,11 @@ namespace UniSportUAQ_API.Data.Services
             return result;
         }
 
-        public async Task<List<Course>> GetCourseByIdInstructor(string Id) 
+        public async Task<List<Course>> GetCourseByIdInstructor(string instructorId) 
         {
 
             var result = await _context.Courses.Where(
-               i => i.InstructorId == Id)
+               i => i.InstructorId == instructorId)
                .ToListAsync();
 
             return result;
