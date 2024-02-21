@@ -8,13 +8,10 @@ namespace UniSportUAQ_API.Data.Models
         [Required]
         [Key]
 		[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-		public string Id { get; set; }
+		public string? Id { get; set; }
 
         [Required]
         public DateTime DateInscription { get; set; }
-
-
-        //liberado
 
         public bool Accredit { get; set; }
 
@@ -24,10 +21,8 @@ namespace UniSportUAQ_API.Data.Models
 
 
         [Required]
-        //foreign key
         public string? StudentId { get; set; }
 
-        //foreign key
         [Required]
         public string? CourseId { get; set; }
 

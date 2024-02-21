@@ -62,8 +62,9 @@ namespace UniSportUAQ_API
             builder.Services.AddTransient<IAdminsService, AdminsService>();
 			builder.Services.AddTransient<IUsersService, UsersService>();
             builder.Services.AddTransient<ICoursesService, CoursesService>();
+            builder.Services.AddTransient<IInstructorsService, InstructorsService>();
 
-			builder.Services.AddControllers();
+            builder.Services.AddControllers();
 			builder.Services.AddHttpContextAccessor();
 
 			var app = builder.Build();

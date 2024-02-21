@@ -12,8 +12,8 @@ using UniSportUAQ_API.Data;
 namespace UniSportUAQ_API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20240214164359_bd-start")]
-    partial class bdstart
+    [Migration("20240221043724_updating-course-model")]
+    partial class updatingcoursemodel
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -125,9 +125,18 @@ namespace UniSportUAQ_API.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<int>("CurrentUsers")
+                        .HasColumnType("int");
+
                     b.Property<string>("InstructorId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("MaxUsers")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PendingUsers")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 

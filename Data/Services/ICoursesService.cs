@@ -7,12 +7,13 @@ namespace UniSportUAQ_API.Data.Services
 
         Task<Course> CreateCourseAsync(Course course);
 
-        Task<List<Course>> GetCourseByIdAsync(string id);
+        Task<Course?> GetCourseByIdAsync(string id);
 
         Task<List<Course>> GetCourseByNameAsync(string name);
 
         Task<List<Course>> GetCourseByIdInstructor(string id_instructor);
 
+        Task<Course> UpdateCourseAsync(Course course);
 
     }
 }

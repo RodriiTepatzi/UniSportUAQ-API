@@ -19,6 +19,16 @@ namespace UniSportUAQ_API.Data.Models
         [Required]
         public string? InstructorId { get; set; }
 
+        public int MaxUsers { get; set; }
+        public int CurrentUsers { get; set; }
+        public int PendingUsers { get; set; }
+
+        [NotMapped]
+        public List<Student> CurrentUsersList { get; set; }
+        
+        [NotMapped]
+        public List<Student> PendingUsersList { get; set; }
+
 
         [ForeignKey("InstructorId")]
         public virtual Instructor? Instructor { get; set; }
@@ -62,3 +72,4 @@ namespace UniSportUAQ_API.Data.Models
         }
     }
 }
+

@@ -1,9 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using UniSportUAQ_API.Data.Models;
 
 namespace UniSportUAQ_API.Data.Services
 {
-    public class CoursesService:ICoursesService
+    public class CoursesService : ICoursesService
     {
         private readonly AppDbContext _context;
 
@@ -15,13 +16,29 @@ namespace UniSportUAQ_API.Data.Services
             throw new NotImplementedException();
         }
 
-        public async Task<List<Course>> GetCourseByIdAsync(string id) {
+        public async Task<Course?> GetCourseByIdAsync(string id) {
 
-            var result = await _context.Courses.Where(
-                i => i.Id == id)
-                .ToListAsync();
+            try
+            {
+                var result = await _context.Courses.SingleAsync(
+                i => i.Id == id);
 
-            return result;
+                var entity = _context.Entry(result);
+
+                if (entity.State == EntityState.Unchanged)
+                {
+                    return entity.Entity;
+                }
+                else
+                {
+                    return entity.Entity;
+                }
+            }
+            catch (InvalidOperationException)
+            {
+                return null;
+            }
+            
         }
 
         public async Task<List<Course>> GetCourseByNameAsync(string name)
@@ -44,6 +61,16 @@ namespace UniSportUAQ_API.Data.Services
             return result;
 
 
+        }
+
+        public async Task<Course> UpdateCourseAsync(Course course)
+        {
+            EntityEntry entityEntry = _context.Entry(course);
+            entityEntry.State = EntityState.Modified;
+
+            await _context.SaveChangesAsync();
+
+            return course;
         }
     }
 }
