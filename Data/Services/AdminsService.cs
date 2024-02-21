@@ -1,17 +1,39 @@
 ﻿using System;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using UniSportUAQ_API.Data.Models;
-
+using UniSportUAQ_API.Data.Schemas;
 namespace UniSportUAQ_API.Data.Services
 {
 	public class AdminsService : IAdminsService
 	{
         private readonly AppDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public AdminsService(AppDbContext context)
+        public AdminsService(AppDbContext context, UserManager<ApplicationUser> userManager)
 		{
             _context = context;
-		}
+            _userManager = userManager;
+        }
+
+
+        public async Task<Admin> CreateAdminAsync(AdminSchema adminSchema) { 
+            
+
+            var admin = new Admin {
+
+                UserName = adminSchema.Expediente,
+                Name = adminSchema.Name,
+                LastName = adminSchema.LastName,
+                Email = adminSchema.Email,
+                PhoneNumber = adminSchema.PhoneNumber,
+                Expediente = adminSchema.Expediente,
+            };
+
+            await _userManager.CreateAsync(admin, adminSchema.Password!);
+
+            return admin;
+        }
 
         public async Task<List<Admin>> GetAdminByEmailAsync(string email)
         {

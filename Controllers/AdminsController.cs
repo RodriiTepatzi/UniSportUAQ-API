@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using UniSportUAQ_API.Data.Consts;
 using UniSportUAQ_API.Data.Models;
 using UniSportUAQ_API.Data.Services;
+using UniSportUAQ_API.Data.Schemas;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -70,6 +71,44 @@ namespace UniSportUAQ_API.Controllers
 
 			return Ok(new DataResponse { Data = result, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 		}
+
+
+
+        [HttpPost]
+        [Route("create")]
+        [Authorize]
+
+        public async Task<IActionResult> CreateAdmin([FromBody] AdminSchema admin) {
+
+            //validate register attrributes
+
+            if (!string.IsNullOrEmpty(admin.Email)) { 
+
+                var emailEntity = await _adminsService.GetAdminByEmailAsync(admin.Email);
+
+                if (emailEntity.Count() > 0) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.ENTITY_EXISTS });
+            }
+
+            if (!string.IsNullOrEmpty(admin.Expediente)) {
+
+                var expEntity = await _adminsService.GetAdminByExpAsync(admin.Expediente);
+
+                if (expEntity.Count() > 0) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.ENTITY_EXISTS });
+            }
+
+            if (!string.IsNullOrEmpty(admin.Id)) { 
+                var idEntity = await _adminsService.GetAdminByIdAsync(admin.Id);
+
+                if (idEntity.Count() > 0) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.ENTITY_EXISTS });
+            }
+
+            if (!string.IsNullOrEmpty(admin.Password)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+
+            var result = await _adminsService.CreateAdminAsync(admin);
+
+            return Ok(new DataResponse { Data = result, ErrorMessage = null });
+
+        }
 	}
 }
 
