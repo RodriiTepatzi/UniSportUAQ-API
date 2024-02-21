@@ -27,12 +27,16 @@ namespace UniSportUAQ_API
 
 			Configuration = builder.Configuration;
 
-			builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnectionString")))
-				.AddIdentityCore<ApplicationUser>()
-				.AddRoles<IdentityRole>()
-				.AddEntityFrameworkStores<AppDbContext>();
+            builder.Services.AddDbContext<AppDbContext>(
+                options => options.UseSqlServer(
+                    Configuration.GetConnectionString("DefaultConnectionString"),
+                    providerOptions => providerOptions.EnableRetryOnFailure()
+                ))
+                .AddIdentityCore<ApplicationUser>()
+                .AddRoles<IdentityRole>()
+                .AddEntityFrameworkStores<AppDbContext>();
 
-			builder.Services.AddAuthentication(options =>
+            builder.Services.AddAuthentication(options =>
 			{
 				options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
 				options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
