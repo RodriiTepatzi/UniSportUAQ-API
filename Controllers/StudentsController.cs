@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections;
 using System.Text.RegularExpressions;
 using UniSportUAQ_API.Data.Consts;
 using UniSportUAQ_API.Data.Models;
@@ -32,9 +33,9 @@ namespace UniSportUAQ_API.Controllers
 
 			var result = await _studentsService.GetStudentByEmailAsync(email);
 
-			if (result.Count > 0) return Ok(result[0].ToDictionaryForEmailRequest());
+			if (result is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 
-			return Ok(result);
+			return Ok(new DataResponse { Data = result.ToDictionary(), ErrorMessage = null });
 		}
 
 		//get by id
@@ -42,22 +43,14 @@ namespace UniSportUAQ_API.Controllers
 		[HttpGet]
 		[Route("id/{id}")]
 		[Authorize]
-		public async Task<IActionResult> GetUserById(string Id) {
-			//validation
-			if (Guid.TryParse(Id, out _))
-			{
-				//asign
-				var result = await _studentsService.GetStudentByIdAsync(Id);
-				if (result.Count > 0) return Ok(new DataResponse{ Data = result[0].ToDictionaryForIdRequest(), ErrorMessage = null });
-				//return in case result>0
-				return Ok(new DataResponse { Data = result, ErrorMessage = null});
+		public async Task<IActionResult> GetUserById(string Id) 
+        {
+			var result = await _studentsService.GetStudentByIdAsync(Id);
 
-			}
-			else {
-
-				return Ok(new DataResponse { Data =  null, ErrorMessage= ResponseMessages.OBJECT_NOT_FOUND});
-
-			}
+			if (result is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+               
+			return Ok(new DataResponse { Data = result.ToDictionary(), ErrorMessage = null});
+			
 		}
 
 		//get user by exp
@@ -67,18 +60,11 @@ namespace UniSportUAQ_API.Controllers
 		[Authorize]
 		public async Task<IActionResult> GetUserByExp(string exp) {
 
-			//validation
-			
-
-			
-			//asign result
 			var result = await _studentsService.GetStudentByExpAsync(exp);
 
-			if (result.Count > 0) return Ok(new DataResponse { Data = result[0].ToDictionaryExpRequest(), ErrorMessage = null });
+			if (result is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 
-            //return result
-
-            return Ok(new DataResponse { Data = result, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND }); ;
+			return Ok(new DataResponse { Data = result.ToDictionary(), ErrorMessage = null }); ;
 		}
 
 
@@ -88,9 +74,14 @@ namespace UniSportUAQ_API.Controllers
 		public async Task<IActionResult> GetStudentsByRange(int start, int end)
 		{
 			var result = await _studentsService.GetAllInRangeAsync(start, end);
-			if (result.Count > 0) return Ok(result[0].ToDictionaryForIdRequest());
-			//return in case result>0
-			return Ok(result);
+
+			var dictionaryResults = new List<Dictionary<string, object>>();
+
+			result.ForEach((value) => dictionaryResults.Add(value.ToDictionary()));
+
+			if (result.Count > 0) return Ok(new DataResponse { Data = dictionaryResults, ErrorMessage = null });
+
+			return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND }); ;
 		}
 
 		[HttpPost]
@@ -103,21 +94,21 @@ namespace UniSportUAQ_API.Controllers
 			{
 				var emailEntity = await _studentsService.GetStudentByEmailAsync(student.Email);
 
-				if (emailEntity.Count > 0) return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.ENTITY_EXISTS});
+				if (emailEntity is not null) return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.ENTITY_EXISTS});
 			}
 
 			if (!string.IsNullOrEmpty(student.Id))
 			{
 				var idEntity = await _studentsService.GetStudentByIdAsync(student.Id);
 
-				if (idEntity.Count > 0) return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.ENTITY_EXISTS });
+				if (idEntity is not null) return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.ENTITY_EXISTS });
 			}
 
 			if (!string.IsNullOrEmpty(student.Expediente))
 			{
-				var idEntity = await _studentsService.GetStudentByExpAsync(student.Expediente);
+				var expEntity = await _studentsService.GetStudentByExpAsync(student.Expediente);
 
-				if (idEntity.Count > 0) return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.ENTITY_EXISTS });
+				if (expEntity is not null) return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.ENTITY_EXISTS });
 			}
 
 			if (string.IsNullOrEmpty(student.Password)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });

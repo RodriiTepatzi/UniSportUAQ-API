@@ -6,41 +6,34 @@ namespace UniSportUAQ_API.Data.Models
 {
     public class Student : ApplicationUser
     {
-        
-
-        [Required]
         public int Group { get; set; }
-
-        [Required]
         public int Semester { get; set; }
 
+
         [DefaultValue("False")]
-        public bool IsInOfficialGroup { get; set; }
-        public bool IsSuscribed { get; set; }
+        public bool IsInFIF { get; set; }
+        public bool IsActive { get; set; }
 
         [StringLength(10)]
         public string? StudyPlan { get; set; }
 
         [NotMapped]
-        public List<int>? FinishedCourses { get; set; }
-
-        public string? FinishedCoursesJson { get; set; }
-        public DateTime SuscribedDateTime { get; set; }
+        public List<Course>? FinishedCourses { get; set; }
+        public DateTime RegisteredDateTime { get; set; }
 
 
-        //foreign key
-        public string? CurrentCourse { get; set; }
+        public string? CurrentCourseId { get; set; }
 
-        [ForeignKey("CurrentCourse")]
-        public virtual CourseClass CourseClass { get; set; }
+        [ForeignKey("CurrentCourseId")]
+        [NotMapped]
+        public Course? CurrentCourse { get; set; }
 
 		[NotMapped]
 		public List<Attendance>? Attendances { get; set; }
 		[NotMapped]
 		public List<Inscription>? Inscriptions { get; set; }
 
-       /***********************************/
-		public Dictionary<string, object> ToDictionaryForEmailRequest()
+		public Dictionary<string, object> ToDictionary()
 		{
 			return new Dictionary<string, object>
 			{
@@ -48,32 +41,15 @@ namespace UniSportUAQ_API.Data.Models
 				{ nameof(Name), Name is not null ? Name : "" },
 				{ nameof(Email), Email is not null ? Email : "" },
 				{ nameof(UserName), UserName is not null ? UserName : "" },
-				{ nameof(Semester), Semester }
+                { nameof(Expediente), Expediente is not null ? Expediente : "" },
+                { nameof(IsInFIF), IsInFIF },
+                { nameof(Semester), Semester },
+                { nameof(IsActive), IsActive },
+                { nameof(RegisteredDateTime), RegisteredDateTime },
+				{ nameof(PictureUrl), PictureUrl is not null ? PictureUrl : "" },
+				{ nameof(CurrentCourse), CurrentCourse },
+				{ nameof(FinishedCourses), FinishedCourses is not null ? FinishedCourses : new List<Course>() }
 			};
 		}
-
-        public Dictionary<string, object> ToDictionaryForIdRequest()
-        {
-            return new Dictionary<string, object>
-            {
-                { nameof(Id), Id },
-                { nameof(Name), Name is not null ? Name : "" },
-                { nameof(Email), Email is not null ? Email : "" },
-                { nameof(UserName), UserName is not null ? UserName : "" },
-                { nameof(Semester), Semester }
-            };
-        }
-
-        public Dictionary<string, object> ToDictionaryExpRequest()
-        {
-            return new Dictionary<string, object>
-            {
-                { nameof(Id), Id },
-                { nameof(Name), Name is not null ? Name : "" },
-                { nameof(Email), Email is not null ? Email : "" },
-                { nameof(UserName), UserName is not null ? UserName : "" },
-                { nameof(Semester), Semester }
-            };
-        }
     }
 }

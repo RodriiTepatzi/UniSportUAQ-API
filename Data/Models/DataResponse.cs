@@ -4,6 +4,6 @@
 	{
 		public object? Data { get; set; }
 		public string? ErrorMessage { get; set; }
-		public bool? HasError { get { return string.IsNullOrEmpty(ErrorMessage); }  }
+		public bool? HasError { get { return !string.IsNullOrEmpty(ErrorMessage); }  }
 	}
 }

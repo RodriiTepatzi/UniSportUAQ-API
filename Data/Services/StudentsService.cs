@@ -40,40 +40,57 @@ namespace UniSportUAQ_API.Data.Services
 				.OrderBy(u => u.UserName)
 				.Skip(start)
 				.Take(range)
+                .Include(s => s.CurrentCourse)
 				.ToListAsync();
 		}
 
-		public async Task<List<Student>> GetStudentByEmailAsync(string email)
+		public async Task<Student?> GetStudentByEmailAsync(string email)
 		{
-			var result = await _context.Students.Where(
-				s => s.Email == email
-			).
-			ToListAsync();
+            try
+            {
+                var result = await _context.Students.SingleAsync(
+					s => s.Email == email
+				);
 
-			if (result is not null) return result;
-			else return new List<Student>();
-		}
-
-		public async Task<List<Student>> GetStudentByIdAsync(string id){
-		
-			var result = await _context.Students.Where(
-					s => s.Id == id
-				).
-				ToListAsync();
-
-            if (result is not null) return result;
-            else return new List<Student>();
+                if (result is not null) return result;
+                else return null;
+            }
+            catch
+            {
+                return null;
+            }
         }
 
-        public async Task<List<Student>> GetStudentByExpAsync(string exp)
+		public async Task<Student?> GetStudentByIdAsync(string id)
         {
-            var result = await _context.Students.Where(
-                s => s.Expediente == exp
-            ).
-            ToListAsync();
+            try
+            {
+                var result = await _context.Students.SingleAsync(
+					s => s.Id == id
+                );
 
-            if (result is not null) return result;
-            else return new List<Student>();
+                if (result is not null) return result;
+                else return null;
+            }
+            catch{
+                return null;
+            }
+        }
+
+        public async Task<Student?> GetStudentByExpAsync(string exp)
+        {
+            try
+            {
+                var result = await _context.Students.SingleAsync(
+                    s => s.Expediente == exp
+                );
+
+                if (result is not null) return result;
+                else return null;
+            }
+            catch{
+                return null;
+            }
         }
     }
 }
