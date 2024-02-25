@@ -27,6 +27,7 @@ namespace UniSportUAQ_API.Data.Services
                 Id = attendanceSchema.Id,
                 StudentId = attendanceSchema.StudentId,
                 CourseId = attendanceSchema.CourseId,
+                Date = attendanceSchema.Date,
                 AttendanceClass = attendanceSchema.AttendanceClass,
             };
 
@@ -55,7 +56,7 @@ namespace UniSportUAQ_API.Data.Services
             return null;
         }
 
-       public async Task<List<Attendance>> GetAttendanceByDayIdAsync(DateTime day)
+       public async Task<List<Attendance>> GetAttendanceByDayAsync(DateTime day)
         {
             return null;
         }

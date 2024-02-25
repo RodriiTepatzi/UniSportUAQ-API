@@ -14,7 +14,7 @@ namespace UniSportUAQ_API.Data.Services
 
         Task<List<Attendance>> GetAttendanceByCourseIdAsync(string courseId);
 
-        Task<List<Attendance>> GetAttendanceByDayIdAsync(DateTime day);
+        Task<List<Attendance>> GetAttendanceByDayAsync(DateTime day);
 
         Task<List<Attendance>> GetAttendanceForValidationAsync(string courseId, string studentId, DateTime day);
 
