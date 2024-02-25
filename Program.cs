@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -57,12 +58,18 @@ namespace UniSportUAQ_API
 				};
 			});
 
-			builder.Services.AddTransient<IStudentsService, StudentsService>();
+            builder.Services.AddControllers().AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+            });
+
+            builder.Services.AddTransient<IStudentsService, StudentsService>();
 			builder.Services.AddTransient<IInstructorsService, InstructorsService>();
             builder.Services.AddTransient<IAdminsService, AdminsService>();
 			builder.Services.AddTransient<IUsersService, UsersService>();
             builder.Services.AddTransient<ICoursesService, CoursesService>();
             builder.Services.AddTransient<IInstructorsService, InstructorsService>();
+            builder.Services.AddTransient<IAttendancesService, AttendancesService>();
 
             builder.Services.AddControllers();
 			builder.Services.AddHttpContextAccessor();
@@ -148,7 +155,7 @@ namespace UniSportUAQ_API
 				pattern: "{controller=Home}/{action=Index}/{id?}");
 
 			DatabaseInitializer.FeedUsersAndRoles(app);
-			//DatabaseInitializer.FeedDatabase(app);
+			DatabaseInitializer.FeedDatabase(app);
 
 			app.Run();
 		}
