@@ -101,6 +101,9 @@ namespace UniSportUAQ_API.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("StudentId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
@@ -127,6 +130,16 @@ namespace UniSportUAQ_API.Migrations
 
                     b.Property<int>("CurrentUsers")
                         .HasColumnType("int");
+
+                    b.Property<string>("Day")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Hour")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<string>("InstructorId")
                         .IsRequired()
@@ -292,7 +305,7 @@ namespace UniSportUAQ_API.Migrations
 
             modelBuilder.Entity("UniSportUAQ_API.Data.Models.Inscription", b =>
                 {
-                    b.HasOne("UniSportUAQ_API.Data.Models.CourseClass", "CourseClass")
+                    b.HasOne("UniSportUAQ_API.Data.Models.Course", "Course")
                         .WithMany()
                         .HasForeignKey("CourseId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -304,7 +317,7 @@ namespace UniSportUAQ_API.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("CourseClass");
+                    b.Navigation("Course");
 
                     b.Navigation("Student");
                 });
