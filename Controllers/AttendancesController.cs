@@ -34,16 +34,16 @@ namespace UniSportUAQ_API.Controllers
         public async Task<IActionResult> CreateAttendanceAsync([FromBody] AttendanceSchema attendance)
         {
 
-            if (string.IsNullOrEmpty(attendance.CourseId) && string.IsNullOrEmpty(attendance.StudentId)) return BadRequest(new DataResponse { Data = null, ErrorMessage = "error en el isnullorempty" });
+            if (string.IsNullOrEmpty(attendance.CourseId) && string.IsNullOrEmpty(attendance.StudentId)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
 
-            attendance.Date=DateTime.Now.Date;
+            
 
             var attendanceEntity = await _atenndancesService.GetAttendanceForValidationAsync(attendance.CourseId, attendance.StudentId, attendance.Date);
 
             if (attendanceEntity.Count > 0) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.ENTITY_EXISTS });
 
             Guid guid = Guid.NewGuid();
-            DateTime dateTime = DateTime.Now.Date;
+            DateTime dateTime = DateTime.Now.Date.Date;
             attendance.Id = guid.ToString();
             attendance.Date = dateTime;
 
