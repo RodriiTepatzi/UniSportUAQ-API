@@ -19,6 +19,14 @@ namespace UniSportUAQ_API.Data.Models
         [Required]
         public string? InstructorId { get; set; }
 
+        [Required]
+        [StringLength(20)]
+        public string? Day {  get; set; }
+        [Required]
+        [StringLength(20)]
+        public string? Hour { get; set; }
+
+        [Required]
         public int MaxUsers { get; set; }
         public int CurrentUsers { get; set; }
         public int PendingUsers { get; set; }
@@ -47,29 +55,6 @@ namespace UniSportUAQ_API.Data.Models
 
         }
 
-        public Dictionary<string, object> ToDictionaryForCourseNameRequest()
-        {
-
-            return new Dictionary<string, object>
-            {
-                { nameof(Id), Id},
-                { nameof(CourseName), CourseName is not null? CourseName: ""},
-                { nameof(InstructorId), InstructorId is not null? InstructorId: ""}
-            };
-
-        }
-
-        public Dictionary<string, object> ToDictionaryForInstructorIdRequest()
-        {
-
-            return new Dictionary<string, object>
-            {
-                { nameof(Id), Id},
-                { nameof(CourseName), CourseName is not null? CourseName: ""},
-                { nameof(InstructorId), InstructorId is not null? InstructorId: ""}
-            };
-
-        }
     }
 }
 

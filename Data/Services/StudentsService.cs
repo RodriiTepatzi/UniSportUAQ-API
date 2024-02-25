@@ -27,8 +27,7 @@ namespace UniSportUAQ_API.Data.Services
 				Expediente = studentSchema.Expediente,
 				//
 				Group= studentSchema.Group,
-				Semester = studentSchema.Semester,	
-				StudyPlan = studentSchema.StudyPlan,
+				Semester = studentSchema.Semester,
 			};
 
 			await _userManager.CreateAsync(student, studentSchema.Password!);
@@ -70,13 +69,21 @@ namespace UniSportUAQ_API.Data.Services
             try
             {
                 var result = await _context.Students.SingleAsync(
-					s => s.Id == id
-                );
+                i => i.Id == id);
 
-                if (result is not null) return result;
-                else return null;
+                var entity = _context.Entry(result);
+
+                if (entity.State == EntityState.Unchanged)
+                {
+                    return entity.Entity;
+                }
+                else
+                {
+                    return entity.Entity;
+                }
             }
-            catch{
+            catch (InvalidOperationException)
+            {
                 return null;
             }
         }
