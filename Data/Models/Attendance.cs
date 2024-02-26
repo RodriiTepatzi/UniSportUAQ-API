@@ -34,7 +34,7 @@ namespace UniSportUAQ_API.Data.Models
         {
             return new Dictionary<string, object>
                 {
-                    { nameof(Id), Id is not null },
+                    { nameof(Id), Id },
                     { nameof(StudentId), StudentId is not null ? StudentId : "" },
                     { nameof(CourseId), CourseId is not null ? CourseId : "" },
                     { nameof(Date),DateTime.Now.Date },
