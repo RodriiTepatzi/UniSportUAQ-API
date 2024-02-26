@@ -31,7 +31,7 @@ namespace UniSportUAQ_API.Data.Models
         public virtual Student? Student { get; set; }
 
         [ForeignKey("CourseId")]
-        public virtual CourseClass? CourseClass { get; set; }
+        public virtual Course? Course { get; set; }
 
 
 

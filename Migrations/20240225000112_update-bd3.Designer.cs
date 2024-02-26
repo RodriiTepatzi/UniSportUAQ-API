@@ -12,8 +12,8 @@ using UniSportUAQ_API.Data;
 namespace UniSportUAQ_API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20240221043724_updating-course-model")]
-    partial class updatingcoursemodel
+    [Migration("20240225000112_update-bd3")]
+    partial class updatebd3
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -72,6 +72,9 @@ namespace UniSportUAQ_API.Migrations
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("bit");
 
+                    b.Property<string>("PictureUrl")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");
 
@@ -101,6 +104,9 @@ namespace UniSportUAQ_API.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("StudentId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
@@ -127,6 +133,16 @@ namespace UniSportUAQ_API.Migrations
 
                     b.Property<int>("CurrentUsers")
                         .HasColumnType("int");
+
+                    b.Property<string>("Day")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Hour")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<string>("InstructorId")
                         .IsRequired()
@@ -224,20 +240,20 @@ namespace UniSportUAQ_API.Migrations
                 {
                     b.HasBaseType("UniSportUAQ_API.Data.Models.ApplicationUser");
 
-                    b.Property<string>("CurrentCourse")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("FinishedCoursesJson")
+                    b.Property<string>("CurrentCourseId")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Group")
                         .HasColumnType("int");
 
-                    b.Property<bool>("IsInOfficialGroup")
+                    b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
-                    b.Property<bool>("IsSuscribed")
+                    b.Property<bool>("IsInFIF")
                         .HasColumnType("bit");
+
+                    b.Property<DateTime>("RegisteredDateTime")
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("Semester")
                         .HasColumnType("int");
@@ -245,11 +261,6 @@ namespace UniSportUAQ_API.Migrations
                     b.Property<string>("StudyPlan")
                         .HasMaxLength(10)
                         .HasColumnType("nvarchar(10)");
-
-                    b.Property<DateTime>("SuscribedDateTime")
-                        .HasColumnType("datetime2");
-
-                    b.HasIndex("CurrentCourse");
 
                     b.ToTable("Students", (string)null);
                 });
@@ -297,7 +308,7 @@ namespace UniSportUAQ_API.Migrations
 
             modelBuilder.Entity("UniSportUAQ_API.Data.Models.Inscription", b =>
                 {
-                    b.HasOne("UniSportUAQ_API.Data.Models.CourseClass", "CourseClass")
+                    b.HasOne("UniSportUAQ_API.Data.Models.Course", "Course")
                         .WithMany()
                         .HasForeignKey("CourseId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -309,7 +320,7 @@ namespace UniSportUAQ_API.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("CourseClass");
+                    b.Navigation("Course");
 
                     b.Navigation("Student");
                 });
@@ -334,17 +345,11 @@ namespace UniSportUAQ_API.Migrations
 
             modelBuilder.Entity("UniSportUAQ_API.Data.Models.Student", b =>
                 {
-                    b.HasOne("UniSportUAQ_API.Data.Models.CourseClass", "CourseClass")
-                        .WithMany()
-                        .HasForeignKey("CurrentCourse");
-
                     b.HasOne("UniSportUAQ_API.Data.Models.ApplicationUser", null)
                         .WithOne()
                         .HasForeignKey("UniSportUAQ_API.Data.Models.Student", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("CourseClass");
                 });
 
             modelBuilder.Entity("UniSportUAQ_API.Data.Models.Student", b =>

@@ -45,7 +45,7 @@ namespace UniSportUAQ_API.Controllers
 
             var result = await _coursesService.GetCourseByNameAsync(name);
 
-            if (result.Count > 0) return Ok(new DataResponse { Data = result[0].ToDictionaryForCourseNameRequest(), ErrorMessage = null });
+            if (result.Count > 0) return Ok(new DataResponse { Data = result[0].ToDictionaryForIdRequest(), ErrorMessage = null });
 
             return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND }); 
         }
@@ -61,7 +61,7 @@ namespace UniSportUAQ_API.Controllers
 
             var result = await _coursesService.GetCourseByIdInstructor(instructorid);
 
-            if (result.Count > 0) return Ok(new DataResponse { Data = result[0].ToDictionaryForInstructorIdRequest(), ErrorMessage = null });
+            if (result.Count > 0) return Ok(new DataResponse { Data = result[0].ToDictionaryForIdRequest(), ErrorMessage = null });
 
             return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
             
