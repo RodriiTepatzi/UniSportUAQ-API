@@ -68,18 +68,16 @@ namespace UniSportUAQ_API.Controllers
         }
 
         [HttpPost]
-        [Route("inscription/{courseId}")]
+        [Route("inscription/{courseId}/{studentId}")]
         [Authorize]
-        public async Task<IActionResult> AddToCourse(string courseId, [FromBody]StudentSchema student)
+        public async Task<IActionResult> AddToCourse(string courseId, string studentId)
         {
-            if (string.IsNullOrEmpty(student.Id)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.STUDENT_ID_NEEDED });
 
-            var checkIfInCourse = await _inscriptionsService.CheckInscriptionByCourseIdAndStudentIdAsync(courseId, student.Id);
+            var checkIfInCourse = await _inscriptionsService.CheckInscriptionByCourseIdAndStudentIdAsync(courseId, studentId);
 
             if (checkIfInCourse) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.ALREADY_IN_COURSE });
 
-            
-                var course = await _coursesService.GetCourseByIdAsync(courseId);
+            var course = await _coursesService.GetCourseByIdAsync(courseId);
 
             if (course is not null)
             {
@@ -89,8 +87,7 @@ namespace UniSportUAQ_API.Controllers
                 await _coursesService.UpdateCourseAsync(course);
             }
 
-
-            var inscriptionResult = await _inscriptionsService.CreateInscriptionAsync(courseId, student.Id);
+            var inscriptionResult = await _inscriptionsService.CreateInscriptionAsync(courseId, studentId);
 
             return Ok(new DataResponse { Data = inscriptionResult, ErrorMessage = null});
         }

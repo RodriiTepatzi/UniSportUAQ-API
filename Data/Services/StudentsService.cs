@@ -25,10 +25,8 @@ namespace UniSportUAQ_API.Data.Services
 				Email = studentSchema.Email,
 				PhoneNumber = studentSchema.PhoneNumber,
 				Expediente = studentSchema.Expediente,
-				//
 				Group= studentSchema.Group,
-				Semester = studentSchema.Semester,	
-				StudyPlan = studentSchema.StudyPlan,
+				Semester = studentSchema.Semester,
 			};
 
 			await _userManager.CreateAsync(student, studentSchema.Password!);
