@@ -8,15 +8,15 @@ namespace UniSportUAQ_API.Data.Services
 
         Task<Attendance> CreateAttendanceAsync(AttendanceSchema attendance);
 
-        Task<List<Attendance>> GetAttendanceByIdAsync(string id);
+        Task <Attendance?> GetAttendanceByIdAsync(string id);
 
-        Task<List<Attendance>> GetAttendanceByStudentIdAsync(string studentId);
+        Task<Attendance?> GetAttendanceByStudentIdAsync(string studentId);
 
-        Task<List<Attendance>> GetAttendanceByCourseIdAsync(string courseId);
+        Task<Attendance?> GetAttendanceByCourseIdAsync(string courseId);
 
-        Task<List<Attendance>> GetAttendanceByDayAsync(DateTime day);
+        Task<Attendance?> GetAttendanceByDateAsync(DateTime day);
 
-        Task<List<Attendance>> GetAttendanceForValidationAsync(string courseId, string studentId, DateTime day);
+        Task<Attendance?> GetAttendancesAsync(string courseId, string studentId);
 
 
     }

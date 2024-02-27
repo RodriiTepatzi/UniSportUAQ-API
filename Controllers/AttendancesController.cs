@@ -38,18 +38,90 @@ namespace UniSportUAQ_API.Controllers
 
             
 
-            var attendanceEntity = await _atenndancesService.GetAttendanceForValidationAsync(attendance.CourseId, attendance.StudentId, attendance.Date);
+            var attendanceEntity = await _atenndancesService.GetAttendanceAsync(attendance.CourseId, attendance.StudentId, attendance.Date);
 
-            if (attendanceEntity.Count > 0) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.ENTITY_EXISTS });
+            if (attendanceEntity is not null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.ENTITY_EXISTS });
 
             Guid guid = Guid.NewGuid();
-            DateTime dateTime = DateTime.Now.Date.Date;
+            DateTime dateTime = DateTime.Now.Date;
             attendance.Id = guid.ToString();
             attendance.Date = dateTime;
 
             var result = await _atenndancesService.CreateAttendanceAsync(attendance);
 
             return Ok(new DataResponse { Data = result, ErrorMessage = null });
+        }
+
+
+        [HttpGet]
+        [Route("id/{id}")]
+        [Authorize]
+        public async Task<IActionResult> GetAttendanceByIdAsync(string id) {
+            //validate id
+            if (!Guid.TryParse(id, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+            //asigate result
+            var result = await _atenndancesService.GetAttendanceByIdAsync(id);
+            //check if result is not null
+            if (result is not null) return Ok(new DataResponse { Data = result.ToDictionary(), ErrorMessage = null });
+            //return null result
+            return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+
+        }
+
+        [HttpGet]
+        [Route("courseid/{courseid}")]
+        [Authorize]
+        public async Task<IActionResult> GetAttendanceByCourseIdAsync(string courseid)
+        {
+            if(!Guid.TryParse(courseid, out _))return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+
+            var result = await _atenndancesService.GetAttendanceByCourseIdAsync(courseid);
+
+            if (result is not null) return Ok(new DataResponse { Data = result.ToDictionary(), ErrorMessage = null });
+
+            return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+        }
+
+        [HttpGet]
+        [Route("studentid/{studentid}")]
+        [Authorize]
+        public async Task<IActionResult> GetAttendanceByStudentIdAsync(string studentid) {
+
+            if (!Guid.TryParse(studentid, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+
+            var result = await _atenndancesService.GetAttendanceByStudentIdAsync(studentid);
+
+            if (result is not null) return Ok(new DataResponse { Data = result.ToDictionary(), ErrorMessage = null });
+
+            return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+        }
+        //ignore in production
+        [HttpGet]
+        [Route("day/{day}")]
+        [Authorize]
+        public async Task<IActionResult> GetAttendanceByDateAsync(string day)
+        {
+            if (!DateTime.TryParse(day, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+
+            var result = await _atenndancesService.GetAttendanceByDateAsync(DateTime.Parse(day));
+
+            if (result is not null) return Ok(new DataResponse { Data = result.ToDictionary(), ErrorMessage = null });
+
+            return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+        }
+
+        [HttpGet]
+        [Route("attendance/{courseid}/{studentid}")]
+        [Authorize]
+        public async Task<IActionResult> GetAttendanceAsync(string courseid, string studentid, string day)
+        {
+            if(!Guid.TryParse(studentid, out _) && !Guid.TryParse(courseid, out _) && !DateTime.TryParse(day, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+
+            var result = await _atenndancesService.GetAttendancesAsync(courseid, studentid);
+
+            if (result is not null) return Ok(new DataResponse { Data = result.ToDictionary(), ErrorMessage = null });
+
+            return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
         }
     }
 }

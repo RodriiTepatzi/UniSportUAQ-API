@@ -1,12 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
 using UniSportUAQ_API.Data.Models;
 using UniSportUAQ_API.Data.Schemas;
 
 namespace UniSportUAQ_API.Data.Services
 
 {
-    public class AttendancesService: IAttendancesService
+    public class AttendancesService : IAttendancesService
     {
 
         private readonly AppDbContext _context;
@@ -35,45 +34,157 @@ namespace UniSportUAQ_API.Data.Services
             var attendanceGen = entity.Entity;
 
             attendanceGen.Course = await _coursesService.GetCourseByIdAsync(attendanceSchema.CourseId!);
-            attendanceGen.Student = await _studentsService.GetStudentByIdAsync(attendanceSchema.StudentId!); 
+            attendanceGen.Student = await _studentsService.GetStudentByIdAsync(attendanceSchema.StudentId!);
 
 
             return attendanceGen;
         }
 
-        public async Task<List<Attendance>> GetAttendanceByIdAsync(string id)
+
+
+        public async Task<Attendance?> GetAttendanceByIdAsync(string id)
         {
-            return null;
+            try
+            {
+                var result = await _context.Attendances.SingleAsync(
+                i => i.Id == id);
+
+                var entity = _context.Entry(result);
+
+
+
+                if (entity.State == EntityState.Unchanged)
+                {
+                    return entity.Entity;
+                }
+                else
+                {
+                    return entity.Entity;
+                }
+            }
+            catch (InvalidOperationException)
+            {
+                return null;
+            }
         }
 
-        public async Task<List<Attendance>> GetAttendanceByStudentIdAsync(string studentId)
+        public async Task<Attendance?> GetAttendanceByStudentIdAsync(string studentId)
         {
-            return null;
+
+            try
+            {
+                var result = await _context.Attendances.SingleAsync(
+                i => i.StudentId == studentId);
+
+                var entity = _context.Entry(result);
+
+
+                if (entity.State == EntityState.Unchanged)
+                {
+                    return entity.Entity;
+                }
+                else
+                {
+                    return entity.Entity;
+                }
+            }
+            catch (InvalidOperationException)
+            {
+                return null;
+            }
         }
 
-        public async Task<List<Attendance>> GetAttendanceByCourseIdAsync(string courseId)
+        public async Task<Attendance?> GetAttendanceByCourseIdAsync(string courseId)
         {
-            return null;
+            try
+            {
+                var result = await _context.Attendances.SingleAsync(
+                i => i.CourseId == courseId);
+
+                var entity = _context.Entry(result);
+
+
+
+                if (entity.State == EntityState.Unchanged)
+                {
+                    return entity.Entity;
+                }
+                else
+                {
+                    return entity.Entity;
+                }
+            }
+            catch (InvalidOperationException)
+            {
+                return null;
+            }
+
         }
 
-       public async Task<List<Attendance>> GetAttendanceByDayAsync(DateTime day)
+        public async Task<Attendance?> GetAttendanceByDateAsync(DateTime date)
         {
-            return null;
+            DateTime fechaInicio = date.Date; // esto será a las 00:00 del día
+            DateTime fechaFin = date.Date.AddHours(23).AddMinutes(59); // esto será a las 23:59 del día
+
+            try
+            {
+                var result = await _context.Attendances.SingleAsync(
+                att =>
+                att.Date >= fechaInicio && att.Date <= fechaFin);
+
+                var entity = _context.Entry(result);
+
+
+
+                if (entity.State == EntityState.Unchanged)
+                {
+                    return entity.Entity;
+                }
+                else
+                {
+                    return entity.Entity;
+                }
+            }
+            catch (InvalidOperationException)
+            {
+                return null;
+            }
         }
 
-        public async Task<List<Attendance>> GetAttendanceForValidationAsync(string courseId, string studentId, DateTime day)
+        public async Task<Attendance?> GetAttendancesAsync(string courseId, string studentId)
         {
-            var result = await _context.Attendances.Where(
 
-                att => att.CourseId == courseId && 
-                att.StudentId == studentId &&
-                att.Date == day
-                ).ToListAsync();
+           
 
-            if (result is not null) return result;
-            else return new List<Attendance>();
+
+            try
+            {
+                var result = await _context.Attendances.SingleAsync(
+
+                    att => att.CourseId == courseId &&
+                    att.StudentId == studentId
+                    );
+
+                var entity = _context.Entry(result);
+
+                if (entity.State == EntityState.Unchanged)
+                {
+                    return entity.Entity;
+                }
+                else
+                {
+                    return entity.Entity;
+                }
+            }
+            catch (InvalidOperationException)
+            {
+                return null;
+            }
+
 
         }
+
+
 
 
 
