@@ -151,11 +151,10 @@ namespace UniSportUAQ_API.Data.Services
             }
         }
 
-        public async Task<Attendance?> GetAttendanceAsync(string courseId, string studentId, DateTime day)
+        public async Task<Attendance?> GetAttendancesAsync(string courseId, string studentId)
         {
 
-            DateTime fechaInicio = day.Date; // esto será a las 00:00 del día
-            DateTime fechaFin = day.Date.AddHours(23).AddMinutes(59); // esto será a las 23:59 del día
+           
 
 
             try
@@ -163,8 +162,7 @@ namespace UniSportUAQ_API.Data.Services
                 var result = await _context.Attendances.SingleAsync(
 
                     att => att.CourseId == courseId &&
-                    att.StudentId == studentId &&
-                    att.Date >= fechaInicio && att.Date <= fechaFin
+                    att.StudentId == studentId
                     );
 
                 var entity = _context.Entry(result);

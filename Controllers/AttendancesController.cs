@@ -86,6 +86,7 @@ namespace UniSportUAQ_API.Controllers
         [Route("studentid/{studentid}")]
         [Authorize]
         public async Task<IActionResult> GetAttendanceByStudentIdAsync(string studentid) {
+
             if (!Guid.TryParse(studentid, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
 
             var result = await _atenndancesService.GetAttendanceByStudentIdAsync(studentid);
@@ -110,13 +111,13 @@ namespace UniSportUAQ_API.Controllers
         }
 
         [HttpGet]
-        [Route("attendance/{courseid}/{studentid}/{day}")]
+        [Route("attendance/{courseid}/{studentid}")]
         [Authorize]
         public async Task<IActionResult> GetAttendanceAsync(string courseid, string studentid, string day)
         {
             if(!Guid.TryParse(studentid, out _) && !Guid.TryParse(courseid, out _) && !DateTime.TryParse(day, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
 
-            var result = await _atenndancesService.GetAttendanceAsync(courseid, studentid, DateTime.Parse(day));
+            var result = await _atenndancesService.GetAttendancesAsync(courseid, studentid);
 
             if (result is not null) return Ok(new DataResponse { Data = result.ToDictionary(), ErrorMessage = null });
 
