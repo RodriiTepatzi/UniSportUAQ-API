@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.IdentityModel.Tokens;
 using UniSportUAQ_API.Data.Models;
 
 namespace UniSportUAQ_API.Data.Services
@@ -49,11 +50,12 @@ namespace UniSportUAQ_API.Data.Services
 			}
 		}
 
-        public async Task<Course?> GetCourseByIdInstructor(string instructorId) 
+        public async Task<List<Course>> GetCoursesByIdInstructor(string instructorId) 
         {
 			var result = await _context.Courses
 				.Include(i => i.Instructor)
-				.SingleAsync(i => i.InstructorId == instructorId);
+				.Where(i => i.InstructorId == instructorId)
+				.ToListAsync();
 
             return result;
         }
@@ -61,9 +63,12 @@ namespace UniSportUAQ_API.Data.Services
         public async Task<Course> UpdateCourseAsync(Course course)
         {
             EntityEntry entityEntry = _context.Entry(course);
+
             entityEntry.State = EntityState.Modified;
 
             await _context.SaveChangesAsync();
+
+			var newCourse = await GetCourseByIdAsync(course.Id!);
 
             return course;
         }
@@ -73,6 +78,35 @@ namespace UniSportUAQ_API.Data.Services
 			var result = await _context.Courses.Where(
 				c => c.IsActive == true
 			).ToListAsync();
+
+			return result;
+		}
+
+		public async Task<List<Course>> GetAllInactiveCoursesAsync()
+		{
+			var result = await _context.Courses.Where(
+				c => c.IsActive == false
+			).ToListAsync();
+
+			return result;
+		}
+
+		public async Task<List<Course>> GetActivesCoursesByIdInstructor(string instructorId)
+		{
+			var result = await _context.Courses
+				.Include(i => i.Instructor)
+				.Where(i => i.InstructorId == instructorId && i.IsActive == true)
+				.ToListAsync();
+
+			return result;
+		}
+
+		public async Task<List<Course>> GetInactivesCoursesByIdInstructor(string instructorId)
+		{
+			var result = await _context.Courses
+				.Include(i => i.Instructor)
+				.Where(i => i.InstructorId == instructorId && i.IsActive == false)
+				.ToListAsync();
 
 			return result;
 		}

@@ -28,7 +28,7 @@ namespace UniSportUAQ_API.Data.Services
             {
                 DateInscription = DateTime.Now,
                 InInfo = true, //TODO: Check for this line in future cases.
-                Accredit = false,
+                Accredit = false, // False as default.
                 CourseId = courseId,
                 StudentId  = studentId,
             };
@@ -41,5 +41,26 @@ namespace UniSportUAQ_API.Data.Services
 
             return result.Entity;
         }
-    }
+
+		public async Task<bool> RemoveInscriptionByCourseIdAndStudentIdAsync(string courseId, string studentId)
+		{
+			try
+			{
+				var result = await _context.Inscriptions.SingleAsync(
+					i => i.CourseId == courseId && i.StudentId == studentId
+				);
+
+				var entity = _context.Entry(result);
+				entity.State = EntityState.Deleted;
+
+				await _context.SaveChangesAsync();
+
+				return true;
+			}
+			catch
+			{
+				return false;
+			}
+		}
+	}
 }

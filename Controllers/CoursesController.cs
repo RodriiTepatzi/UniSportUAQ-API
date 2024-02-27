@@ -16,11 +16,13 @@ namespace UniSportUAQ_API.Controllers
 
         private readonly ICoursesService _coursesService;
         private readonly IInscriptionsService _inscriptionsService;
+		private readonly IStudentsService _studentsService;
             
-        public CoursesController(ICoursesService coursesService, IInscriptionsService inscriptionsService)
+        public CoursesController(ICoursesService coursesService, IInscriptionsService inscriptionsService, IStudentsService studentsService)
         {
             _coursesService = coursesService;
             _inscriptionsService = inscriptionsService;
+			_studentsService = studentsService;
         }
 
         [HttpGet]
@@ -32,7 +34,7 @@ namespace UniSportUAQ_API.Controllers
 
             var result = await _coursesService.GetCourseByIdAsync(Id);
 
-            if (result is not null) return Ok(new DataResponse { Data = result.ToDictionary(), ErrorMessage = null });
+            if (result is not null) return Ok(new DataResponse { Data = result.Dictionary, ErrorMessage = null });
 
             return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND});
         }
@@ -40,26 +42,122 @@ namespace UniSportUAQ_API.Controllers
         [HttpGet]
         [Route("instructorid/{instructorid}")]
         [Authorize]
-        public async Task<IActionResult> GetCourseByInstructorId(string instructorid) 
+        public async Task<IActionResult> GetCoursesByInstructorId(string instructorid) 
         {
 
             if (!Guid.TryParse(instructorid, out _)) return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
 
-            var result = await _coursesService.GetCourseByIdInstructor(instructorid);
+            var result = await _coursesService.GetCoursesByIdInstructor(instructorid);
 
-			if (result is not null) return Ok(new DataResponse { Data = result.ToDictionary(), ErrorMessage = null });
+			var data = new List<Dictionary<string, object>>();
+
+            foreach (var item in result) data.Add(item.Dictionary);
+
+            if (result.Count > 0) return Ok(new DataResponse { Data = data, ErrorMessage = null });
 
 			return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
-            
         }
 
-        [HttpPost]
+		[HttpGet]
+		[Route("instructorid/{instructorid}/active")]
+		[Authorize]
+		public async Task<IActionResult> GetActiveCoursesByInstructorId(string instructorid)
+		{
+
+			if (!Guid.TryParse(instructorid, out _)) return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+
+			var result = await _coursesService.GetActivesCoursesByIdInstructor(instructorid);
+
+			var data = new List<Dictionary<string, object>>();
+
+			foreach (var item in result) data.Add(item.Dictionary);
+
+			if (result.Count > 0) return Ok(new DataResponse { Data = data, ErrorMessage = null });
+
+			return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+		}
+
+		[HttpGet]
+		[Route("instructorid/{instructorid}/inactive")]
+		[Authorize]
+		public async Task<IActionResult> GetInactiveCoursesByInstructorId(string instructorid)
+		{
+
+			if (!Guid.TryParse(instructorid, out _)) return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+
+			var result = await _coursesService.GetInactivesCoursesByIdInstructor(instructorid);
+
+			var data = new List<Dictionary<string, object>>();
+
+			foreach (var item in result) data.Add(item.Dictionary);
+
+			if (result.Count > 0) return Ok(new DataResponse { Data = data, ErrorMessage = null });
+
+			return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+		}
+
+		[HttpPut]
+		[Route("update")]
+		[Authorize]
+		public async Task<IActionResult> UpdateCourse([FromBody] CourseSchema courseSchema)
+		{
+			if (courseSchema.Id is null) return BadRequest( new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+			if (courseSchema.CourseName is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+			if (courseSchema.Day is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+			if (courseSchema.Hour is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+			if (courseSchema.InstructorId is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+			if (courseSchema.MaxUsers < 0) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+
+			var course = new Course
+			{
+				Id = courseSchema.Id,
+				CourseName = courseSchema.CourseName,
+				Day = courseSchema.Day,
+				Hour = courseSchema.Hour,
+				InstructorId = courseSchema.InstructorId,
+				MaxUsers = courseSchema.MaxUsers
+			};
+
+			var result = await _coursesService.UpdateCourseAsync(course);
+
+			if (result is not null) return Ok(new DataResponse { Data = result.Dictionary, ErrorMessage = null });
+
+			return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.INTERNAL_ERROR });
+		}
+
+		[HttpPost]
+		[Route("create")]
+		[Authorize]
+		public async Task<IActionResult> AddToCourse([FromBody] CourseSchema courseSchema)
+		{
+			var course = new Course
+			{
+				CourseName = courseSchema.CourseName,
+				Day = courseSchema.Day,
+				Hour = courseSchema.Hour,
+				InstructorId = courseSchema.InstructorId,
+				IsActive = true,
+				MaxUsers = courseSchema.MaxUsers
+			};
+
+			var result = await _coursesService.CreateCourseAsync(course);
+
+			if(result is not null) return Ok(new DataResponse { Data = result.Dictionary, ErrorMessage = null });
+
+			return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.INTERNAL_ERROR});
+		}
+
+		[HttpPost]
         [Route("inscription/{courseId}/{studentId}")]
         [Authorize]
         public async Task<IActionResult> AddToCourse(string courseId, string studentId)
         {
+			// First we have to check if the courseId and studentId, both exist on our database. Otherwise we shall return an error.
 
-            var checkIfInCourse = await _inscriptionsService.CheckInscriptionByCourseIdAndStudentIdAsync(courseId, studentId);
+			if (await _studentsService.GetStudentByIdAsync(studentId) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+			if (await _coursesService.GetCourseByIdAsync(courseId) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+
+			var checkIfInCourse = await _inscriptionsService.CheckInscriptionByCourseIdAndStudentIdAsync(courseId, studentId);
 
             if (checkIfInCourse) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.ALREADY_IN_COURSE });
 
@@ -67,7 +165,9 @@ namespace UniSportUAQ_API.Controllers
 
             if (course is not null)
             {
-                course.CurrentUsers++;
+				if ((course.CurrentUsers + 1 + course.PendingUsers) > course.MaxUsers) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.EXCEEDED_MAX_USERS });
+				
+				course.CurrentUsers++;
                 // course.PendingUsers--; // TODO: check for this line in case to implement a way to reserve places in the course.
 
                 await _coursesService.UpdateCourseAsync(course);
@@ -75,7 +175,43 @@ namespace UniSportUAQ_API.Controllers
 
             var inscriptionResult = await _inscriptionsService.CreateInscriptionAsync(courseId, studentId);
 
-            return Ok(new DataResponse { Data = inscriptionResult, ErrorMessage = null});
+            return Ok(new DataResponse { Data = inscriptionResult.Dictionary, ErrorMessage = null});
         }
-    }
+
+		[HttpDelete]
+		[Route("inscription/remove/{courseId}/{studentId}")]
+		[Authorize]
+		public async Task<IActionResult> RemoveFromCourse(string courseId, string studentId)
+		{
+			// First we have to check if the courseId and studentId, both exist on our database. Otherwise we shall return an error.
+
+			if (await _studentsService.GetStudentByIdAsync(studentId) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+
+			if (await _coursesService.GetCourseByIdAsync(courseId) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+
+			var checkIfInCourse = await _inscriptionsService.CheckInscriptionByCourseIdAndStudentIdAsync(courseId, studentId);
+
+			if (!checkIfInCourse) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.NOT_FOUND_IN_COURSE });
+
+
+			var wasRemoved = await _inscriptionsService.RemoveInscriptionByCourseIdAndStudentIdAsync(courseId, studentId);
+
+			if (wasRemoved) 
+			{
+				var course = await _coursesService.GetCourseByIdAsync(courseId);
+
+				if (course is not null)
+				{
+					course.CurrentUsers--;
+					// course.PendingUsers--; // TODO: check for this line in case to implement a way to reserve places in the course.
+
+					await _coursesService.UpdateCourseAsync(course);
+				}
+
+				return Ok(new DataResponse { Data = true, ErrorMessage = null }); 
+			}
+
+			return BadRequest(new DataResponse { Data = false, ErrorMessage = ResponseMessages.ERROR_REMOVING_USER_FROM_COURSE });
+		}
+	}
 }

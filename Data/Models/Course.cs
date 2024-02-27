@@ -42,21 +42,7 @@ namespace UniSportUAQ_API.Data.Models
 		public bool IsActive { get; set; }
 
 
-		/****************************************************************/
-
-		public Dictionary<string, object> ToDictionaryForIdRequest()
-		{
-
-			return new Dictionary<string, object>
-			{
-				{ nameof(Id), Id},
-				{ nameof(CourseName), CourseName is not null? CourseName: ""},
-				{ nameof(InstructorId), InstructorId is not null? InstructorId: ""}
-			};
-
-		}
-
-		public Dictionary<string, object> ToDictionary() => new Dictionary<string, object> {
+		public Dictionary<string, object> Dictionary => new Dictionary<string, object> {
 			{ nameof(Id), Id },
 			{ nameof(CourseName), CourseName is not null ? CourseName : "" },
 			{ nameof(Instructor), Instructor is not null ? Instructor.ToDictionary() : null },

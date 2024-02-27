@@ -11,6 +11,7 @@ namespace UniSportUAQ_API.Data.Services
         /// <param name="studentId"></param>
         /// <returns>It will return a true value in case the user provided is already in this course. Otherwise it will always return false.</returns>
         Task<bool> CheckInscriptionByCourseIdAndStudentIdAsync(string courseId, string studentId);
-        Task<Inscription> CreateInscriptionAsync(string courseId, string studentId);
+		Task<bool> RemoveInscriptionByCourseIdAndStudentIdAsync(string courseId, string studentId);
+		Task<Inscription> CreateInscriptionAsync(string courseId, string studentId);
     }
 }

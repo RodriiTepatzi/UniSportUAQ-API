@@ -28,12 +28,20 @@ namespace UniSportUAQ_API.Data.Models
 
 
         [ForeignKey("StudentId")]
-        public virtual Student? Student { get; set; }
+        public Student? Student { get; set; }
 
         [ForeignKey("CourseId")]
-        public virtual Course? Course { get; set; }
+        public Course? Course { get; set; }
 
+		public Dictionary<string, object> Dictionary => new Dictionary<string, object>
+		{
+			{"Id", Id },
+			{"DateInscription", DateInscription },
+			{"Accredit", Accredit },
+			{"InInfo", InInfo },
+			{"Student", Student is not null ? Student.ToDictionary() : null },
+			{"Course", Course is not null ? Course.Dictionary : null  }
+		};
 
-
-    }
+	}
 }
