@@ -113,7 +113,7 @@ namespace UniSportUAQ_API.Controllers
         [HttpGet]
         [Route("attendance/{courseid}/{studentid}")]
         [Authorize]
-        public async Task<IActionResult> GetAttendanceAsync(string courseid, string studentid, string day)
+        public async Task<IActionResult> GetAttendancesAsync(string courseid, string studentid, string day)
         {
             if(!Guid.TryParse(studentid, out _) && !Guid.TryParse(courseid, out _) && !DateTime.TryParse(day, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
 
