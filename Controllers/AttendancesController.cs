@@ -38,7 +38,7 @@ namespace UniSportUAQ_API.Controllers
 
             
 
-            var attendanceEntity = await _atenndancesService.GetAttendanceAsync(attendance.CourseId, attendance.StudentId, attendance.Date);
+            var attendanceEntity = await _atenndancesService.GetAttendancesAsync(attendance.CourseId, attendance.StudentId);
 
             if (attendanceEntity is not null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.ENTITY_EXISTS });
 
