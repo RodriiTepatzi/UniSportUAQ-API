@@ -73,6 +73,7 @@ namespace UniSportUAQ_API
 
             builder.Services.AddControllers();
 			builder.Services.AddHttpContextAccessor();
+			builder.Services.AddSwaggerGen();
 
 			var app = builder.Build();
 
@@ -146,6 +147,9 @@ namespace UniSportUAQ_API
 			app.UseStaticFiles();
 
 			app.UseRouting();
+			
+			app.UseSwagger();
+			app.UseSwaggerUI();
 
 			app.UseAuthentication();
 			app.UseAuthorization();
