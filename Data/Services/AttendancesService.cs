@@ -154,9 +154,6 @@ namespace UniSportUAQ_API.Data.Services
         public async Task<Attendance?> GetAttendancesAsync(string courseId, string studentId)
         {
 
-           
-
-
             try
             {
                 var result = await _context.Attendances.SingleAsync(

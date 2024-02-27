@@ -38,7 +38,7 @@ namespace UniSportUAQ_API.Controllers
 
             
 
-            var attendanceEntity = await _atenndancesService.GetAttendanceAsync(attendance.CourseId, attendance.StudentId, attendance.Date);
+            var attendanceEntity = await _atenndancesService.GetAttendancesAsync(attendance.CourseId, attendance.StudentId);
 
             if (attendanceEntity is not null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.ENTITY_EXISTS });
 
@@ -113,7 +113,7 @@ namespace UniSportUAQ_API.Controllers
         [HttpGet]
         [Route("attendance/{courseid}/{studentid}")]
         [Authorize]
-        public async Task<IActionResult> GetAttendanceAsync(string courseid, string studentid, string day)
+        public async Task<IActionResult> GetAttendancesAsync(string courseid, string studentid, string day)
         {
             if(!Guid.TryParse(studentid, out _) && !Guid.TryParse(courseid, out _) && !DateTime.TryParse(day, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
 
