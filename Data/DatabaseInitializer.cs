@@ -36,6 +36,11 @@ namespace UniSportUAQ_API.Data
 						{
 							CourseName = "Curso de C#",
 							InstructorId = instructorFilled[0].Id,
+							MaxUsers = 30,
+							CurrentUsers = 0,
+							Day = "Lunes",
+							Hour = "4",
+							IsActive = true
 						},
 					};
 

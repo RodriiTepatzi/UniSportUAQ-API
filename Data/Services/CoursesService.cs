@@ -4,63 +4,58 @@ using UniSportUAQ_API.Data.Models;
 
 namespace UniSportUAQ_API.Data.Services
 {
-    public class CoursesService : ICoursesService
-    {
-        private readonly AppDbContext _context;
+	public class CoursesService : ICoursesService
+	{
+		private readonly AppDbContext _context;
 
-        public CoursesService(AppDbContext context) {
-            _context = context;
-        }
+		public CoursesService(AppDbContext context) {
+			_context = context;
+		}
 
-        public Task<Course> CreateCourseAsync(Course course) { 
-            throw new NotImplementedException();
-        }
+		public async Task<Course> CreateCourseAsync(Course course) {
 
-        public async Task<Course?> GetCourseByIdAsync(string id) {
+			var entity = _context.Entry(course);
+			
+			var result  = entity.Entity;
+			entity.State = EntityState.Added;
 
-            try
-            {
-                var result = await _context.Courses.SingleAsync(
-                i => i.Id == id);
+			await _context.SaveChangesAsync();
 
-                var entity = _context.Entry(result);
+			return result;
+		}
 
-                if (entity.State == EntityState.Unchanged)
-                {
-                    return entity.Entity;
-                }
-                else
-                {
-                    return entity.Entity;
-                }
-            }
-            catch (InvalidOperationException)
-            {
-                return null;
-            }
-            
-        }
+		public async Task<Course?> GetCourseByIdAsync(string id) {
 
-        public async Task<List<Course>> GetCourseByNameAsync(string name)
+			try
+			{
+				var result = await _context.Courses
+					.Include(i => i.Instructor)
+					.SingleAsync(i => i.Id == id);
+
+				var entity = _context.Entry(result);
+
+				if (entity.State == EntityState.Unchanged)
+				{
+					return entity.Entity;
+				}
+				else
+				{
+					return entity.Entity;
+				}
+			}
+			catch (InvalidOperationException)
+			{
+				return null;
+			}
+		}
+
+        public async Task<Course?> GetCourseByIdInstructor(string instructorId) 
         {
-
-            var result = await _context.Courses.Where(
-                i => i.CourseName == name)
-                .ToListAsync();
+			var result = await _context.Courses
+				.Include(i => i.Instructor)
+				.SingleAsync(i => i.InstructorId == instructorId);
 
             return result;
-        }
-
-        public async Task<List<Course>> GetCourseByIdInstructor(string instructorId) 
-        {
-
-            var result = await _context.Courses.Where(
-               i => i.InstructorId == instructorId)
-               .ToListAsync();
-
-            return result;
-
-
         }
 
         public async Task<Course> UpdateCourseAsync(Course course)
@@ -72,5 +67,14 @@ namespace UniSportUAQ_API.Data.Services
 
             return course;
         }
-    }
+
+		public async Task<List<Course>> GetAllCoursesAsync()
+		{
+			var result = await _context.Courses.Where(
+				c => c.IsActive == true
+			).ToListAsync();
+
+			return result;
+		}
+	}
 }

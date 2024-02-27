@@ -25,7 +25,7 @@ namespace UniSportUAQ_API.Controllers
 		{
 			var result = await _instructorsService.GetInstructorByIdAsync(id);
 
-			if (result.Count > 0) return Ok(new DataResponse { Data = result[0].ToDictionaryForIdRetrieve(), ErrorMessage = null });
+			if (result.Count > 0) return Ok(new DataResponse { Data = result[0].ToDictionary(), ErrorMessage = null });
 
 			return Ok(new DataResponse { Data = result, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND});
 		}
@@ -37,7 +37,7 @@ namespace UniSportUAQ_API.Controllers
 		{
 			var result = await _instructorsService.GetInstructorByExpAsync(exp);
 
-			if (result.Count > 0) return Ok(new DataResponse { Data = result[0].ToDictionaryForIdRetrieve(), ErrorMessage = null });
+			if (result.Count > 0) return Ok(new DataResponse { Data = result[0].ToDictionary(), ErrorMessage = null });
 
 			return Ok(new DataResponse { Data = result, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 		}
@@ -49,7 +49,7 @@ namespace UniSportUAQ_API.Controllers
         {
             var result = await _instructorsService.GetInstructorByEmailAsync(email);
 
-			if (result.Count > 0) return Ok(new DataResponse { Data = result[0].ToDictionaryForIdRetrieve(), ErrorMessage = null });
+			if (result.Count > 0) return Ok(new DataResponse { Data = result[0].ToDictionary(), ErrorMessage = null });
 
 			return Ok(new DataResponse { Data = result, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 		}
@@ -61,7 +61,7 @@ namespace UniSportUAQ_API.Controllers
 		{
 			var result = await _instructorsService.GetAllInRangeAsync(start, end);
 
-			if (result.Count > 0) return Ok(new DataResponse { Data = result[0].ToDictionaryForIdRetrieve(), ErrorMessage = null });
+			if (result.Count > 0) return Ok(new DataResponse { Data = result[0].ToDictionary(), ErrorMessage = null });
 
 			return Ok(new DataResponse { Data = result, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 		}

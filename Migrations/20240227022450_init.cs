@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace UniSportUAQ_API.Migrations
 {
     /// <inheritdoc />
-    public partial class startbd : Migration
+    public partial class init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -105,9 +105,12 @@ namespace UniSportUAQ_API.Migrations
                     Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     CourseName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     InstructorId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Day = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    Hour = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
                     MaxUsers = table.Column<int>(type: "int", nullable: false),
                     CurrentUsers = table.Column<int>(type: "int", nullable: false),
-                    PendingUsers = table.Column<int>(type: "int", nullable: false)
+                    PendingUsers = table.Column<int>(type: "int", nullable: false),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -183,9 +186,9 @@ namespace UniSportUAQ_API.Migrations
                 {
                     table.PrimaryKey("PK_Inscriptions", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Inscriptions_CourseClasses_CourseId",
+                        name: "FK_Inscriptions_Courses_CourseId",
                         column: x => x.CourseId,
-                        principalTable: "CourseClasses",
+                        principalTable: "Courses",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
@@ -237,16 +240,16 @@ namespace UniSportUAQ_API.Migrations
                 name: "Attendances");
 
             migrationBuilder.DropTable(
-                name: "Inscriptions");
-
-            migrationBuilder.DropTable(
                 name: "CourseClasses");
 
             migrationBuilder.DropTable(
-                name: "Students");
+                name: "Inscriptions");
 
             migrationBuilder.DropTable(
                 name: "Courses");
+
+            migrationBuilder.DropTable(
+                name: "Students");
 
             migrationBuilder.DropTable(
                 name: "Instructors");

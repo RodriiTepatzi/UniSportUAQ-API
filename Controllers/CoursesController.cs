@@ -32,24 +32,10 @@ namespace UniSportUAQ_API.Controllers
 
             var result = await _coursesService.GetCourseByIdAsync(Id);
 
-            if (result is not null) return Ok(new DataResponse { Data = result.ToDictionaryForIdRequest(), ErrorMessage = null });
+            if (result is not null) return Ok(new DataResponse { Data = result.ToDictionary(), ErrorMessage = null });
 
             return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND});
         }
-
-        [HttpGet]
-        [Route("name/{name}")]
-        [Authorize]
-
-        public async Task<IActionResult> GetCourseByName(string name) {
-
-            var result = await _coursesService.GetCourseByNameAsync(name);
-
-            if (result.Count > 0) return Ok(new DataResponse { Data = result[0].ToDictionaryForIdRequest(), ErrorMessage = null });
-
-            return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND }); 
-        }
-
 
         [HttpGet]
         [Route("instructorid/{instructorid}")]
@@ -61,9 +47,9 @@ namespace UniSportUAQ_API.Controllers
 
             var result = await _coursesService.GetCourseByIdInstructor(instructorid);
 
-            if (result.Count > 0) return Ok(new DataResponse { Data = result[0].ToDictionaryForIdRequest(), ErrorMessage = null });
+			if (result is not null) return Ok(new DataResponse { Data = result.ToDictionary(), ErrorMessage = null });
 
-            return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+			return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
             
         }
 

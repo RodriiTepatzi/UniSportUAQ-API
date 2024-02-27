@@ -3,58 +3,71 @@ using System.ComponentModel.DataAnnotations;
 
 namespace UniSportUAQ_API.Data.Models
 {
-    public class Course
-    {
-        [Key]
-        [Required]
+	public class Course
+	{
+		[Key]
+		[Required]
 		[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public string? Id { get; set; }
+		public string? Id { get; set; }
+
+		[Required]
+		[StringLength(50)]
+		public string? CourseName { get; set; }
+
+		[Required]
+		public string? InstructorId { get; set; }
+
+		[Required]
+		[StringLength(20)]
+		public string? Day { get; set; }
+
+		[Required]
+		[StringLength(20)]
+		public string? Hour { get; set; }
+
+		[Required]
+		public int MaxUsers { get; set; }
+		public int CurrentUsers { get; set; }
+		public int PendingUsers { get; set; }
+
+		[NotMapped]
+		public List<Student>? CurrentUsersList { get; set; }
+
+		[NotMapped]
+		public List<Student>? PendingUsersList { get; set; }
+
+		[ForeignKey("InstructorId")]
+		public Instructor? Instructor { get; set; }
+
+		public bool IsActive { get; set; }
 
 
-        [Required]
-        [StringLength(50)]
-        public string? CourseName { get; set; }
+		/****************************************************************/
 
+		public Dictionary<string, object> ToDictionaryForIdRequest()
+		{
 
-        [Required]
-        public string? InstructorId { get; set; }
+			return new Dictionary<string, object>
+			{
+				{ nameof(Id), Id},
+				{ nameof(CourseName), CourseName is not null? CourseName: ""},
+				{ nameof(InstructorId), InstructorId is not null? InstructorId: ""}
+			};
 
-        [Required]
-        [StringLength(20)]
-        public string? Day {  get; set; }
-        [Required]
-        [StringLength(20)]
-        public string? Hour { get; set; }
+		}
 
-        [Required]
-        public int MaxUsers { get; set; }
-        public int CurrentUsers { get; set; }
-        public int PendingUsers { get; set; }
-
-        [NotMapped]
-        public List<Student> CurrentUsersList { get; set; }
-        
-        [NotMapped]
-        public List<Student> PendingUsersList { get; set; }
-
-
-        [ForeignKey("InstructorId")]
-        public virtual Instructor? Instructor { get; set; }
-
-
-        /****************************************************************/
-
-        public Dictionary<string, object> ToDictionaryForIdRequest() {
-
-            return new Dictionary<string, object>
-            {
-                { nameof(Id), Id},
-                { nameof(CourseName), CourseName is not null? CourseName: ""},
-                { nameof(InstructorId), InstructorId is not null? InstructorId: ""}
-            };
-
-        }
-
-    }
+		public Dictionary<string, object> ToDictionary() => new Dictionary<string, object> {
+			{ nameof(Id), Id },
+			{ nameof(CourseName), CourseName is not null ? CourseName : "" },
+			{ nameof(Instructor), Instructor is not null ? Instructor.ToDictionary() : null },
+			{ nameof(Day), Day },
+			{ nameof(Hour), Hour },
+			{ nameof(MaxUsers), MaxUsers },
+			{ nameof(CurrentUsers), CurrentUsers },
+			{ nameof(PendingUsers), PendingUsers },
+			{ nameof(CurrentUsersList), CurrentUsersList is not null ? CurrentUsersList : new List<Student>() },
+			{ nameof(PendingUsersList), PendingUsersList is not null ? PendingUsersList : new List<Student>() },
+		};
+	}
 }
 

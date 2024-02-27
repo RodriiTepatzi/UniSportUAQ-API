@@ -8,7 +8,7 @@ namespace UniSportUAQ_API.Data.Models
 		[NotMapped]
         public List<Course>? Courses { get; set; }
 
-		public Dictionary<string, object> ToDictionaryForIdRetrieve()
+		public Dictionary<string, object> ToDictionary()
 		{
 			return new Dictionary<string, object>
 			{
@@ -16,7 +16,8 @@ namespace UniSportUAQ_API.Data.Models
 				{ nameof(Name), Name is not null ? Name : "" },
 				{ nameof(Email), Email is not null ? Email : "" },
 				{ nameof(UserName), UserName is not null ? UserName : "" },
-				// TODO :: To keep working on here.
+				{ nameof(Courses), Courses is not null ? Courses : new List<Course>() },
+				{ nameof(PictureUrl), PictureUrl is not null ? PictureUrl : "" },
 			};
 		}
 	}

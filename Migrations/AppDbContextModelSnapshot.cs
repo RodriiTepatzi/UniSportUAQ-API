@@ -145,6 +145,9 @@ namespace UniSportUAQ_API.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
                     b.Property<int>("MaxUsers")
                         .HasColumnType("int");
 
