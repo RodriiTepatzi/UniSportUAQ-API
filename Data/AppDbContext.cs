@@ -38,7 +38,7 @@ namespace UniSportUAQ_API.Data
 			modelBuilder.Entity<Admin>()
 				.Property(e => e.Id);
 
-			modelBuilder.Entity<Attendance>()
+			modelBuilder.Entity<Attendance>().ToTable("Attendances")
 				.HasOne(a => a.Student)
 				.WithMany(s => s.Attendances)
 				.HasForeignKey(a => a.StudentId)
@@ -50,7 +50,10 @@ namespace UniSportUAQ_API.Data
 				.HasForeignKey(i => i.StudentId)
 				.OnDelete(DeleteBehavior.Restrict);
 
-			base.OnModelCreating(modelBuilder);
+
+    
+
+            base.OnModelCreating(modelBuilder);
 
             
         }
