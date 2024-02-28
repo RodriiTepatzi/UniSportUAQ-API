@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.EntityFrameworkCore;
 using UniSportUAQ_API.Data.Models;
 using UniSportUAQ_API.Data.Schemas;
 
@@ -19,39 +20,17 @@ namespace UniSportUAQ_API.Data.Services
             _studentsService = studentsService;
         }
 
-        public async Task<Attendance> CreateAttendanceAsync(AttendanceSchema attendanceSchema)
-        {
-            var attendance = new Attendance
-            {
-                Id = attendanceSchema.Id,
-                StudentId = attendanceSchema.StudentId,
-                CourseId = attendanceSchema.CourseId,
-                Date = attendanceSchema.Date,
-                AttendanceClass = attendanceSchema.AttendanceClass,
-            };
 
-            var entity = await _context.Attendances.AddAsync(attendance);
-            var attendanceGen = entity.Entity;
-
-            attendanceGen.Course = await _coursesService.GetCourseByIdAsync(attendanceSchema.CourseId!);
-            attendanceGen.Student = await _studentsService.GetStudentByIdAsync(attendanceSchema.StudentId!);
-
-
-            return attendanceGen;
-        }
-
-
-
+        //return one object
         public async Task<Attendance?> GetAttendanceByIdAsync(string id)
         {
             try
             {
-                var result = await _context.Attendances.SingleAsync(
-                i => i.Id == id);
+                var result = await _context.Attendances.Include(s => s.Student)
+                    .Include(c => c.Course)
+                    .SingleAsync(i => i.Id == id);
 
                 var entity = _context.Entry(result);
-
-
 
                 if (entity.State == EntityState.Unchanged)
                 {
@@ -61,6 +40,7 @@ namespace UniSportUAQ_API.Data.Services
                 {
                     return entity.Entity;
                 }
+
             }
             catch (InvalidOperationException)
             {
@@ -68,119 +48,40 @@ namespace UniSportUAQ_API.Data.Services
             }
         }
 
-        public async Task<Attendance?> GetAttendanceByStudentIdAsync(string studentId)
+        public async Task<List<Attendance>> GetAttendancesByCourseIdAsync(string idCourse) {
+
+            var result = await _context.Attendances.Include(c => c.Course).
+                Include(c => c.Student).
+                Where(att => att.CourseId == idCourse
+                ).ToListAsync();
+
+            return result;
+        }
+
+        public async Task<List<Attendance>> GetAttendancesByStudentIdAsync(string studenId) {
+
+            var result = await _context.Attendances.Include(c => c.Course).
+               Include(c => c.Student).
+               Where(att => att.StudentId == studenId
+               ).ToListAsync();
+
+            return result;
+        }
+
+        public async Task<List<Attendance>> GetAttendancesAsync(string idCourse, string idStudent)
         {
 
-            try
-            {
-                var result = await _context.Attendances.SingleAsync(
-                i => i.StudentId == studentId);
+            var result = await _context.Attendances.Include(c => c.Course).
+                    Include(s => s.Student)
+                    .Where(a => a.CourseId == idCourse &&
+                    a.StudentId == idStudent
+                ).ToListAsync();
 
-                var entity = _context.Entry(result);
 
-
-                if (entity.State == EntityState.Unchanged)
-                {
-                    return entity.Entity;
-                }
-                else
-                {
-                    return entity.Entity;
-                }
-            }
-            catch (InvalidOperationException)
-            {
-                return null;
-            }
+            return result;
         }
 
-        public async Task<Attendance?> GetAttendanceByCourseIdAsync(string courseId)
-        {
-            try
-            {
-                var result = await _context.Attendances.SingleAsync(
-                i => i.CourseId == courseId);
-
-                var entity = _context.Entry(result);
-
-
-
-                if (entity.State == EntityState.Unchanged)
-                {
-                    return entity.Entity;
-                }
-                else
-                {
-                    return entity.Entity;
-                }
-            }
-            catch (InvalidOperationException)
-            {
-                return null;
-            }
-
-        }
-
-        public async Task<Attendance?> GetAttendanceByDateAsync(DateTime date)
-        {
-            DateTime fechaInicio = date.Date; // esto será a las 00:00 del día
-            DateTime fechaFin = date.Date.AddHours(23).AddMinutes(59); // esto será a las 23:59 del día
-
-            try
-            {
-                var result = await _context.Attendances.SingleAsync(
-                att =>
-                att.Date >= fechaInicio && att.Date <= fechaFin);
-
-                var entity = _context.Entry(result);
-
-
-
-                if (entity.State == EntityState.Unchanged)
-                {
-                    return entity.Entity;
-                }
-                else
-                {
-                    return entity.Entity;
-                }
-            }
-            catch (InvalidOperationException)
-            {
-                return null;
-            }
-        }
-
-        public async Task<Attendance?> GetAttendancesAsync(string courseId, string studentId)
-        {
-
-            try
-            {
-                var result = await _context.Attendances.SingleAsync(
-
-                    att => att.CourseId == courseId &&
-                    att.StudentId == studentId
-                    );
-
-                var entity = _context.Entry(result);
-
-                if (entity.State == EntityState.Unchanged)
-                {
-                    return entity.Entity;
-                }
-                else
-                {
-                    return entity.Entity;
-                }
-            }
-            catch (InvalidOperationException)
-            {
-                return null;
-            }
-
-
-        }
-
+        
 
 
 

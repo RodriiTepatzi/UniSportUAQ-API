@@ -1,5 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.Diagnostics;
+using System.Linq;
+using System.Reflection.Metadata.Ecma335;
+using System.Security;
 using System.Text.RegularExpressions;
 using UniSportUAQ_API.Data.Consts;
 using UniSportUAQ_API.Data.Models;
@@ -27,101 +31,136 @@ namespace UniSportUAQ_API.Controllers
         }
 
 
-        [HttpPost]
-        [Route("create")]
-        [Authorize]
-
-        public async Task<IActionResult> CreateAttendanceAsync([FromBody] AttendanceSchema attendance)
-        {
-
-            if (string.IsNullOrEmpty(attendance.CourseId) && string.IsNullOrEmpty(attendance.StudentId)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
-
-            
-
-            var attendanceEntity = await _atenndancesService.GetAttendancesAsync(attendance.CourseId, attendance.StudentId);
-
-            if (attendanceEntity is not null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.ENTITY_EXISTS });
-
-            Guid guid = Guid.NewGuid();
-            DateTime dateTime = DateTime.Now.Date;
-            attendance.Id = guid.ToString();
-            attendance.Date = dateTime;
-
-            var result = await _atenndancesService.CreateAttendanceAsync(attendance);
-
-            return Ok(new DataResponse { Data = result, ErrorMessage = null });
-        }
-
-
         [HttpGet]
         [Route("id/{id}")]
         [Authorize]
-        public async Task<IActionResult> GetAttendanceByIdAsync(string id) {
-            //validate id
-            if (!Guid.TryParse(id, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
-            //asigate result
-            var result = await _atenndancesService.GetAttendanceByIdAsync(id);
-            //check if result is not null
-            if (result is not null) return Ok(new DataResponse { Data = result.ToDictionary(), ErrorMessage = null });
-            //return null result
-            return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 
-        }
-
-        [HttpGet]
-        [Route("courseid/{courseid}")]
-        [Authorize]
-        public async Task<IActionResult> GetAttendanceByCourseIdAsync(string courseid)
+        public async Task<IActionResult> GetAttendanceByIdAsync(string id)
         {
-            if(!Guid.TryParse(courseid, out _))return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+            if (!Guid.TryParse(id, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
 
-            var result = await _atenndancesService.GetAttendanceByCourseIdAsync(courseid);
+            var result = await _atenndancesService.GetAttendanceByIdAsync(id);
 
-            if (result is not null) return Ok(new DataResponse { Data = result.ToDictionary(), ErrorMessage = null });
+            if (result is not null) return Ok(new DataResponse { Data = result.Dictionary, ErrorMessage = null });
 
             return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
         }
 
         [HttpGet]
-        [Route("studentid/{studentid}")]
+        [Route("course/{courseid}")]
         [Authorize]
-        public async Task<IActionResult> GetAttendanceByStudentIdAsync(string studentid) {
+
+        public async Task<IActionResult> GetAttendancesByCourseIdAsync(string courseid) {
+
+            if (!Guid.TryParse(courseid, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+
+            var result = await _atenndancesService.GetAttendancesByCourseIdAsync(courseid);
+
+            var data = new List<Dictionary<string, object>>();
+
+            foreach (var item in result) data.Add(item.Dictionary);
+
+            if (result.Count > 0) return Ok(new DataResponse { Data = data, ErrorMessage = null });
+
+            return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+        }
+
+        [HttpGet]
+        [Route("student/{studentid}")]
+        [Authorize]
+        public async Task<IActionResult> GetAttendancesByStudentIdAsync(string studentid) {
 
             if (!Guid.TryParse(studentid, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
 
-            var result = await _atenndancesService.GetAttendanceByStudentIdAsync(studentid);
+            var result = await _atenndancesService.GetAttendancesByStudentIdAsync(studentid);
 
-            if (result is not null) return Ok(new DataResponse { Data = result.ToDictionary(), ErrorMessage = null });
+            var Data = new List<Dictionary<string, object>>();
+
+            foreach (var item in result) Data.Add(item.Dictionary);
+
+            if (result.Count > 0) return Ok(new DataResponse { Data = Data, ErrorMessage = null });
 
             return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+
         }
-        //ignore in production
         [HttpGet]
-        [Route("day/{day}")]
+        [Route("course/{courseid}/day/{day}")]
         [Authorize]
-        public async Task<IActionResult> GetAttendanceByDateAsync(string day)
+        public async Task<IActionResult> GetAttendancesByCourseIdByDayAsync(string courseid, string day)
         {
+            if (!Guid.TryParse(courseid, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+
             if (!DateTime.TryParse(day, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
 
-            var result = await _atenndancesService.GetAttendanceByDateAsync(DateTime.Parse(day));
+            var result = await _atenndancesService.GetAttendancesByCourseIdAsync(courseid);
 
-            if (result is not null) return Ok(new DataResponse { Data = result.ToDictionary(), ErrorMessage = null });
+            DateTime dayDate = DateTime.Parse(day);
+
+            var Data = new List<Dictionary<string, object>>();
+
+            foreach (var item in result) {
+
+                if (item.Date.Date == dayDate.Date) Data.Add(item.Dictionary);
+            }
+
+            if (Data.Count > 0) return Ok(new DataResponse { Data = Data, ErrorMessage = null });
 
             return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
         }
 
         [HttpGet]
-        [Route("attendance/{courseid}/{studentid}")]
+        [Route("course/{courseid}/student/{studentid}")]
         [Authorize]
-        public async Task<IActionResult> GetAttendancesAsync(string courseid, string studentid, string day)
-        {
-            if(!Guid.TryParse(studentid, out _) && !Guid.TryParse(courseid, out _) && !DateTime.TryParse(day, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+        public async Task<IActionResult> GetAttendancesByCourseIdStudentIdAsync(string courseid, string studentid) {
+
+            if (!Guid.TryParse(courseid, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+
+            if (!Guid.TryParse(studentid, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
 
             var result = await _atenndancesService.GetAttendancesAsync(courseid, studentid);
 
-            if (result is not null) return Ok(new DataResponse { Data = result.ToDictionary(), ErrorMessage = null });
+            var Data = new List<Dictionary<string, object>>();
 
-            return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+            foreach (var item in result) Data.Add(item.Dictionary);
+
+            if (Data.Count > 0) Ok(new DataResponse { Data = Data, ErrorMessage = null });
+
+            return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND }); 
         }
+
+
+
+        [HttpGet]
+        [Route("course/{courseid}/student/{studentid}/day/{day}")]
+        [Authorize]
+        public async Task<IActionResult> GetAttendanceByDayAsync(string courseId, string studentId, string day)
+        {
+
+            if (!Guid.TryParse(courseId, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+
+            if (!Guid.TryParse(studentId, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+
+            if (!DateTime.TryParse(day, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+
+            var result = await _atenndancesService.GetAttendancesAsync(courseId, studentId);
+
+            DateTime date = DateTime.Parse(day);
+
+            if (result is not null) foreach (var attendance in result)
+                {
+                    if (attendance is not null && attendance.Date.Date == date.Date) return Ok(new DataResponse { Data = attendance.Dictionary, ErrorMessage = null });
+
+                    break;
+                }
+
+
+
+            return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+        }
+
+       
+
+          
+
     }
 }
