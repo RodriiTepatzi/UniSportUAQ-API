@@ -30,14 +30,8 @@ namespace UniSportUAQ_API.Data.Models
 		public int CurrentUsers { get; set; }
 		public int PendingUsers { get; set; }
 
-		[NotMapped]
-		public List<Student>? CurrentUsersList { get; set; }
-
-		[NotMapped]
-		public List<Student>? PendingUsersList { get; set; }
-
 		[ForeignKey("InstructorId")]
-		public Instructor? Instructor { get; set; }
+		public ApplicationUser? Instructor { get; set; }
 
 		public bool IsActive { get; set; }
 
@@ -51,8 +45,6 @@ namespace UniSportUAQ_API.Data.Models
 			{ nameof(MaxUsers), MaxUsers },
 			{ nameof(CurrentUsers), CurrentUsers },
 			{ nameof(PendingUsers), PendingUsers },
-			{ nameof(CurrentUsersList), CurrentUsersList is not null ? CurrentUsersList : new List<Student>() },
-			{ nameof(PendingUsersList), PendingUsersList is not null ? PendingUsersList : new List<Student>() },
 		};
 	}
 }

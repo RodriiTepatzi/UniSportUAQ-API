@@ -12,22 +12,24 @@ namespace UniSportUAQ_API.Controllers
 	public class InstructorsController : Controller
 	{
 		private readonly IInstructorsService _instructorsService;
+		private readonly IStudentsService _studentsService;
 
-        public InstructorsController(IInstructorsService instructorsService)
+        public InstructorsController(IInstructorsService instructorsService, IStudentsService studentsService)
         {
 			_instructorsService = instructorsService;
+			_studentsService = studentsService;
         }
 
-        [HttpGet]
+		[HttpGet]
 		[Route("id/{id}")]
 		[Authorize]
 		public async Task<IActionResult> GetInstructorById(string id)
 		{
 			var result = await _instructorsService.GetInstructorByIdAsync(id);
 
-			if (result.Count > 0) return Ok(new DataResponse { Data = result[0].ToDictionary(), ErrorMessage = null });
+			if (result is not null) return Ok(new DataResponse { Data = result.InstructorToDictionary(), ErrorMessage = null });
 
-			return Ok(new DataResponse { Data = result, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND});
+			return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND});
 		}
 
 		[HttpGet]
@@ -37,9 +39,9 @@ namespace UniSportUAQ_API.Controllers
 		{
 			var result = await _instructorsService.GetInstructorByExpAsync(exp);
 
-			if (result.Count > 0) return Ok(new DataResponse { Data = result[0].ToDictionary(), ErrorMessage = null });
+			if (result is not null) return Ok(new DataResponse { Data = result.InstructorToDictionary(), ErrorMessage = null });
 
-			return Ok(new DataResponse { Data = result, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+			return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 		}
 
         [HttpGet]
@@ -49,9 +51,9 @@ namespace UniSportUAQ_API.Controllers
         {
             var result = await _instructorsService.GetInstructorByEmailAsync(email);
 
-			if (result.Count > 0) return Ok(new DataResponse { Data = result[0].ToDictionary(), ErrorMessage = null });
+			if (result is not null) return Ok(new DataResponse { Data = result.InstructorToDictionary(), ErrorMessage = null });
 
-			return Ok(new DataResponse { Data = result, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+			return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 		}
 
 		[HttpGet]
@@ -61,43 +63,40 @@ namespace UniSportUAQ_API.Controllers
 		{
 			var result = await _instructorsService.GetAllInRangeAsync(start, end);
 
-			if (result.Count > 0) return Ok(new DataResponse { Data = result[0].ToDictionary(), ErrorMessage = null });
+			var dictionaries = new List<Dictionary<string, object>>();
 
-			return Ok(new DataResponse { Data = result, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+			if (result.Count > 0)
+			{
+                foreach (var item in result) dictionaries.Add(item.InstructorToDictionary());
+
+				return Ok(new DataResponse { Data = dictionaries, ErrorMessage = null });
+			}
+
+			return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 		}
 
 		[HttpPost]
-		[Route("create")]
+		[Route("promote")]
 		[AllowAnonymous]
-		public async Task<IActionResult> CreateStudent([FromBody] InstructorSchema instructor)
+		public async Task<IActionResult> CreateInstructor([FromBody] InstructorSchema instructor)
 		{
 
-			if (!string.IsNullOrEmpty(instructor.Email))
-			{
-				var emailEntity = await _instructorsService.GetInstructorByEmailAsync(instructor.Email);
+			if (instructor.Id is null) return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
 
-				if (emailEntity.Count > 0) return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.ENTITY_EXISTS });
-			}
+			var studentResult = await _studentsService.GetStudentByIdAsync(instructor.Id);
 
-			if (!string.IsNullOrEmpty(instructor.Id))
-			{
-				var idEntity = await _instructorsService.GetInstructorByIdAsync(instructor.Id);
+			if(studentResult is null) return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.ERROR_PROMOTING });
 
-				if (idEntity.Count > 0) return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.ENTITY_EXISTS });
-			}
 
-			if (!string.IsNullOrEmpty(instructor.Expediente))
-			{
-				var idEntity = await _instructorsService.GetInstructorByExpAsync(instructor.Expediente);
 
-				if (idEntity.Count > 0) return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.ENTITY_EXISTS });
-			}
+			var idEntity = await _instructorsService.GetInstructorByIdAsync(instructor.Id);
 
-			if (string.IsNullOrEmpty(instructor.Password)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+			if (idEntity is not null) return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.ENTITY_EXISTS });
+			
 
 			var result = await _instructorsService.CreateInstructorAsync(instructor);
 
-			return Ok(new DataResponse { Data = result, ErrorMessage = null });
+			return Ok(new DataResponse { Data = result.InstructorToDictionary(), ErrorMessage = null });
 		}
 	}
 }

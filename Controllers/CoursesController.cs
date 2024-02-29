@@ -13,7 +13,6 @@ namespace UniSportUAQ_API.Controllers
     [Route("api/courses")]
     public class CoursesController: Controller
     {
-
         private readonly ICoursesService _coursesService;
         private readonly IInscriptionsService _inscriptionsService;
 		private readonly IStudentsService _studentsService;
@@ -39,7 +38,39 @@ namespace UniSportUAQ_API.Controllers
             return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND});
         }
 
-        [HttpGet]
+		[HttpGet]
+		[Route("all")]
+		[Authorize]
+		public async Task<IActionResult> GetAllCourses()
+		{
+			var result = await _coursesService.GetAllCoursesAsync();
+
+			var data = new List<Dictionary<string, object>>();
+
+			foreach (var item in result) data.Add(item.Dictionary);
+
+			if (result.Count > 0) return Ok(new DataResponse { Data = data, ErrorMessage = null });
+
+			return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+		}
+
+		[HttpGet]
+		[Route("all/inactive")]
+		[Authorize]
+		public async Task<IActionResult> GetAllInactiveCourses()
+		{
+			var result = await _coursesService.GetAllInactiveCoursesAsync();
+
+			var data = new List<Dictionary<string, object>>();
+
+			foreach (var item in result) data.Add(item.Dictionary);
+
+			if (result.Count > 0) return Ok(new DataResponse { Data = data, ErrorMessage = null });
+
+			return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+		}
+
+		[HttpGet]
         [Route("instructorid/{instructorid}")]
         [Authorize]
         public async Task<IActionResult> GetCoursesByInstructorId(string instructorid) 

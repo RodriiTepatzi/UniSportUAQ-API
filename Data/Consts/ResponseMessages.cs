@@ -12,5 +12,6 @@
 		public const string NOT_FOUND_IN_COURSE = "This user was not found in this course.";
 		public const string EXCEEDED_MAX_USERS = "This user cannot be enrolled due to max users already registered on this course.";
 		public const string ERROR_REMOVING_USER_FROM_COURSE = "This user cannot be removed due to an internal error from this course.";
+		public const string ERROR_PROMOTING = "We can only promote a student to either Instructor or Admin.";
 	}
 }

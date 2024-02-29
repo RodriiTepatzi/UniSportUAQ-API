@@ -24,10 +24,10 @@ namespace UniSportUAQ_API.Data.Services
 
         public async Task<Inscription> CreateInscriptionAsync(string courseId, string studentId)
         {
+
             var entity = new Inscription
             {
                 DateInscription = DateTime.Now,
-                InInfo = true, //TODO: Check for this line in future cases.
                 Accredit = false, // False as default.
                 CourseId = courseId,
                 StudentId  = studentId,
@@ -36,6 +36,10 @@ namespace UniSportUAQ_API.Data.Services
             var result = await _context.AddAsync(
                 entity
             );
+
+			var student = await _context.ApplicationUsers.SingleAsync(au => au.Id == studentId);
+
+			student.CurrentCourseId = result.Entity.Id;
 
             await _context.SaveChangesAsync();
 
@@ -46,6 +50,10 @@ namespace UniSportUAQ_API.Data.Services
 		{
 			try
 			{
+				var student = await _context.ApplicationUsers.SingleAsync(au => au.Id == studentId);
+
+				student.CurrentCourseId = null;
+
 				var result = await _context.Inscriptions.SingleAsync(
 					i => i.CourseId == courseId && i.StudentId == studentId
 				);

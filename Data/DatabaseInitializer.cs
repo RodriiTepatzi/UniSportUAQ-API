@@ -26,17 +26,16 @@ namespace UniSportUAQ_API.Data
 
 				if (instructorUser != null)
 				{
-					var instructorFilled = context.Instructors.Where(
-						i => i.Email == instructorUser!.Email
-					)
-					.ToList();
+					var instructorFilled = context.ApplicationUsers.Single(
+						i => i.Email == instructorUser!.Email && i.IsInstructor == true
+					);
 
 					var courses = new List<Course>
 					{
 						new Course
 						{
 							CourseName = "Curso de C#",
-							InstructorId = instructorFilled[0].Id,
+							InstructorId = instructorFilled.Id,
 							MaxUsers = 30,
 							CurrentUsers = 0,
 							Day = "Lunes",
@@ -46,7 +45,7 @@ namespace UniSportUAQ_API.Data
 						new Course
 						{
                             CourseName = "Curso de Python",
-                            InstructorId = instructorFilled[0].Id,
+                            InstructorId = instructorFilled.Id,
                             MaxUsers = 30,
                             CurrentUsers = 0,
                             Day = "Martes",
@@ -75,78 +74,85 @@ namespace UniSportUAQ_API.Data
 				if (instructorUser != null) return;
 				if (studentUser != null) return;
 
-				var instructor = new Instructor
+				var instructor = new ApplicationUser
 				{
 					Email = "rodrif19@hotmail.com",
 					UserName = "307041",
 					Name = "Marco Rodrigo",
 					LastName = "Flores Tepatzi",
-					Expediente = "307041"
+					Expediente = "307041",
+					IsStudent = true
 				};
                 await userManager.CreateAsync(instructor, "Passw0rd$69");
 
-                var student = new Student
+                var student = new ApplicationUser
 				{
 					Email = "student@hotmail.com",
 					UserName = "307000",
 					Name = "Jasiel",
 					LastName = "Salmeron",
-					Expediente = "307000"
+					Expediente = "307000",
+					IsStudent = true
 				};
                 await userManager.CreateAsync(student, "JasielGei14$");
 
-                var student1 = new Student
-                {
+                var student1 = new ApplicationUser
+				{
                     Email = "student1@hotmail.com",
                     UserName = "3070001",
                     Name = "Jasiel",
                     LastName = "Salmeron",
-                    Expediente = "3070001"
-                };
+                    Expediente = "3070001",
+					IsStudent = true
+				};
 
                 await userManager.CreateAsync(student1, "JasielGei14$");
 
-                var student2 = new Student
-                {
+                var student2 = new ApplicationUser
+				{
                     Email = "student2@hotmail.com",
                     UserName = "3070002",
                     Name = "Juan",
                     LastName = "Pérez",
-                    Expediente = "3070002"
-                };
+                    Expediente = "3070002",
+					IsStudent = true
+				};
 
                 await userManager.CreateAsync(student2, "JuanGei14$");
 
-                var student3 = new Student
-                {
+                var student3 = new ApplicationUser
+				{
                     Email = "student3@hotmail.com",
                     UserName = "3070003",
                     Name = "María",
                     LastName = "González",
-                    Expediente = "3070003"
-                };
+                    Expediente = "3070003",
+					IsStudent = true
+				};
 
                 await userManager.CreateAsync(student3, "MariaGei14$");
 
-                var student4 = new Student
-                {
+                var student4 = new ApplicationUser
+				{
                     Email = "student4@hotmail.com",
                     UserName = "3070004",
                     Name = "Pedro",
                     LastName = "Martínez",
-                    Expediente = "3070004"
-                };
+                    Expediente = "3070004",
+					IsStudent = true
+				};
 
                 await userManager.CreateAsync(student4, "PedroGei14$");
 
-                var student5 = new Student
-                {
+                var student5 = new ApplicationUser
+				{
                     Email = "student5@hotmail.com",
                     UserName = "3070005",
                     Name = "Ana",
                     LastName = "López",
-                    Expediente = "3070005"
-                };
+                    Expediente = "3070005",
+					IsStudent = true
+				};
 
                 await userManager.CreateAsync(student5, "AnaGei14$");
 

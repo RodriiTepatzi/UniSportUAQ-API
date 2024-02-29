@@ -25,7 +25,7 @@ namespace UniSportUAQ_API.Data.Models
         //foreign keys
 
         [ForeignKey("StudentId")]
-        public virtual Student? Student { get; set; }
+        public virtual ApplicationUser? Student { get; set; }
 
         [ForeignKey("CourseId")]
         public virtual Course? Course { get; set; }
@@ -34,7 +34,7 @@ namespace UniSportUAQ_API.Data.Models
 
 
                     { nameof(Id), Id },
-                    { nameof(StudentId), StudentId is not null ? Student.ToDictionary() : "" },
+                    { nameof(StudentId), StudentId is not null ? Student.StudentToDictionary() : "" },
                     { nameof(CourseId), CourseId is not null ? Course.Dictionary : "" },
                     { nameof(Date),DateTime.Now.Date },
                     { nameof(AttendanceClass), AttendanceClass }

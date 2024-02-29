@@ -16,55 +16,79 @@ namespace UniSportUAQ_API.Data.Services
 			_userManager = userManager;
 		}
 
-        public async Task<Instructor> CreateInstructorAsync(InstructorSchema instructorSchema)
+		public async Task<ApplicationUser> CreateInstructorAsync(InstructorSchema instructorSchema)
 		{
-			var student = new Instructor
+
+			var instructor = new ApplicationUser
 			{
-				UserName = instructorSchema.Expediente,
-				Name = instructorSchema.Name,
-				LastName = instructorSchema.LastName,
-				Email = instructorSchema.Email,
-				PhoneNumber = instructorSchema.PhoneNumber,
-				Expediente = instructorSchema.Expediente,
+				Id = instructorSchema.Id,
 			};
 
-			await _userManager.CreateAsync(student, instructorSchema.Password!);
+			var trackedEntity = await _context.ApplicationUsers.SingleAsync(
+				e => e.Id == instructor.Id && e.IsStudent
+			);
 
-			return student;
+			trackedEntity.IsInstructor = true;
+
+			var result = await _context.SaveChangesAsync();
+
+			return trackedEntity;
+
 		}
 
-		public async Task<List<Instructor>> GetInstructorByIdAsync(string id)
+		public async Task<ApplicationUser?> GetInstructorByIdAsync(string id)
 		{
-			var result = await _context.Instructors.Where(
-				i => i.Id == id
-				).ToListAsync();
+			try { 
+				var result = await _context.ApplicationUsers
+					.Include(a => a.Courses)
+					.SingleAsync(i => i.Id == id && i.IsInstructor);
 
-			return result;
+				return result;
+			}
+			catch
+			{
+				return null;
+			}
 		}
 
-		public async Task<List<Instructor>> GetInstructorByExpAsync(string exp)
+		public async Task<ApplicationUser?> GetInstructorByExpAsync(string exp)
 		{
-			var result = await _context.Instructors.Where(
-					i => i.Expediente == exp
-				).ToListAsync();
+			try { 
+				var result = await _context.ApplicationUsers
+					.Include(a => a.Courses)
+					.SingleAsync(i => i.Expediente == exp && i.IsInstructor);
 
-			return result;
+				return result;
+			}
+			catch
+			{
+				return null;
+			}
 		}
 
-		public async Task<List<Instructor>> GetInstructorByEmailAsync(string email)
+		public async Task<ApplicationUser?> GetInstructorByEmailAsync(string email)
 		{
-			var result = await _context.Instructors.Where(
-				i => i.Email == email)
-				.ToListAsync();
+			try
+			{
+				var result = await _context.ApplicationUsers
+					.Include(a => a.Courses)
+					.SingleAsync(i => i.Email == email && i.IsInstructor);
 
-			return result;
+				return result;
+			}
+			catch
+			{
+				return null;
+			}
 		}
 
-		public async Task<List<Instructor>> GetAllInRangeAsync(int start, int end)
+		public async Task<List<ApplicationUser>> GetAllInRangeAsync(int start, int end)
 		{
 			int range = end - start + 1;
 
-			return await _context.Instructors
+			return await _context.ApplicationUsers
+				.Where(a => a.IsInstructor)
+				.Include(a => a.Courses)
 				.OrderBy(u => u.UserName)
 				.Skip(start)
 				.Take(range)
