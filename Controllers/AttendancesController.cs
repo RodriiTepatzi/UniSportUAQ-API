@@ -158,6 +158,27 @@ namespace UniSportUAQ_API.Controllers
             return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
         }
 
+
+        [HttpPost]
+        [Route("create")]
+        [Authorize]
+
+        public async Task<IActionResult> CreateAttendanceAsync([FromBody] AttendanceSchema attendanceSchema) {
+
+            
+
+            var attendance = new Attendance { 
+
+                Id = Guid.NewGuid().ToString(),
+                CourseId = attendanceSchema.CourseId,
+                StudentId = attendanceSchema.StudentId,
+                AttendanceClass = attendanceSchema.AttendanceClass,
+                Date = attendanceSchema.Date,
+
+            };
+
+            return null;
+        }
        
 
           

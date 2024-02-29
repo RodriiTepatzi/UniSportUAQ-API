@@ -81,6 +81,18 @@ namespace UniSportUAQ_API.Data.Services
             return result;
         }
 
+        public async Task<Attendance> CreateAttendance(Attendance attendance) {
+
+            var entity = _context.Entry(attendance);
+            var result = entity.Entity;
+
+            entity.State = EntityState.Added;
+
+            await _context.SaveChangesAsync();
+
+            return result;
+        }
+
         
 
 
