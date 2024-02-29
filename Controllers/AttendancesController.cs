@@ -123,7 +123,7 @@ namespace UniSportUAQ_API.Controllers
 
             foreach (var item in result) Data.Add(item.Dictionary);
 
-            if (Data.Count > 0) Ok(new DataResponse { Data = Data, ErrorMessage = null });
+            if (Data.Count > 0) return Ok(new DataResponse { Data = Data, ErrorMessage = null });
 
             return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND }); 
         }
