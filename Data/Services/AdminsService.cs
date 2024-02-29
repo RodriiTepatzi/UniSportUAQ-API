@@ -17,10 +17,11 @@ namespace UniSportUAQ_API.Data.Services
         }
 
 
-        public async Task<Admin> CreateAdminAsync(AdminSchema adminSchema) { 
+        public async Task<ApplicationUser> CreateAdminAsync(AdminSchema adminSchema) { 
             
 
-            var admin = new Admin {
+            var admin = new ApplicationUser
+			{
 
                 UserName = adminSchema.Expediente,
                 Name = adminSchema.Name,
@@ -35,38 +36,38 @@ namespace UniSportUAQ_API.Data.Services
             return admin;
         }
 
-        public async Task<List<Admin>> GetAdminByEmailAsync(string email)
+        public async Task<List<ApplicationUser>> GetAdminByEmailAsync(string email)
         {
-            var result = await _context.Admins.Where(
+            var result = await _context.ApplicationUsers.Where(
                     a => a.Email == email
                 ).ToListAsync();
 
             return result;
         }
 
-        public async Task<List<Admin>> GetAdminByExpAsync(string exp)
+        public async Task<List<ApplicationUser>> GetAdminByExpAsync(string exp)
         {
-            var result = await _context.Admins.Where(
+            var result = await _context.ApplicationUsers.Where(
                     a => a.Expediente == exp
                 ).ToListAsync();
 
             return result;
         }
 
-        public async Task<List<Admin>> GetAdminByIdAsync(string id)
+        public async Task<List<ApplicationUser>> GetAdminByIdAsync(string id)
         {
-            var result = await _context.Admins.Where(
+            var result = await _context.ApplicationUsers.Where(
                     a => a.Id == id
                 ).ToListAsync();
 
             return result;
         }
 
-		public async Task<List<Admin>> GetAllInRangeAsync(int start, int end)
+		public async Task<List<ApplicationUser>> GetAllInRangeAsync(int start, int end)
 		{
 			int range = end - start + 1;
 
-			return await _context.Admins
+			return await _context.ApplicationUsers
 				.OrderBy(u => u.UserName)
 				.Skip(start)
 				.Take(range)

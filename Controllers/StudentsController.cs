@@ -21,69 +21,6 @@ namespace UniSportUAQ_API.Controllers
         }
 
 
-		//get by email
-		[HttpGet]
-        [Route("email/{email}")]
-		[Authorize]
-		public async Task<IActionResult> GetUserByEmail(string email)
-		{
-			var emailValidator = new Regex(@"^([\w\.\-]+)@([\w\-]+)((\.(\w){2,3})+)$");
-
-			if (!emailValidator.IsMatch(email)) return BadRequest("No contiene un email valido.");
-
-			var result = await _studentsService.GetStudentByEmailAsync(email);
-
-			if (result is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
-
-			return Ok(new DataResponse { Data = result.ToDictionary(), ErrorMessage = null });
-		}
-
-		//get by id
-
-		[HttpGet]
-		[Route("id/{id}")]
-		[Authorize]
-		public async Task<IActionResult> GetUserById(string Id) 
-        {
-			var result = await _studentsService.GetStudentByIdAsync(Id);
-
-			if (result is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
-               
-			return Ok(new DataResponse { Data = result.ToDictionary(), ErrorMessage = null});
-			
-		}
-
-		//get user by exp
-
-		[HttpGet]
-		[Route("exp/{exp}")]
-		[Authorize]
-		public async Task<IActionResult> GetUserByExp(string exp) {
-
-			var result = await _studentsService.GetStudentByExpAsync(exp);
-
-			if (result is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
-
-			return Ok(new DataResponse { Data = result.ToDictionary(), ErrorMessage = null }); ;
-		}
-
-
-		[HttpGet]
-		[Route("all/range/{start}/{end}")]
-		[Authorize]
-		public async Task<IActionResult> GetStudentsByRange(int start, int end)
-		{
-			var result = await _studentsService.GetAllInRangeAsync(start, end);
-
-			var dictionaryResults = new List<Dictionary<string, object>>();
-
-			result.ForEach((value) => dictionaryResults.Add(value.ToDictionary()));
-
-			if (result.Count > 0) return Ok(new DataResponse { Data = dictionaryResults, ErrorMessage = null });
-
-			return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND }); ;
-		}
-
 		[HttpPost]
 		[Route("create")]
 		[AllowAnonymous]
@@ -94,7 +31,7 @@ namespace UniSportUAQ_API.Controllers
 			{
 				var emailEntity = await _studentsService.GetStudentByEmailAsync(student.Email);
 
-				if (emailEntity is not null) return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.ENTITY_EXISTS});
+				if (emailEntity is not null) return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.ENTITY_EXISTS });
 			}
 
 			if (!string.IsNullOrEmpty(student.Id))
@@ -115,7 +52,71 @@ namespace UniSportUAQ_API.Controllers
 
 			var result = await _studentsService.CreateStudentAsync(student);
 
-			return Ok(new DataResponse { Data = result, ErrorMessage = null});
+			return Ok(new DataResponse { Data = result.StudentToDictionary(), ErrorMessage = null });
 		}
+
+		//get by email
+		[HttpGet]
+        [Route("email/{email}")]
+		[Authorize]
+		public async Task<IActionResult> GetUserByEmail(string email)
+		{
+			var emailValidator = new Regex(@"^([\w\.\-]+)@([\w\-]+)((\.(\w){2,3})+)$");
+
+			if (!emailValidator.IsMatch(email)) return BadRequest("No contiene un email valido.");
+
+			var result = await _studentsService.GetStudentByEmailAsync(email);
+
+			if (result is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+
+			return Ok(new DataResponse { Data = result.StudentToDictionary(), ErrorMessage = null });
+		}
+
+		//get by id
+
+		[HttpGet]
+		[Route("id/{id}")]
+		[Authorize]
+		public async Task<IActionResult> GetUserById(string Id) 
+        {
+			var result = await _studentsService.GetStudentByIdAsync(Id);
+
+			if (result is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+               
+			return Ok(new DataResponse { Data = result.StudentToDictionary(), ErrorMessage = null});
+			
+		}
+
+		//get user by exp
+
+		[HttpGet]
+		[Route("exp/{exp}")]
+		[Authorize]
+		public async Task<IActionResult> GetUserByExp(string exp) {
+
+			var result = await _studentsService.GetStudentByExpAsync(exp);
+
+			if (result is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+
+			return Ok(new DataResponse { Data = result.StudentToDictionary(), ErrorMessage = null }); ;
+		}
+
+
+		[HttpGet]
+		[Route("all/range/{start}/{end}")]
+		[Authorize]
+		public async Task<IActionResult> GetStudentsByRange(int start, int end)
+		{
+			var result = await _studentsService.GetAllInRangeAsync(start, end);
+
+			var dictionaryResults = new List<Dictionary<string, object>>();
+
+			result.ForEach((value) => dictionaryResults.Add(value.StudentToDictionary()));
+
+			if (result.Count > 0) return Ok(new DataResponse { Data = dictionaryResults, ErrorMessage = null });
+
+			return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND }); ;
+		}
+
 	}
 }

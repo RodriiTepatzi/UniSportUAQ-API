@@ -17,10 +17,6 @@ namespace UniSportUAQ_API.Data.Models
 
 
         [Required]
-        public bool InInfo { get; set; }
-
-
-        [Required]
         public string? StudentId { get; set; }
 
         [Required]
@@ -28,7 +24,7 @@ namespace UniSportUAQ_API.Data.Models
 
 
         [ForeignKey("StudentId")]
-        public Student? Student { get; set; }
+        public ApplicationUser? Student { get; set; }
 
         [ForeignKey("CourseId")]
         public Course? Course { get; set; }
@@ -38,7 +34,6 @@ namespace UniSportUAQ_API.Data.Models
 			{"Id", Id },
 			{"DateInscription", DateInscription },
 			{"Accredit", Accredit },
-			{"InInfo", InInfo },
 			{"Student", Student is not null ? Student.ToDictionary() : null },
 			{"Course", Course is not null ? Course.Dictionary : null  }
 		};

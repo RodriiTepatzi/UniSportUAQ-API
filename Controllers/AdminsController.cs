@@ -31,7 +31,7 @@ namespace UniSportUAQ_API.Controllers
         {
             var result = await _adminsService.GetAdminByIdAsync(id);
 
-            if (result.Count > 0) return Ok(new DataResponse { Data = result[0].ToDictionaryForIdRetrieve(), ErrorMessage = null});
+            if (result.Count > 0) return Ok(new DataResponse { Data = result[0].ToDictionary(), ErrorMessage = null});
 
             return Ok(new DataResponse { Data = result, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
         }
@@ -43,7 +43,7 @@ namespace UniSportUAQ_API.Controllers
         {
             var result = await _adminsService.GetAdminByEmailAsync(email);
 
-            if (result.Count > 0) return Ok(new DataResponse { Data = result[0].ToDictionaryForIdRetrieve(), ErrorMessage = null });
+            if (result.Count > 0) return Ok(new DataResponse { Data = result[0].ToDictionary(), ErrorMessage = null });
 
             return Ok(new DataResponse { Data = result, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
         }
@@ -55,7 +55,7 @@ namespace UniSportUAQ_API.Controllers
         {
             var result = await _adminsService.GetAdminByExpAsync(exp);
 
-            if (result.Count > 0) return Ok(new DataResponse { Data = result[0].ToDictionaryForIdRetrieve(), ErrorMessage = null });
+            if (result.Count > 0) return Ok(new DataResponse { Data = result[0].ToDictionary(), ErrorMessage = null });
 
             return Ok(new DataResponse { Data = result, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
         }
@@ -67,7 +67,7 @@ namespace UniSportUAQ_API.Controllers
 		{
 			var result = await _adminsService.GetAllInRangeAsync(start, end);
 
-			if (result.Count > 0) return Ok(new DataResponse { Data = result[0].ToDictionaryForIdRetrieve(), ErrorMessage = null });
+			if (result.Count > 0) return Ok(new DataResponse { Data = result[0].ToDictionary(), ErrorMessage = null });
 
 			return Ok(new DataResponse { Data = result, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 		}

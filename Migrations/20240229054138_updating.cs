@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace UniSportUAQ_API.Migrations
 {
     /// <inheritdoc />
-    public partial class dbinit : Migration
+    public partial class updating : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -20,6 +20,16 @@ namespace UniSportUAQ_API.Migrations
                     PictureUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     LastName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Group = table.Column<int>(type: "int", nullable: false),
+                    Semester = table.Column<int>(type: "int", nullable: false),
+                    IsStudent = table.Column<bool>(type: "bit", nullable: false),
+                    IsInstructor = table.Column<bool>(type: "bit", nullable: false),
+                    IsAdmin = table.Column<bool>(type: "bit", nullable: false),
+                    IsInFIF = table.Column<bool>(type: "bit", nullable: false),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false),
+                    StudyPlan = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: true),
+                    RegisteredDateTime = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CurrentCourseId = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     UserName = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     NormalizedUserName = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Email = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -41,64 +51,6 @@ namespace UniSportUAQ_API.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Admins",
-                columns: table => new
-                {
-                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Admins", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Admins_ApplicationUsers_Id",
-                        column: x => x.Id,
-                        principalTable: "ApplicationUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Instructors",
-                columns: table => new
-                {
-                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Instructors", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Instructors_ApplicationUsers_Id",
-                        column: x => x.Id,
-                        principalTable: "ApplicationUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Students",
-                columns: table => new
-                {
-                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    Group = table.Column<int>(type: "int", nullable: false),
-                    Semester = table.Column<int>(type: "int", nullable: false),
-                    IsInFIF = table.Column<bool>(type: "bit", nullable: false),
-                    IsActive = table.Column<bool>(type: "bit", nullable: false),
-                    StudyPlan = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: true),
-                    RegisteredDateTime = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    CurrentCourseId = table.Column<string>(type: "nvarchar(max)", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Students", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Students_ApplicationUsers_Id",
-                        column: x => x.Id,
-                        principalTable: "ApplicationUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Courses",
                 columns: table => new
                 {
@@ -116,9 +68,9 @@ namespace UniSportUAQ_API.Migrations
                 {
                     table.PrimaryKey("PK_Courses", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Courses_Instructors_InstructorId",
+                        name: "FK_Courses_ApplicationUsers_InstructorId",
                         column: x => x.InstructorId,
-                        principalTable: "Instructors",
+                        principalTable: "ApplicationUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -137,17 +89,17 @@ namespace UniSportUAQ_API.Migrations
                 {
                     table.PrimaryKey("PK_Attendances", x => x.Id);
                     table.ForeignKey(
+                        name: "FK_Attendances_ApplicationUsers_StudentId",
+                        column: x => x.StudentId,
+                        principalTable: "ApplicationUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
                         name: "FK_Attendances_Courses_CourseId",
                         column: x => x.CourseId,
                         principalTable: "Courses",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Attendances_Students_StudentId",
-                        column: x => x.StudentId,
-                        principalTable: "Students",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -178,7 +130,6 @@ namespace UniSportUAQ_API.Migrations
                     Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     DateInscription = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Accredit = table.Column<bool>(type: "bit", nullable: false),
-                    InInfo = table.Column<bool>(type: "bit", nullable: false),
                     StudentId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     CourseId = table.Column<string>(type: "nvarchar(450)", nullable: false)
                 },
@@ -186,18 +137,23 @@ namespace UniSportUAQ_API.Migrations
                 {
                     table.PrimaryKey("PK_Inscriptions", x => x.Id);
                     table.ForeignKey(
+                        name: "FK_Inscriptions_ApplicationUsers_StudentId",
+                        column: x => x.StudentId,
+                        principalTable: "ApplicationUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
                         name: "FK_Inscriptions_Courses_CourseId",
                         column: x => x.CourseId,
                         principalTable: "Courses",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Inscriptions_Students_StudentId",
-                        column: x => x.StudentId,
-                        principalTable: "Students",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ApplicationUsers_CurrentCourseId",
+                table: "ApplicationUsers",
+                column: "CurrentCourseId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Attendances_CourseId",
@@ -228,13 +184,21 @@ namespace UniSportUAQ_API.Migrations
                 name: "IX_Inscriptions_StudentId",
                 table: "Inscriptions",
                 column: "StudentId");
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_ApplicationUsers_Inscriptions_CurrentCourseId",
+                table: "ApplicationUsers",
+                column: "CurrentCourseId",
+                principalTable: "Inscriptions",
+                principalColumn: "Id");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
-                name: "Admins");
+            migrationBuilder.DropForeignKey(
+                name: "FK_ApplicationUsers_Inscriptions_CurrentCourseId",
+                table: "ApplicationUsers");
 
             migrationBuilder.DropTable(
                 name: "Attendances");
@@ -247,12 +211,6 @@ namespace UniSportUAQ_API.Migrations
 
             migrationBuilder.DropTable(
                 name: "Courses");
-
-            migrationBuilder.DropTable(
-                name: "Students");
-
-            migrationBuilder.DropTable(
-                name: "Instructors");
 
             migrationBuilder.DropTable(
                 name: "ApplicationUsers");

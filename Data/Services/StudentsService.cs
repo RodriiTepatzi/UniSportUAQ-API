@@ -15,9 +15,9 @@ namespace UniSportUAQ_API.Data.Services
 			_userManager = userManager;
         }
 
-		public async Task<Student> CreateStudentAsync(StudentSchema studentSchema)
+		public async Task<ApplicationUser> CreateStudentAsync(StudentSchema studentSchema)
 		{
-			var student = new Student
+			var student = new ApplicationUser
 			{
 				UserName = studentSchema.Expediente,
 				Name = studentSchema.Name,
@@ -34,25 +34,27 @@ namespace UniSportUAQ_API.Data.Services
 			return student;
 		}
 
-		public async Task<List<Student>> GetAllInRangeAsync(int start, int end)
+		public async Task<List<ApplicationUser>> GetAllInRangeAsync(int start, int end)
 		{
 			int range = end - start + 1;
 
-			return await _context.Students
+			return await _context.ApplicationUsers
 				.OrderBy(u => u.UserName)
+				.Include(u => u.CurrentCourse)
+				.ThenInclude(c => c.Course)
 				.Skip(start)
 				.Take(range)
-                .Include(s => s.CurrentCourse)
 				.ToListAsync();
 		}
 
-		public async Task<Student?> GetStudentByEmailAsync(string email)
+		public async Task<ApplicationUser?> GetStudentByEmailAsync(string email)
 		{
             try
             {
-                var result = await _context.Students.SingleAsync(
-					s => s.Email == email
-				);
+                var result = await _context.ApplicationUsers
+					.Include(u => u.CurrentCourse)
+					.ThenInclude(c => c.Course)
+					.SingleAsync(s => s.Email == email && s.IsStudent);
 
                 if (result is not null) return result;
                 else return null;
@@ -63,12 +65,14 @@ namespace UniSportUAQ_API.Data.Services
             }
         }
 
-		public async Task<Student?> GetStudentByIdAsync(string id)
+		public async Task<ApplicationUser?> GetStudentByIdAsync(string id)
         {
             try
             {
-                var result = await _context.Students.SingleAsync(
-                i => i.Id == id);
+                var result = await _context.ApplicationUsers
+					.Include(u => u.CurrentCourse)
+					.ThenInclude(c => c.Course)
+					.SingleAsync(i => i.Id == id && i.IsStudent);
 
                 var entity = _context.Entry(result);
 
@@ -87,13 +91,14 @@ namespace UniSportUAQ_API.Data.Services
             }
         }
 
-        public async Task<Student?> GetStudentByExpAsync(string exp)
+        public async Task<ApplicationUser?> GetStudentByExpAsync(string exp)
         {
             try
             {
-                var result = await _context.Students.SingleAsync(
-                    s => s.Expediente == exp
-                );
+                var result = await _context.ApplicationUsers
+					.Include(u => u.CurrentCourse)
+					.ThenInclude(c => c.Course)
+					.SingleAsync(s => s.Expediente == exp && s.IsStudent);
 
                 if (result is not null) return result;
                 else return null;
