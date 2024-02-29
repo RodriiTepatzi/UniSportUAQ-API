@@ -29,8 +29,12 @@ namespace UniSportUAQ_API.Controllers
             var result = await _usersService.GetAllAsync();
 
 			if (result is null) return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
-			
-            return Ok(new DataResponse { Data = result, ErrorMessage = null});
+
+			var data = new List<Dictionary<string, object>>();
+
+			foreach (var item in result) data.Add(item.ToDictionary());
+
+			return Ok(new DataResponse { Data = data, ErrorMessage = null});
         }
 
 		[HttpGet]
@@ -40,9 +44,9 @@ namespace UniSportUAQ_API.Controllers
 		{
 			var result = await _usersService.GetUserByEmailAsync(email);
 
-			if (result.Count == 0) return Ok(new DataResponse { Data = result, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+			if (result is null) return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 
-			return Ok(new DataResponse { Data = result, ErrorMessage = null});
+			return Ok(new DataResponse { Data = result.ToDictionary(), ErrorMessage = null});
 		}
 
 		[HttpGet]
@@ -54,7 +58,11 @@ namespace UniSportUAQ_API.Controllers
 
 			if (result.Count == 0) return Ok(new DataResponse { Data = result, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 
-			return Ok(new DataResponse { Data = result, ErrorMessage = null });
+			var data = new List<Dictionary<string, object>>();
+
+			foreach (var item in result) data.Add(item.ToDictionary());
+
+			return Ok(new DataResponse { Data = data, ErrorMessage = null });
 		}
 	}
 }
