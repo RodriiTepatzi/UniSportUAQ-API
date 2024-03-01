@@ -12,8 +12,8 @@ using UniSportUAQ_API.Data;
 namespace UniSportUAQ_API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20240229054138_updating")]
-    partial class updating
+    [Migration("20240229212821_set-db")]
+    partial class setdb
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

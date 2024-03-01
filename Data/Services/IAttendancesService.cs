@@ -13,6 +13,8 @@ namespace UniSportUAQ_API.Data.Services
 
         Task<List<Attendance>> GetAttendancesAsync(string idCourse, string idStudent);
 
+        Task<Attendance> CreateAttendanceAsync(Attendance attendance);
+
  
     }
 }

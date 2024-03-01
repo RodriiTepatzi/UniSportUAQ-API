@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using UniSportUAQ_API.Data.Models;
 using UniSportUAQ_API.Data.Schemas;
@@ -12,9 +13,12 @@ namespace UniSportUAQ_API.Data.Services
         private readonly AppDbContext _context;
         private readonly ICoursesService _coursesService;
         private readonly IStudentsService _studentsService;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public AttendancesService(AppDbContext context, ICoursesService coursesService, IStudentsService studentsService)
+        public AttendancesService(AppDbContext context, ICoursesService coursesService, IStudentsService studentsService, UserManager<ApplicationUser> userManager)
         {
+            _userManager = userManager;
+
             _context = context;
             _coursesService = coursesService;
             _studentsService = studentsService;
@@ -77,6 +81,18 @@ namespace UniSportUAQ_API.Data.Services
                     a.StudentId == idStudent
                 ).ToListAsync();
 
+
+            return result;
+        }
+
+        public async Task<Attendance> CreateAttendanceAsync(Attendance attendance) {
+
+            var entity = _context.Entry(attendance);
+            var result = entity.Entity;
+
+            entity.State = EntityState.Added;
+
+            await _context.SaveChangesAsync();
 
             return result;
         }
