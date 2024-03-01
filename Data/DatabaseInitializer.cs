@@ -11,56 +11,7 @@ namespace UniSportUAQ_API.Data
     public class DatabaseInitializer
     {
 
-        public async static void FeedDatabase(IApplicationBuilder applicationBuilder) {
-
-            using (var serviceScope = applicationBuilder.ApplicationServices.CreateScope())
-            {
-                var context = serviceScope.ServiceProvider.GetService<AppDbContext>();
-
-				var userManager = serviceScope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-
-				if (context!.Courses.Any()) return;
-				if (context!.CourseClasses.Any()) return;
-
-				var instructorUser = await userManager.FindByEmailAsync("rodrif19@hotmail.com");
-
-				if (instructorUser != null)
-				{
-					var instructorFilled = context.ApplicationUsers.Single(
-						i => i.Email == instructorUser!.Email && i.IsInstructor == true
-					);
-
-					var courses = new List<Course>
-					{
-						new Course
-						{
-							CourseName = "Curso de C#",
-							InstructorId = instructorFilled.Id,
-							MaxUsers = 30,
-							CurrentUsers = 0,
-							Day = "Lunes",
-							Hour = "4",
-							IsActive = true
-						},
-						new Course
-						{
-                            CourseName = "Curso de Python",
-                            InstructorId = instructorFilled.Id,
-                            MaxUsers = 30,
-                            CurrentUsers = 0,
-                            Day = "Martes",
-                            Hour = "4",
-                            IsActive = true
-                        },
-						
-					};
-
-					context.Courses.AddRange(courses);
-				}
-
-				context.SaveChanges();
-			}
-        }
+        
 
 		public async static void FeedUsersAndRoles(IApplicationBuilder applicationBuilder)
 		{
@@ -81,8 +32,10 @@ namespace UniSportUAQ_API.Data
 					Name = "Marco Rodrigo",
 					LastName = "Flores Tepatzi",
 					Expediente = "307041",
-					IsStudent = true
-				};
+                    IsStudent = true,
+					IsInstructor = true,
+                    IsActive = true
+                };
                 await userManager.CreateAsync(instructor, "Passw0rd$69");
 
                 var student = new ApplicationUser
@@ -92,8 +45,9 @@ namespace UniSportUAQ_API.Data
 					Name = "Jasiel",
 					LastName = "Salmeron",
 					Expediente = "307000",
-					IsStudent = true
-				};
+					IsStudent = true,
+                    IsActive = true
+                };
                 await userManager.CreateAsync(student, "JasielGei14$");
 
                 var student1 = new ApplicationUser
@@ -103,8 +57,9 @@ namespace UniSportUAQ_API.Data
                     Name = "Jasiel",
                     LastName = "Salmeron",
                     Expediente = "3070001",
-					IsStudent = true
-				};
+					IsStudent = true,
+                    IsActive = true,
+                };
 
                 await userManager.CreateAsync(student1, "JasielGei14$");
 
@@ -115,7 +70,8 @@ namespace UniSportUAQ_API.Data
                     Name = "Juan",
                     LastName = "Pérez",
                     Expediente = "3070002",
-					IsStudent = true
+					IsStudent = true,
+                    IsActive = true
 				};
 
                 await userManager.CreateAsync(student2, "JuanGei14$");
@@ -127,8 +83,9 @@ namespace UniSportUAQ_API.Data
                     Name = "María",
                     LastName = "González",
                     Expediente = "3070003",
-					IsStudent = true
-				};
+					IsStudent = true,
+                    IsActive = true
+                };
 
                 await userManager.CreateAsync(student3, "MariaGei14$");
 
@@ -139,8 +96,9 @@ namespace UniSportUAQ_API.Data
                     Name = "Pedro",
                     LastName = "Martínez",
                     Expediente = "3070004",
-					IsStudent = true
-				};
+					IsStudent = true,
+                    IsActive = true
+                };
 
                 await userManager.CreateAsync(student4, "PedroGei14$");
 
@@ -151,8 +109,9 @@ namespace UniSportUAQ_API.Data
                     Name = "Ana",
                     LastName = "López",
                     Expediente = "3070005",
-					IsStudent = true
-				};
+					IsStudent = true,
+                    IsActive = true
+                };
 
                 await userManager.CreateAsync(student5, "AnaGei14$");
 
@@ -166,6 +125,59 @@ namespace UniSportUAQ_API.Data
 
 
         }
+
+        public async static void FeedDatabase(IApplicationBuilder applicationBuilder)
+        {
+
+            using (var serviceScope = applicationBuilder.ApplicationServices.CreateScope())
+            {
+                var context = serviceScope.ServiceProvider.GetService<AppDbContext>();
+
+                var userManager = serviceScope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+
+                if (context!.Courses.Any()) return;
+                if (context!.CourseClasses.Any()) return;
+
+                var instructorUser = await userManager.FindByEmailAsync("rodrif19@hotmail.com");
+
+                if (instructorUser != null)
+                {
+                    var instructorFilled = context.ApplicationUsers.Single(
+                        i => i.Email == instructorUser!.Email && i.IsInstructor == true
+                    );
+
+                    var courses = new List<Course>
+                    {
+                        new Course
+                        {
+                            CourseName = "Curso de C#",
+                            InstructorId = instructorFilled.Id,
+                            MaxUsers = 30,
+                            CurrentUsers = 0,
+                            Day = "Lunes",
+                            Hour = "4",
+                            IsActive = true
+                        },
+                        new Course
+                        {
+                            CourseName = "Curso de Python",
+                            InstructorId = instructorFilled.Id,
+                            MaxUsers = 30,
+                            CurrentUsers = 0,
+                            Day = "Martes",
+                            Hour = "4",
+                            IsActive = true
+                        },
+
+                    };
+
+                    context.Courses.AddRange(courses);
+                }
+
+                context.SaveChanges();
+            }
+        }
+
         public async static void FeedAttendances(IApplicationBuilder applicationBuilder)
         {
             using (var serviceScope = applicationBuilder.ApplicationServices.CreateScope())
@@ -186,31 +198,9 @@ namespace UniSportUAQ_API.Data
                 var coursePython = context.Courses.FirstOrDefault(c => c.CourseName == "Curso de C#");
                 // Añade más cursos si es necesario
 
-                if (studentUser != null && courseCSharp != null)
-                {
-                    var attendance = new Attendance
-                    {
-                        CourseId = courseCSharp.Id,
-                        StudentId = studentUser.Id,
-                        Date = DateTime.Now.Date
-                        // Añade más campos si es necesario
-                    };
+                
 
-                    context.Attendances.Add(attendance);
-                }
-
-                if (studentUser1 != null && coursePython != null)
-                {
-                    var attendance = new Attendance
-                    {
-                        CourseId = coursePython.Id,
-                        StudentId = studentUser1.Id,
-                        Date = DateTime.Now.Date
-                        // Añade más campos si es necesario
-                    };
-
-                    context.Attendances.Add(attendance);
-                }
+                
 
                 if (studentUser1 != null && coursePython != null)
                 {
@@ -231,6 +221,7 @@ namespace UniSportUAQ_API.Data
                         CourseId = coursePython.Id,
                         StudentId = studentUser1.Id,
                         Date = DateTime.Now.Date.AddDays(-2),
+                        AttendanceClass = true
                         // Añade más campos si es necesario
                     };
 
@@ -256,6 +247,7 @@ namespace UniSportUAQ_API.Data
                         CourseId = coursePython.Id,
                         StudentId = studentUser.Id,
                         Date = DateTime.Now.Date.AddDays(-1),
+                        AttendanceClass = true
                         // Añade más campos si es necesario
                     };
 
@@ -280,6 +272,7 @@ namespace UniSportUAQ_API.Data
                         CourseId = coursePython.Id,
                         StudentId = studentUser.Id,
                         Date = DateTime.Now.Date.AddDays(-3),
+                        AttendanceClass = true
                         // Añade más campos si es necesario
                     };
 

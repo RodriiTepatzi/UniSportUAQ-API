@@ -36,7 +36,7 @@ namespace UniSportUAQ_API.Data.Models
                     { nameof(Id), Id },
                     { nameof(StudentId), StudentId is not null ? Student.StudentToDictionary() : "" },
                     { nameof(CourseId), CourseId is not null ? Course.Dictionary : "" },
-                    { nameof(Date),DateTime.Now.Date },
+                    { nameof(Date),Date },
                     { nameof(AttendanceClass), AttendanceClass }
 
         };

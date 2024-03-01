@@ -136,26 +136,26 @@ namespace UniSportUAQ_API.Controllers
         public async Task<IActionResult> GetAttendanceByDayAsync(string courseId, string studentId, string day)
         {
 
-            if (!Guid.TryParse(courseId, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+            if (!Guid.TryParse(courseId, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = "error en curso" + ResponseMessages.BAD_REQUEST });
 
-            if (!Guid.TryParse(studentId, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+            if (!Guid.TryParse(studentId, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = "error en student"+ResponseMessages.BAD_REQUEST });
 
-            if (!DateTime.TryParse(day, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+            if (!DateTime.TryParse(day, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = "error en fecha" + ResponseMessages.BAD_REQUEST });
 
             var result = await _atenndancesService.GetAttendancesAsync(courseId, studentId);
 
-            DateTime date = DateTime.Parse(day);
+            DateTime date = DateTime.Parse(day).Date;
 
             if (result is not null) foreach (var attendance in result)
                 {
-                    if (attendance is not null && attendance.Date.Date == date.Date) return Ok(new DataResponse { Data = attendance.Dictionary, ErrorMessage = null });
+                    if (attendance.Date == date) return Ok(new DataResponse { Data = attendance.Dictionary, ErrorMessage = null });
 
-                    break;
+                    
                 }
 
 
 
-            return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+            return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
         }
 
 
@@ -165,9 +165,30 @@ namespace UniSportUAQ_API.Controllers
 
         public async Task<IActionResult> CreateAttendanceAsync([FromBody] AttendanceSchema attendanceSchema) {
 
+            string? studentId = attendanceSchema.StudentId;
+            string? courseId = attendanceSchema.CourseId;
+            
+            string? day = attendanceSchema.Date.ToString();
             
 
-            var attendance = new Attendance { 
+            if (await _studentsService.GetStudentByIdAsync(studentId) is null) return BadRequest(new DataResponse { Data = null , ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND}) ;
+            if (await _coursesService.GetCourseByIdAsync(courseId) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND }) ;
+
+
+            var result = await _atenndancesService.GetAttendancesAsync(courseId, studentId);
+
+            attendanceSchema.Date = DateTime.Now.Date;
+
+            if (result is not null) foreach (var att in result)
+                {
+                    if (att.Date == attendanceSchema.Date) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.ATTENDANCE_ENTITY_EXISTS });
+
+
+                }
+
+
+            var attendance = new Attendance
+            {
 
                 Id = Guid.NewGuid().ToString(),
                 CourseId = attendanceSchema.CourseId,
@@ -177,11 +198,18 @@ namespace UniSportUAQ_API.Controllers
 
             };
 
-            return null;
+
+            var attendanceRegister = await _atenndancesService.CreateAttendanceAsync(attendance);
+
+            return Ok(new DataResponse { Data = attendanceRegister.Dictionary, ErrorMessage = null});
         }
+
+
        
 
-          
+
+
+
 
     }
 }
