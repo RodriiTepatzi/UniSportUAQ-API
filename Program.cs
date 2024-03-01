@@ -15,18 +15,18 @@ using UniSportUAQ_API.Models;
 
 namespace UniSportUAQ_API
 {
-	public class Program
-	{
-		public static IConfiguration? Configuration { get; private set; }
+    public class Program
+    {
+        public static IConfiguration? Configuration { get; private set; }
 
-		public static void Main(string[] args)
-		{
-			var builder = WebApplication.CreateBuilder(args);
+        public static void Main(string[] args)
+        {
+            var builder = WebApplication.CreateBuilder(args);
 
-			// Add services to the container.
-			builder.Services.AddControllersWithViews();
+            // Add services to the container.
+            builder.Services.AddControllersWithViews();
 
-			Configuration = builder.Configuration;
+            Configuration = builder.Configuration;
 
             builder.Services.AddDbContext<AppDbContext>(
                 options => options.UseSqlServer(
@@ -38,25 +38,25 @@ namespace UniSportUAQ_API
                 .AddEntityFrameworkStores<AppDbContext>();
 
             builder.Services.AddAuthentication(options =>
-			{
-				options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-				options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-				options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-			}).AddJwtBearer(o =>
-			{
-				o.TokenValidationParameters = new TokenValidationParameters
-				{
-					ValidIssuer = builder.Configuration["Jwt:Issuer"],
-					ValidAudience = builder.Configuration["Jwt:Audience"],
-					IssuerSigningKey = new SymmetricSecurityKey
-					(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)),
-					ValidateIssuer = true,
-					ValidateAudience = true,
-					ValidateLifetime = false, // Change to 'true' on production to avoid creating multiple tokens.
-					ValidateIssuerSigningKey = true,
-					ClockSkew = TimeSpan.Zero,
-				};
-			});
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+            }).AddJwtBearer(o =>
+            {
+                o.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidIssuer = builder.Configuration["Jwt:Issuer"],
+                    ValidAudience = builder.Configuration["Jwt:Audience"],
+                    IssuerSigningKey = new SymmetricSecurityKey
+                    (Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)),
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = false, // Change to 'true' on production to avoid creating multiple tokens.
+                    ValidateIssuerSigningKey = true,
+                    ClockSkew = TimeSpan.Zero,
+                };
+            });
 
             builder.Services.AddControllers().AddJsonOptions(options =>
             {
@@ -64,26 +64,26 @@ namespace UniSportUAQ_API
             });
 
             builder.Services.AddTransient<IStudentsService, StudentsService>();
-			builder.Services.AddTransient<IInstructorsService, InstructorsService>();
+            builder.Services.AddTransient<IInstructorsService, InstructorsService>();
             builder.Services.AddTransient<IAdminsService, AdminsService>();
-			builder.Services.AddTransient<IUsersService, UsersService>();
+            builder.Services.AddTransient<IUsersService, UsersService>();
             builder.Services.AddTransient<ICoursesService, CoursesService>();
             builder.Services.AddTransient<IInscriptionsService, InscriptionsService>();
             builder.Services.AddTransient<IAttendancesService, AttendancesService>();
 
             builder.Services.AddControllers();
-			builder.Services.AddHttpContextAccessor();
-			builder.Services.AddSwaggerGen();
+            builder.Services.AddHttpContextAccessor();
+            builder.Services.AddSwaggerGen();
 
-			var app = builder.Build();
+            var app = builder.Build();
 
-			// Configure the HTTP request pipeline.
-			if (!app.Environment.IsDevelopment())
-			{
-				app.UseExceptionHandler("/Home/Error");
-				// The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-				app.UseHsts();
-			}
+            // Configure the HTTP request pipeline.
+            if (!app.Environment.IsDevelopment())
+            {
+                app.UseExceptionHandler("/Home/Error");
+                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+                app.UseHsts();
+            }
 
             app.MapPost("/security/createToken",
             [AllowAnonymous]
@@ -144,25 +144,26 @@ namespace UniSportUAQ_API
             });
 
             app.UseHttpsRedirection();
-			app.UseStaticFiles();
+            app.UseStaticFiles();
 
-			app.UseRouting();
-			
-			app.UseSwagger();
-			app.UseSwaggerUI();
+            app.UseRouting();
 
-			app.UseAuthentication();
-			app.UseAuthorization();
+            app.UseSwagger();
+            app.UseSwaggerUI();
 
-			app.MapControllerRoute(
-				name: "default",
-				pattern: "{controller=Home}/{action=Index}/{id?}");
+            app.UseAuthentication();
+            app.UseAuthorization();
 
-			DatabaseInitializer.FeedUsersAndRoles(app);
-			DatabaseInitializer.FeedDatabase(app);
+            app.MapControllerRoute(
+                name: "default",
+                pattern: "{controller=Home}/{action=Index}/{id?}");
+
+            DatabaseInitializer.FeedUsersAndRoles(app);
+            DatabaseInitializer.FeedDatabase(app);
+            DatabaseInitializer.FeedInscriptions(app);
             DatabaseInitializer.FeedAttendances(app);
 
-			app.Run();
-		}
-	}
+            app.Run();
+        }
+    }
 }

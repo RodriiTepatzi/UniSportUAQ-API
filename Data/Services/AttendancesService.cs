@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using UniSportUAQ_API.Data.Models;
 using UniSportUAQ_API.Data.Schemas;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace UniSportUAQ_API.Data.Services
 
@@ -97,7 +98,25 @@ namespace UniSportUAQ_API.Data.Services
             return result;
         }
 
-        
+        public async Task<Attendance> UpDateAttedanceAsync(Attendance attendance) {
+
+            //get entity
+
+            EntityEntry entityEntry = _context.Entry(attendance);
+
+            //modify the entity
+            entityEntry.State = EntityState.Modified;
+
+            await _context.SaveChangesAsync();
+
+            var newAttendance = await GetAttendanceByIdAsync(attendance.Id!);
+
+            if (newAttendance is not null) return newAttendance;
+
+            return null;
+        }
+
+
 
 
 
