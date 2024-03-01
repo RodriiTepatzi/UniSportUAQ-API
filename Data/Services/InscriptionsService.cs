@@ -27,7 +27,7 @@ namespace UniSportUAQ_API.Data.Services
 
             var entity = new Inscription
             {
-                DateInscription = DateTime.Now,
+                DateInscription = DateTime.Now.Date,
                 Accredit = false, // False as default.
                 CourseId = courseId,
                 StudentId  = studentId,

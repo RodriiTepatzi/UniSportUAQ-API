@@ -160,6 +160,7 @@ namespace UniSportUAQ_API
 
 			DatabaseInitializer.FeedUsersAndRoles(app);
 			DatabaseInitializer.FeedDatabase(app);
+            DatabaseInitializer.FeedInscriptions(app);
             DatabaseInitializer.FeedAttendances(app);
 
 			app.Run();

@@ -33,16 +33,21 @@ namespace UniSportUAQ_API.Data.Services
 					.Include(i => i.Instructor)
 					.SingleAsync(i => i.Id == id);
 
-				var entity = _context.Entry(result);
+				
 
-				if (entity.State == EntityState.Unchanged)
-				{
-					return entity.Entity;
-				}
-				else
-				{
-					return entity.Entity;
-				}
+					var entity = _context.Entry(result);
+
+                    if (entity.State == EntityState.Unchanged)
+                    {
+                        return entity.Entity;
+                    }
+                    else
+                    {
+                        return entity.Entity;
+                    }
+
+
+				
 			}
 			catch (InvalidOperationException)
 			{

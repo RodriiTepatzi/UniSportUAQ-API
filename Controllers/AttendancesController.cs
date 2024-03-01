@@ -1,10 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore.Diagnostics;
-using System.Linq;
-using System.Reflection.Metadata.Ecma335;
-using System.Security;
-using System.Text.RegularExpressions;
 using UniSportUAQ_API.Data.Consts;
 using UniSportUAQ_API.Data.Models;
 using UniSportUAQ_API.Data.Schemas;
@@ -20,13 +15,15 @@ namespace UniSportUAQ_API.Controllers
         private readonly IAttendancesService _atenndancesService;
         private readonly ICoursesService _coursesService;
         private readonly IStudentsService _studentsService;
+        private readonly IInscriptionsService _inscriptionsService;
 
-        public AttendancesController(IAttendancesService attendancesService, ICoursesService coursesService, IStudentsService studentsService)
+        public AttendancesController(IAttendancesService attendancesService, ICoursesService coursesService, IStudentsService studentsService, IInscriptionsService inscriptionsService)
         {
 
             _atenndancesService = attendancesService;
             _coursesService = coursesService;
             _studentsService = studentsService;
+            _inscriptionsService = inscriptionsService;
 
         }
 
@@ -165,17 +162,28 @@ namespace UniSportUAQ_API.Controllers
 
         public async Task<IActionResult> CreateAttendanceAsync([FromBody] AttendanceSchema attendanceSchema) {
 
-            string? studentId = attendanceSchema.StudentId;
-            string? courseId = attendanceSchema.CourseId;
             
-            string? day = attendanceSchema.Date.ToString();
+            
+            if(string.IsNullOrEmpty(attendanceSchema.StudentId)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+
+            if (string.IsNullOrEmpty(attendanceSchema.CourseId)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+
             
 
-            if (await _studentsService.GetStudentByIdAsync(studentId) is null) return BadRequest(new DataResponse { Data = null , ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND}) ;
-            if (await _coursesService.GetCourseByIdAsync(courseId) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND }) ;
+            if (await _studentsService.GetStudentByIdAsync(attendanceSchema.StudentId) is null) return BadRequest(new DataResponse { Data = null , ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND}) ;
+
+            if (await _coursesService.GetCourseByIdAsync(attendanceSchema.CourseId) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND }) ;
 
 
-            var result = await _atenndancesService.GetAttendancesAsync(courseId, studentId);
+            if (!await _inscriptionsService.CheckInscriptionByCourseIdAndStudentIdAsync(attendanceSchema.CourseId, attendanceSchema.StudentId)) { 
+
+                return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.NOT_FOUND_IN_COURSE });
+
+            }
+
+
+
+            var result = await _atenndancesService.GetAttendancesAsync(attendanceSchema.CourseId, attendanceSchema.StudentId);
 
             attendanceSchema.Date = DateTime.Now.Date;
 
@@ -201,7 +209,7 @@ namespace UniSportUAQ_API.Controllers
 
             var attendanceRegister = await _atenndancesService.CreateAttendanceAsync(attendance);
 
-            return Ok(new DataResponse { Data = attendanceRegister.Dictionary, ErrorMessage = null});
+            return Ok(new DataResponse { Data = attendance.Dictionary, ErrorMessage = null});
         }
 
 
