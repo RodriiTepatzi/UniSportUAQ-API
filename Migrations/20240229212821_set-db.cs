@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace UniSportUAQ_API.Migrations
 {
     /// <inheritdoc />
-    public partial class updating : Migration
+    public partial class setdb : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
