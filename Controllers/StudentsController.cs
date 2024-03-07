@@ -101,8 +101,20 @@ namespace UniSportUAQ_API.Controllers
 			return Ok(new DataResponse { Data = result.StudentToDictionary(), ErrorMessage = null }); ;
 		}
 
+        [HttpGet]
+        [Route("exp/{exp}/email")]
+        [Authorize]
+        public async Task<IActionResult> GetUserByExpAndReturnEmailOnly(string exp)
+        {
 
-		[HttpGet]
+            var result = await _studentsService.GetStudentByExpAsync(exp);
+
+            if (result is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+
+            return Ok(new DataResponse { Data = result.Email, ErrorMessage = null }); ;
+        }
+
+        [HttpGet]
 		[Route("all/range/{start}/{end}")]
 		[Authorize]
 		public async Task<IActionResult> GetStudentsByRange(int start, int end)
