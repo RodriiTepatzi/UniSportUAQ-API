@@ -158,10 +158,10 @@ namespace UniSportUAQ_API
                 name: "default",
                 pattern: "{controller=Home}/{action=Index}/{id?}");
 
-            DatabaseInitializer.FeedUsersAndRoles(app);
-            DatabaseInitializer.FeedDatabase(app);
-            DatabaseInitializer.FeedInscriptions(app);
-            DatabaseInitializer.FeedAttendances(app);
+            //DatabaseInitializer.FeedUsersAndRoles(app);
+            //DatabaseInitializer.FeedDatabase(app);
+            //DatabaseInitializer.FeedInscriptions(app);
+            //DatabaseInitializer.FeedAttendances(app);
 
             app.Run();
         }

@@ -27,6 +27,7 @@ namespace UniSportUAQ_API.Data.Services
 				Expediente = studentSchema.Expediente,
 				Group= studentSchema.Group,
 				Semester = studentSchema.Semester,
+				IsStudent = true,
 			};
 
 			await _userManager.CreateAsync(student, studentSchema.Password!);
