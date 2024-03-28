@@ -2,6 +2,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.Scripting.Interpreter;
+using UniSportUAQ_API.Data.Schemas;
 
 
 
@@ -23,6 +24,8 @@ namespace UniSportUAQ_API.Data.Models
         [Required]
         public string? Url { get; set; }
 
+        [ForeignKey("StudentId")]
+        public ApplicationUser? Student { get; set; }
 
         [ForeignKey("CourseId")]
         public Course? Course { get; set; }

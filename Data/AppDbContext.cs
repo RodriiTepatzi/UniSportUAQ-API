@@ -33,6 +33,12 @@ namespace UniSportUAQ_API.Data
 				.HasForeignKey(i => i.StudentId)
 				.OnDelete(DeleteBehavior.Restrict);
 
+			modelBuilder.Entity<CartaLiberacion>().ToTable("CartasLiberacion")
+				.HasOne(i => i.Student)
+				.WithMany(c => c.CartasLiberacion)
+				.HasForeignKey(a => a.StudentId)
+				.OnDelete(DeleteBehavior.Restrict);
+
 
 			base.OnModelCreating(modelBuilder);
 
@@ -48,5 +54,7 @@ namespace UniSportUAQ_API.Data
 		public DbSet<CourseClass> CourseClasses { get; set; }
 
 		public DbSet<Attendance> Attendances { get; set; }
+
+		public DbSet<CartaLiberacion> CartasLiberacion { get; set; }
     }
 }

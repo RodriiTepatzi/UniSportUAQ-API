@@ -66,14 +66,21 @@ namespace UniSportUAQ_API.Data.Services
             }
         }
 
-		public async Task<ApplicationUser?> GetStudentByIdAsync(string id)
+        public async Task<ApplicationUser?> GetStudentByIdAsync(string id)
         {
             try
             {
                 var result = await _context.ApplicationUsers
-					.Include(u => u.CurrentCourse)
-					.ThenInclude(c => c.Course)
-					.SingleAsync(i => i.Id == id && i.IsStudent);
+                    .Include(u => u.CurrentCourse)
+                    .ThenInclude(c => c.Course)
+                    .SingleOrDefaultAsync(i => i.Id == id && i.IsStudent);
+
+
+                if (result == null)
+                {
+                    return null;
+                }
+
 
                 var entity = _context.Entry(result);
 

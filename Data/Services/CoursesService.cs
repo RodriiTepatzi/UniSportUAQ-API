@@ -31,9 +31,16 @@ namespace UniSportUAQ_API.Data.Services
 			{
 				var result = await _context.Courses
 					.Include(i => i.Instructor)
-					.SingleAsync(i => i.Id == id);
+					.SingleOrDefaultAsync(i => i.Id == id);
 
-				var entity = _context.Entry(result);
+
+                if (result == null)
+                {
+                    return null;
+                }
+
+
+                var entity = _context.Entry(result);
 
 				if (entity.State == EntityState.Unchanged)
 				{

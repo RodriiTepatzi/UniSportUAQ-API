@@ -41,6 +41,8 @@ namespace UniSportUAQ_API.Data.Models
 
 		public List<Attendance>? Attendances { get; set; }
 
+		public List<CartaLiberacion>? CartasLiberacion { get; set; }
+
 		[NotMapped]
 		public List<Inscription>? Inscriptions { get; set; }
 
