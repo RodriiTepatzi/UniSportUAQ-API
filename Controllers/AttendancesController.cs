@@ -1,11 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Reflection.Metadata.Ecma335;
-using System.Security;
-using System.Text.RegularExpressions;
 using UniSportUAQ_API.Data.Consts;
 using UniSportUAQ_API.Data.Models;
 using UniSportUAQ_API.Data.Schemas;

@@ -1,6 +1,4 @@
-﻿using System.Reflection.Metadata.Ecma335;
-using UniSportUAQ_API.Data.Models;
-using UniSportUAQ_API.Data.Schemas;
+﻿using UniSportUAQ_API.Data.Models;
 
 namespace UniSportUAQ_API.Data.Services
 {
