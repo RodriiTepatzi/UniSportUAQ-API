@@ -90,21 +90,49 @@ namespace UniSportUAQ_API
             async
             (JWTRequest user) =>
             {
-                if (!string.IsNullOrEmpty(user.Username) && !string.IsNullOrEmpty(user.Password))
+                if (!string.IsNullOrEmpty(user.Id))
                 {
                     using (var serviceScope = app.Services.CreateScope())
                     {
                         var userManager = serviceScope.ServiceProvider.GetService<UserManager<ApplicationUser>>();
-                        var applicationUser = await userManager!.FindByNameAsync(user.Username);
-                        var id = await userManager.GetUserIdAsync(applicationUser);
+                        var applicationUser = await userManager!.FindByIdAsync(user.Id);
+                        
                         if (applicationUser != null)
                         {
-                            var checkPwd = await userManager.CheckPasswordAsync(applicationUser, user.Password);
+							var id = await userManager.GetUserIdAsync(applicationUser);
+
+							/*var checkPwd = await userManager.CheckPasswordAsync(applicationUser, user.Password);
                             if (!checkPwd)
                             {
                                 return Results.Unauthorized();
-                            }
-                        }
+                            }*/
+
+							var issuer = builder.Configuration["Jwt:Issuer"];
+							var audience = builder.Configuration["Jwt:Audience"];
+							var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"]!);
+							var tokenDescriptor = new SecurityTokenDescriptor
+							{
+								Subject = new ClaimsIdentity(new[]
+								{
+									new Claim("Id", Guid.NewGuid().ToString()),
+									new Claim(JwtRegisteredClaimNames.Sub, applicationUser.UserName!),
+									new Claim(JwtRegisteredClaimNames.Email, applicationUser.UserName!),
+									new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+									}
+								),
+								Expires = DateTime.UtcNow.AddMinutes(15),
+								Issuer = issuer,
+								Audience = audience,
+								SigningCredentials = new SigningCredentials
+								(new SymmetricSecurityKey(key),
+								SecurityAlgorithms.HmacSha512Signature)
+							};
+							var tokenHandler = new JwtSecurityTokenHandler();
+							var token = tokenHandler.CreateToken(tokenDescriptor);
+							var jwtToken = tokenHandler.WriteToken(token);
+							var stringToken = tokenHandler.WriteToken(token);
+							return Results.Ok(stringToken);
+						}
                         else
                         {
                             return Results.BadRequest("No user with that data exists.");
@@ -116,31 +144,7 @@ namespace UniSportUAQ_API
                     return Results.BadRequest("All fields are needed.");
                 }
 
-                var issuer = builder.Configuration["Jwt:Issuer"];
-                var audience = builder.Configuration["Jwt:Audience"];
-                var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"]!);
-                var tokenDescriptor = new SecurityTokenDescriptor
-                {
-                    Subject = new ClaimsIdentity(new[]
-                    {
-                        new Claim("Id", Guid.NewGuid().ToString()),
-                        new Claim(JwtRegisteredClaimNames.Sub, user.Username),
-                        new Claim(JwtRegisteredClaimNames.Email, user.Username),
-                        new Claim(JwtRegisteredClaimNames.Jti,
-                        Guid.NewGuid().ToString())
-                    }),
-                    Expires = DateTime.UtcNow.AddMinutes(15),
-                    Issuer = issuer,
-                    Audience = audience,
-                    SigningCredentials = new SigningCredentials
-                    (new SymmetricSecurityKey(key),
-                    SecurityAlgorithms.HmacSha512Signature)
-                };
-                var tokenHandler = new JwtSecurityTokenHandler();
-                var token = tokenHandler.CreateToken(tokenDescriptor);
-                var jwtToken = tokenHandler.WriteToken(token);
-                var stringToken = tokenHandler.WriteToken(token);
-                return Results.Ok(stringToken);
+                
             });
 
             app.UseHttpsRedirection();
@@ -156,7 +160,8 @@ namespace UniSportUAQ_API
 
             app.MapControllerRoute(
                 name: "default",
-                pattern: "{controller=Home}/{action=Index}/{id?}");
+                pattern: "{controller=Home}/{action=Index}/{id?}"
+			);
 
             //DatabaseInitializer.FeedUsersAndRoles(app);
             //DatabaseInitializer.FeedDatabase(app);
