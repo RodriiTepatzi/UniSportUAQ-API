@@ -103,6 +103,32 @@ namespace UniSportUAQ_API.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "CartasLiberacion",
+                columns: table => new
+                {
+                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    StudentId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    CourseId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Url = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CartasLiberacion", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_CartasLiberacion_ApplicationUsers_StudentId",
+                        column: x => x.StudentId,
+                        principalTable: "ApplicationUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_CartasLiberacion_Courses_CourseId",
+                        column: x => x.CourseId,
+                        principalTable: "Courses",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "CourseClasses",
                 columns: table => new
                 {
@@ -166,6 +192,16 @@ namespace UniSportUAQ_API.Migrations
                 column: "StudentId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_CartasLiberacion_CourseId",
+                table: "CartasLiberacion",
+                column: "CourseId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CartasLiberacion_StudentId",
+                table: "CartasLiberacion",
+                column: "StudentId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_CourseClasses_CourseId",
                 table: "CourseClasses",
                 column: "CourseId");
@@ -202,6 +238,9 @@ namespace UniSportUAQ_API.Migrations
 
             migrationBuilder.DropTable(
                 name: "Attendances");
+
+            migrationBuilder.DropTable(
+                name: "CartasLiberacion");
 
             migrationBuilder.DropTable(
                 name: "CourseClasses");

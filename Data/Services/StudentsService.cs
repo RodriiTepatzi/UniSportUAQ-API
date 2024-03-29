@@ -28,6 +28,7 @@ namespace UniSportUAQ_API.Data.Services
 				Group= studentSchema.Group,
 				Semester = studentSchema.Semester,
 				IsStudent = true,
+				IsActive = true,
 			};
 
 			await _userManager.CreateAsync(student, studentSchema.Password!);
@@ -68,36 +69,27 @@ namespace UniSportUAQ_API.Data.Services
 
         public async Task<ApplicationUser?> GetStudentByIdAsync(string id)
         {
-            try
-            {
-                var result = await _context.ApplicationUsers
-                    .Include(u => u.CurrentCourse)
-                    .ThenInclude(c => c.Course)
-                    .SingleOrDefaultAsync(i => i.Id == id && i.IsStudent);
-
-
-                if (result == null)
-                {
-                    return null;
-                }
-
-
-                var entity = _context.Entry(result);
-
-                if (entity.State == EntityState.Unchanged)
-                {
-                    return entity.Entity;
-                }
-                else
-                {
-                    return entity.Entity;
-                }
-            }
-            catch (InvalidOperationException)
-            {
-                return null;
-            }
-        }
+			try
+			{
+				var result = await _context.ApplicationUsers
+					.Include(u => u.CurrentCourse)
+					.ThenInclude(c => c.Course)
+					.SingleAsync(i => i.Id == id && i.IsStudent);
+				var entity = _context.Entry(result);
+				if (entity.State == EntityState.Unchanged)
+				{
+					return entity.Entity;
+				}
+				else
+				{
+					return entity.Entity;
+				}
+			}
+			catch (InvalidOperationException)
+			{
+				return null;
+			}
+		}
 
         public async Task<ApplicationUser?> GetStudentByExpAsync(string exp)
         {

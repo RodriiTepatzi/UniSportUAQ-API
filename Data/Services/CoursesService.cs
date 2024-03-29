@@ -84,7 +84,9 @@ namespace UniSportUAQ_API.Data.Services
 		{
 			var result = await _context.Courses.Where(
 				c => c.IsActive == true
-			).ToListAsync();
+			)
+			.Include(c => c.Instructor)
+			.ToListAsync();
 
 			return result;
 		}

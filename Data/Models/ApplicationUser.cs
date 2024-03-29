@@ -78,6 +78,9 @@ namespace UniSportUAQ_API.Data.Models
 				{ nameof(IsInFIF), IsInFIF },
 				{ nameof(Semester), Semester },
 				{ nameof(IsActive), IsActive },
+				{ nameof(IsAdmin), IsAdmin },
+				{ nameof(IsStudent), IsStudent },
+				{ nameof(IsInstructor), IsInstructor },
 				{ nameof(RegisteredDateTime), RegisteredDateTime },
 				{ nameof(PictureUrl), PictureUrl is not null ? PictureUrl : "" },
 				{ nameof(CurrentCourse), CurrentCourse is not null ? CurrentCourse.Dictionary  : new Dictionary<string, object>()},
@@ -87,12 +90,23 @@ namespace UniSportUAQ_API.Data.Models
 
 		public Dictionary<string, object> InstructorToDictionary() => new Dictionary<string, object>
 		{
-			{ nameof(Id), Id },
-			{ nameof(Name), Name is not null ? Name : "" },
-			{ nameof(Email), Email is not null ? Email : "" },
-			{ nameof(UserName), UserName is not null ? UserName : "" },
-			{ nameof(Courses), Courses is not null ? Courses.Select(course => course.Dictionary).ToList() : new List<Course>() },
-			{ nameof(PictureUrl), PictureUrl is not null ? PictureUrl : "" },
+			
+				{ nameof(Id), Id },
+				{ nameof(Name), Name is not null ? Name : "" },
+				{ nameof(LastName), LastName is not null ? LastName : "" },
+				{ nameof(PhoneNumber), PhoneNumber is not null ? PhoneNumber : "" },
+				{ nameof(Email), Email is not null ? Email : "" },
+				{ nameof(UserName), UserName is not null ? UserName : "" },
+				{ nameof(Expediente), Expediente is not null ? Expediente : "" },
+				{ nameof(IsInFIF), IsInFIF },
+				{ nameof(Semester), Semester },
+				{ nameof(IsActive), IsActive },
+				{ nameof(IsAdmin), IsAdmin },
+				{ nameof(IsStudent), IsStudent },
+				{ nameof(IsInstructor), IsInstructor },
+				{ nameof(RegisteredDateTime), RegisteredDateTime },
+				{ nameof(PictureUrl), PictureUrl is not null ? PictureUrl : "" },
+				{ nameof(Courses), Courses is not null ? Courses : new List<Course>() }
 		};
 
 	}

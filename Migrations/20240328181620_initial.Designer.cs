@@ -12,7 +12,7 @@ using UniSportUAQ_API.Data;
 namespace UniSportUAQ_API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20240326225407_initial")]
+    [Migration("20240328181620_initial")]
     partial class initial
     {
         /// <inheritdoc />
@@ -151,6 +151,33 @@ namespace UniSportUAQ_API.Migrations
                     b.ToTable("Attendances", (string)null);
                 });
 
+            modelBuilder.Entity("UniSportUAQ_API.Data.Models.CartaLiberacion", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("CourseId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("StudentId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Url")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CourseId");
+
+                    b.HasIndex("StudentId");
+
+                    b.ToTable("CartasLiberacion", (string)null);
+                });
+
             modelBuilder.Entity("UniSportUAQ_API.Data.Models.Course", b =>
                 {
                     b.Property<string>("Id")
@@ -281,6 +308,25 @@ namespace UniSportUAQ_API.Migrations
                     b.Navigation("Student");
                 });
 
+            modelBuilder.Entity("UniSportUAQ_API.Data.Models.CartaLiberacion", b =>
+                {
+                    b.HasOne("UniSportUAQ_API.Data.Models.Course", "Course")
+                        .WithMany()
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("UniSportUAQ_API.Data.Models.ApplicationUser", "Student")
+                        .WithMany("CartasLiberacion")
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Course");
+
+                    b.Navigation("Student");
+                });
+
             modelBuilder.Entity("UniSportUAQ_API.Data.Models.Course", b =>
                 {
                     b.HasOne("UniSportUAQ_API.Data.Models.ApplicationUser", "Instructor")
@@ -325,6 +371,8 @@ namespace UniSportUAQ_API.Migrations
             modelBuilder.Entity("UniSportUAQ_API.Data.Models.ApplicationUser", b =>
                 {
                     b.Navigation("Attendances");
+
+                    b.Navigation("CartasLiberacion");
 
                     b.Navigation("Courses");
 
