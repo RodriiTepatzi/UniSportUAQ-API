@@ -15,5 +15,6 @@
 		public const string ERROR_REMOVING_USER_FROM_COURSE = "This user cannot be removed due to an internal error from this course.";
 		public const string ERROR_PROMOTING = "We can only promote a student to either Instructor or Admin.";
 		public const string LIBERATION_LIMIT = "Student liberation letter limit(3) has reached";
+		public const string INSTRUCTOR_HINDERED = "An instructor cannot be in further than one course at the same time. Please change Day or Start and End hour to avoid problems.";
 	}
 }

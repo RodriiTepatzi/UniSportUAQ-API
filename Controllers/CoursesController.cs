@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using IronPython.Runtime.Operations;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.FileSystemGlobbing.Internal.PathSegments;
 using UniSportUAQ_API.Data.Consts;
@@ -132,22 +133,24 @@ namespace UniSportUAQ_API.Controllers
 		[Authorize]
 		public async Task<IActionResult> UpdateCourse([FromBody] CourseSchema courseSchema)
 		{
-			if (courseSchema.Id is null) return BadRequest( new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
-			if (courseSchema.CourseName is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
-			if (courseSchema.Day is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
-			if (courseSchema.Hour is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
-			if (courseSchema.InstructorId is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
-			if (courseSchema.MaxUsers < 0) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+            if (courseSchema.CourseName is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+            if (courseSchema.Day is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+            if (courseSchema.StartHour is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+            if (courseSchema.EndHour is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+            if (courseSchema.Day is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+            if (courseSchema.InstructorId is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+            if (courseSchema.MaxUsers <= 0) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
 
-			var course = new Course
+            var course = new Course
 			{
-				Id = courseSchema.Id,
-				CourseName = courseSchema.CourseName,
-				Day = courseSchema.Day,
-				Hour = courseSchema.Hour,
-				InstructorId = courseSchema.InstructorId,
-				MaxUsers = courseSchema.MaxUsers
-			};
+                CourseName = courseSchema.CourseName,
+                Day = courseSchema.Day,
+                StartHour = courseSchema.StartHour,
+                EndHour = courseSchema.EndHour,
+                InstructorId = courseSchema.InstructorId,
+                IsActive = true,
+                MaxUsers = courseSchema.MaxUsers
+            };
 
 			var result = await _coursesService.UpdateCourseAsync(course);
 
@@ -161,17 +164,42 @@ namespace UniSportUAQ_API.Controllers
 		[Authorize]
 		public async Task<IActionResult> AddToCourse([FromBody] CourseSchema courseSchema)
 		{
-			var course = new Course
+			if(courseSchema.CourseName is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+			if(courseSchema.Day is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+
+            if(!DateTime.TryParse(courseSchema.StartHour, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+            if(!DateTime.TryParse(courseSchema.EndHour, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+
+            if(courseSchema.Day is null) return BadRequest (new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+			if(courseSchema.InstructorId is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+			if(courseSchema.MaxUsers <= 0) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+
+            var courses = await _coursesService.GetCoursesByIdInstructor(courseSchema.InstructorId);
+
+			
+			
+			if(courses is not null ) {
+
+                foreach (var course in courses)
+                {
+                    if (IsScheduleConflict(course, courseSchema)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.INSTRUCTOR_HINDERED });
+                    
+                }
+            }
+
+
+            var NewCourse = new Course
 			{
 				CourseName = courseSchema.CourseName,
 				Day = courseSchema.Day,
-				Hour = courseSchema.Hour,
+				StartHour = courseSchema.StartHour,
+				EndHour = courseSchema.EndHour,
 				InstructorId = courseSchema.InstructorId,
 				IsActive = true,
 				MaxUsers = courseSchema.MaxUsers
 			};
 
-			var result = await _coursesService.CreateCourseAsync(course);
+			var result = await _coursesService.CreateCourseAsync(NewCourse);
 
 			if(result is not null) return Ok(new DataResponse { Data = result.Dictionary, ErrorMessage = null });
 
@@ -244,5 +272,27 @@ namespace UniSportUAQ_API.Controllers
 
 			return BadRequest(new DataResponse { Data = false, ErrorMessage = ResponseMessages.ERROR_REMOVING_USER_FROM_COURSE });
 		}
-	}
+
+		//local use
+
+        private bool IsScheduleConflict(Course existingCourse, CourseSchema newCourse)
+        {
+            if (existingCourse.Day == newCourse.Day)
+            {
+                DateTime existingStartHour = DateTime.Parse(existingCourse.StartHour);
+                DateTime existingEndHour = DateTime.Parse(existingCourse.EndHour);
+
+                DateTime newStartHour = DateTime.Parse(newCourse.StartHour);
+                DateTime newEndHour = DateTime.Parse(newCourse.EndHour);
+
+                if (existingStartHour < newEndHour && newStartHour < existingEndHour)
+                {
+                    return true; // Conflict in schedule
+                }
+            }
+
+            return false; // No  Conflict in schedule
+        }
+
+    }
 }

@@ -153,7 +153,8 @@ namespace UniSportUAQ_API.Data
                             MaxUsers = 30,
                             CurrentUsers = 0,
                             Day = "Lunes",
-                            Hour = "4",
+                            StartHour = "8:00",
+                            EndHour = "11:00",
                             IsActive = true
                         },
                         new Course
@@ -163,7 +164,8 @@ namespace UniSportUAQ_API.Data
                             MaxUsers = 30,
                             CurrentUsers = 0,
                             Day = "Martes",
-                            Hour = "4",
+                            StartHour = "12:00",
+                            EndHour = "14:00",
                             IsActive = true
                         },
 

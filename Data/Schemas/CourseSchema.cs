@@ -7,7 +7,8 @@
         public string? CourseName { get; set; }
         public string? InstructorId { get; set; }
 		public string? Day { get; set; }
-		public string? Hour { get; set; }
+		public string? StartHour { get; set; }
+        public string? EndHour { get; set; }
 		public int MaxUsers { get; set; }
     }
 }

@@ -22,10 +22,14 @@ namespace UniSportUAQ_API.Data.Models
 		public string? Day { get; set; }
 
 		[Required]
-		[StringLength(20)]
-		public string? Hour { get; set; }
+		[StringLength(6)]
+		public string? StartHour { get; set; }
 
-		[Required]
+        [Required]
+        [StringLength(6)]
+        public string? EndHour { get; set; }
+
+        [Required]
 		public int MaxUsers { get; set; }
 		public int CurrentUsers { get; set; }
 		public int PendingUsers { get; set; }
@@ -41,7 +45,8 @@ namespace UniSportUAQ_API.Data.Models
 			{ nameof(CourseName), CourseName is not null ? CourseName : "" },
 			{ nameof(Instructor), Instructor is not null ? Instructor.InstructorToDictionary() : null },
 			{ nameof(Day), Day },
-			{ nameof(Hour), Hour },
+			{ nameof(StartHour), StartHour },
+			{ nameof(EndHour), EndHour },
 			{ nameof(MaxUsers), MaxUsers },
 			{ nameof(CurrentUsers), CurrentUsers },
 			{ nameof(PendingUsers), PendingUsers },
