@@ -106,7 +106,6 @@ namespace UniSportUAQ_API.Data.Models
 				{ nameof(IsInstructor), IsInstructor },
 				{ nameof(RegisteredDateTime), RegisteredDateTime },
 				{ nameof(PictureUrl), PictureUrl is not null ? PictureUrl : "" },
-				{ nameof(Courses), Courses is not null ? Courses : new List<Course>() }
 		};
 
 	}

@@ -143,6 +143,7 @@ namespace UniSportUAQ_API.Controllers
 
             var course = new Course
 			{
+				Id = courseSchema.Id,
                 CourseName = courseSchema.CourseName,
                 Day = courseSchema.Day,
                 StartHour = courseSchema.StartHour,
