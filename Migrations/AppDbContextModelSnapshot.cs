@@ -194,10 +194,10 @@ namespace UniSportUAQ_API.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
-                    b.Property<string>("Hour")
+                    b.Property<string>("EndHour")
                         .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasMaxLength(6)
+                        .HasColumnType("nvarchar(6)");
 
                     b.Property<string>("InstructorId")
                         .IsRequired()
@@ -211,6 +211,11 @@ namespace UniSportUAQ_API.Migrations
 
                     b.Property<int>("PendingUsers")
                         .HasColumnType("int");
+
+                    b.Property<string>("StartHour")
+                        .IsRequired()
+                        .HasMaxLength(6)
+                        .HasColumnType("nvarchar(6)");
 
                     b.HasKey("Id");
 

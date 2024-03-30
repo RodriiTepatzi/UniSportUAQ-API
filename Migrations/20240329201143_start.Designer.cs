@@ -12,8 +12,8 @@ using UniSportUAQ_API.Data;
 namespace UniSportUAQ_API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20240328181620_initial")]
-    partial class initial
+    [Migration("20240329201143_start")]
+    partial class start
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -197,10 +197,10 @@ namespace UniSportUAQ_API.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
-                    b.Property<string>("Hour")
+                    b.Property<string>("EndHour")
                         .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasMaxLength(6)
+                        .HasColumnType("nvarchar(6)");
 
                     b.Property<string>("InstructorId")
                         .IsRequired()
@@ -214,6 +214,11 @@ namespace UniSportUAQ_API.Migrations
 
                     b.Property<int>("PendingUsers")
                         .HasColumnType("int");
+
+                    b.Property<string>("StartHour")
+                        .IsRequired()
+                        .HasMaxLength(6)
+                        .HasColumnType("nvarchar(6)");
 
                     b.HasKey("Id");
 
