@@ -239,7 +239,7 @@ namespace UniSportUAQ_API.Controllers
         }
 
 		[HttpGet]
-		[Route("inscription/{courseId}/{studentId}")]
+		[Route("inscription/check/{courseId}/{studentId}")]
 		[Authorize]
 		public async Task<IActionResult> CheckIfInCourse(string courseId, string studentId)
 		{
@@ -256,7 +256,7 @@ namespace UniSportUAQ_API.Controllers
 		}
 
 		[HttpDelete]
-		[Route("inscription/check/{courseId}/{studentId}")]
+		[Route("inscription/remove/{courseId}/{studentId}")]
 		[Authorize]
 		public async Task<IActionResult> RemoveFromCourse(string courseId, string studentId)
 		{
