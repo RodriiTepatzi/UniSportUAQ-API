@@ -94,5 +94,27 @@ namespace UniSportUAQ_API.Data.Services
 				.Take(range)
 				.ToListAsync();
 		}
-	}
+
+        public async Task<List<ApplicationUser>> GetInstructorSeacrhAsync(string searchTerm)
+        {
+
+            searchTerm.ToLower();
+
+            var result = await _context.ApplicationUsers
+                .Include(u => u.CurrentCourse)
+                .ThenInclude(c => c.Course)
+                .Where(s => 
+				(s.IsStudent == true &&
+                s.IsInstructor == true) && 
+				(s.Name.ToLower().Contains(searchTerm) ||
+                s.LastName.ToLower().Contains(searchTerm) ||
+                s.Expediente.ToLower().Contains(searchTerm) ||
+                s.Email.ToLower().Contains(searchTerm))
+				) 
+                .ToListAsync();
+
+
+            return result;
+        }
+    }
 }
