@@ -104,7 +104,7 @@ namespace UniSportUAQ_API.Data.Services
                 .Include(u => u.CurrentCourse)
                 .ThenInclude(c => c.Course)
                 .Where(s => 
-				(s.IsStudent == true &&
+				(
                 s.IsInstructor == true) && 
 				(s.Name.ToLower().Contains(searchTerm) ||
                 s.LastName.ToLower().Contains(searchTerm) ||
