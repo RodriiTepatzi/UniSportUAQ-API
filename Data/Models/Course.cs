@@ -1,5 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
+using System.ComponentModel;
 
 namespace UniSportUAQ_API.Data.Models
 {
@@ -14,8 +16,22 @@ namespace UniSportUAQ_API.Data.Models
 		[StringLength(50)]
 		public string? CourseName { get; set; }
 
-		[Required]
+        [Required]
+        public string? Description { get; set; }
+
+        [Required]
 		public string? InstructorId { get; set; }
+
+		[Required]
+		[StringLength(20)]
+		public bool VirtualOrHybrid { get; set; }
+
+		[StringLength(50)]
+		[Required]
+		public string? Location { get; set; }
+
+        [AllowNull]
+        public string? Link { get; set; }	
 
 		[Required]
 		[StringLength(20)]
@@ -31,8 +47,11 @@ namespace UniSportUAQ_API.Data.Models
 
         [Required]
 		public int MaxUsers { get; set; }
+
+		[DefaultValue(0)]
 		public int CurrentUsers { get; set; }
-		public int PendingUsers { get; set; }
+        [DefaultValue(0)]
+        public int PendingUsers { get; set; }
 
 		[ForeignKey("InstructorId")]
 		public ApplicationUser? Instructor { get; set; }
@@ -43,7 +62,11 @@ namespace UniSportUAQ_API.Data.Models
 		public Dictionary<string, object> Dictionary => new Dictionary<string, object> {
 			{ nameof(Id), Id },
 			{ nameof(CourseName), CourseName is not null ? CourseName : "" },
-			{ nameof(Instructor), Instructor is not null ? Instructor.InstructorToDictionary() : null },
+			{ nameof(Description), Description is not null ? Description : ""},
+			{ nameof(Instructor), Instructor is not null ? Instructor.InstructorToDictionary() : "" },
+			{ nameof(VirtualOrHybrid), VirtualOrHybrid},
+			{ nameof(Location), Location},
+			{ nameof(Link), Link},
 			{ nameof(Day), Day },
 			{ nameof(StartHour), StartHour },
 			{ nameof(EndHour), EndHour },

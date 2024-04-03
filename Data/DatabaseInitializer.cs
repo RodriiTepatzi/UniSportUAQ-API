@@ -150,6 +150,7 @@ namespace UniSportUAQ_API.Data
                         {
                             CourseName = "Curso de C#",
                             InstructorId = instructorFilled.Id,
+                            Description = "Este curso proporciona a los participantes una sólida introducción al lenguaje de programación C#. Diseñado para principiantes",
                             MaxUsers = 30,
                             CurrentUsers = 0,
                             Day = "Lunes",
@@ -161,6 +162,7 @@ namespace UniSportUAQ_API.Data
                         {
                             CourseName = "Curso de Python",
                             InstructorId = instructorFilled.Id,
+                            Description = "Este curso ofrece a los participantes una introducción completa al lenguaje de programación Python",
                             MaxUsers = 30,
                             CurrentUsers = 0,
                             Day = "Martes",

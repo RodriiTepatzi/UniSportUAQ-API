@@ -119,5 +119,26 @@ namespace UniSportUAQ_API.Data.Services
 
 			return result;
 		}
-	}
+
+		public async Task<List<Course>> GetCoursesSearch(string searchTerm) {
+
+			searchTerm.ToLower();
+
+			
+
+			var result = await _context.Courses
+			.Include(i => i.Instructor)
+			.Where(i => (i.CourseName.ToLower().Contains(searchTerm) ||
+			i.Description.ToLower().Contains(searchTerm) ||
+			i.Day.ToLower().Contains(searchTerm)) &&
+			i.IsActive == true)
+			.Distinct()
+			.ToListAsync();
+
+			return result;
+			
+			
+		}
+
+    }
 }

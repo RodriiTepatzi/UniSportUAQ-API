@@ -55,6 +55,7 @@ namespace UniSportUAQ_API.Data.Models
 			{
 				{ nameof(Id), Id },
 				{ nameof(Name), Name is not null ? Name : "" },
+				{ nameof(LastName), LastName is not null ? LastName: ""},
 				{ nameof(Email), Email is not null ? Email : "" },
 				{ nameof(UserName), UserName is not null ? UserName : "" },
 				{ nameof(PictureUrl), PictureUrl is not null ? PictureUrl : "" },

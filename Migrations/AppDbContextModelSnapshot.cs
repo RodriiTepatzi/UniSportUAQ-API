@@ -194,6 +194,10 @@ namespace UniSportUAQ_API.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("EndHour")
                         .IsRequired()
                         .HasMaxLength(6)
@@ -206,6 +210,14 @@ namespace UniSportUAQ_API.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
+                    b.Property<string>("Link")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Location")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
                     b.Property<int>("MaxUsers")
                         .HasColumnType("int");
 
@@ -216,6 +228,10 @@ namespace UniSportUAQ_API.Migrations
                         .IsRequired()
                         .HasMaxLength(6)
                         .HasColumnType("nvarchar(6)");
+
+                    b.Property<bool>("VirtualOrHybrid")
+                        .HasMaxLength(20)
+                        .HasColumnType("bit");
 
                     b.HasKey("Id");
 

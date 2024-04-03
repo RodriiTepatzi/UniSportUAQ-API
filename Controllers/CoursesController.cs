@@ -125,10 +125,31 @@ namespace UniSportUAQ_API.Controllers
 
 			if (result.Count > 0) return Ok(new DataResponse { Data = data, ErrorMessage = null });
 
-			return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+			return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 		}
 
-		[HttpPut]
+
+        [HttpGet]
+        [Route("search/{searchTerm}")]
+        [Authorize]
+        public async Task<IActionResult> GetCoursesSearch(string searchTerm)
+        {
+			if(searchTerm is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+
+            var result = await _coursesService.GetCoursesSearch(searchTerm);
+
+			var data = new List<Dictionary<string, object>>();
+
+			foreach (var item in result) data.Add(item.Dictionary);
+
+			if (result.Count > 0) return Ok(new DataResponse { Data = data, ErrorMessage = null });
+
+            return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND }); 
+
+        }
+
+
+        [HttpPut]
 		[Route("update")]
 		[Authorize]
 		public async Task<IActionResult> UpdateCourse([FromBody] CourseSchema courseSchema)
@@ -160,7 +181,11 @@ namespace UniSportUAQ_API.Controllers
 			return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.INTERNAL_ERROR });
 		}
 
-		[HttpPost]
+
+        
+
+
+        [HttpPost]
 		[Route("create")]
 		[Authorize]
 		public async Task<IActionResult> AddToCourse([FromBody] CourseSchema courseSchema)
@@ -206,6 +231,10 @@ namespace UniSportUAQ_API.Controllers
 
 			return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.INTERNAL_ERROR});
 		}
+
+		
+
+       
 
 		[HttpPost]
         [Route("inscription/{courseId}/{studentId}")]

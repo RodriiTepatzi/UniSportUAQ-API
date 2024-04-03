@@ -56,9 +56,11 @@ namespace UniSportUAQ_API.Migrations
                 {
                     Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     CourseName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
                     InstructorId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     Day = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
-                    Hour = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    StartHour = table.Column<string>(type: "nvarchar(6)", maxLength: 6, nullable: false),
+                    EndHour = table.Column<string>(type: "nvarchar(6)", maxLength: 6, nullable: false),
                     MaxUsers = table.Column<int>(type: "int", nullable: false),
                     CurrentUsers = table.Column<int>(type: "int", nullable: false),
                     PendingUsers = table.Column<int>(type: "int", nullable: false),

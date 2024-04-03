@@ -10,6 +10,8 @@ namespace UniSportUAQ_API.Data.Services
 
 		Task<ApplicationUser?> GetStudentByExpAsync(string exp);
 		Task<List<ApplicationUser>> GetAllInRangeAsync(int start, int end);
+
+		Task<List<ApplicationUser>> GetStudentsSeacrhAsync(string searchTerm);
 		Task<ApplicationUser> CreateStudentAsync(StudentSchema studentSchema);
 	}
 }
