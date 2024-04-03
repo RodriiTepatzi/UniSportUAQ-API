@@ -238,8 +238,25 @@ namespace UniSportUAQ_API.Controllers
             return Ok(new DataResponse { Data = inscriptionResult.Dictionary, ErrorMessage = null});
         }
 
+		[HttpGet]
+		[Route("inscription/{courseId}/{studentId}")]
+		[Authorize]
+		public async Task<IActionResult> CheckIfInCourse(string courseId, string studentId)
+		{
+			// First we have to check if the courseId and studentId, both exist on our database. Otherwise we shall return an error.
+
+			if (await _studentsService.GetStudentByIdAsync(studentId) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+			if (await _coursesService.GetCourseByIdAsync(courseId) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+
+			var checkIfInCourse = await _inscriptionsService.CheckInscriptionByCourseIdAndStudentIdAsync(courseId, studentId);
+
+			if (checkIfInCourse) return Ok(new DataResponse { Data = true, ErrorMessage = null });
+
+			return Ok(new DataResponse { Data = false, ErrorMessage = null });
+		}
+
 		[HttpDelete]
-		[Route("inscription/remove/{courseId}/{studentId}")]
+		[Route("inscription/check/{courseId}/{studentId}")]
 		[Authorize]
 		public async Task<IActionResult> RemoveFromCourse(string courseId, string studentId)
 		{
