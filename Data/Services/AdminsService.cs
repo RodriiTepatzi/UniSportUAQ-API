@@ -29,11 +29,19 @@ namespace UniSportUAQ_API.Data.Services
                 Email = adminSchema.Email,
                 PhoneNumber = adminSchema.PhoneNumber,
                 Expediente = adminSchema.Expediente,
+                IsAdmin = true,
+                IsActive = true,
             };
 
             await _userManager.CreateAsync(admin, adminSchema.Password!);
 
-            return admin;
+            var entity = _context.Entry(admin);
+            var result = entity.Entity;
+            entity.State = EntityState.Added;
+
+            await _context.SaveChangesAsync();
+
+            return result;
         }
 
         public async Task<List<ApplicationUser>> GetAdminByEmailAsync(string email)
@@ -73,6 +81,27 @@ namespace UniSportUAQ_API.Data.Services
 				.Take(range)
 				.ToListAsync();
 		}
-	}
+
+        public async Task<List<ApplicationUser>> GetAdminSeacrhAsync(string searchTerm)
+        {
+
+            searchTerm.ToLower();
+
+            var result = await _context.ApplicationUsers
+                .Include(u => u.CurrentCourse)
+                .ThenInclude(c => c.Course)
+                .Where(s =>
+                (s.IsAdmin == true) &&
+                (s.Name.ToLower().Contains(searchTerm) ||
+                s.LastName.ToLower().Contains(searchTerm) ||
+                s.Expediente.ToLower().Contains(searchTerm) ||
+                s.Email.ToLower().Contains(searchTerm))
+                )
+                .ToListAsync();
+
+
+            return result;
+        }
+    }
 }
 

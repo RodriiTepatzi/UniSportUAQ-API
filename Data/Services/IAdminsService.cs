@@ -11,6 +11,9 @@ namespace UniSportUAQ_API.Data.Services
         Task<List<ApplicationUser>> GetAdminByEmailAsync(string email);
 		Task<List<ApplicationUser>> GetAllInRangeAsync(int start, int end);
 
+        Task<List<ApplicationUser>> GetAdminSeacrhAsync(string searchTerm);
+    
+
         Task<ApplicationUser> CreateAdminAsync(AdminSchema adminSchema);
     }
 }
