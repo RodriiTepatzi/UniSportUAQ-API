@@ -46,6 +46,16 @@ namespace UniSportUAQ_API.Data.Services
             return result.Entity;
         }
 
+		public async Task<int> GetStudentCoursesCountAsync(string id)
+		{
+			var result = await _context.Inscriptions
+				.Where(i => i.StudentId == id)
+				.ToListAsync();
+
+			return (int) result.Count;
+		}
+
+
 		public async Task<bool> RemoveInscriptionByCourseIdAndStudentIdAsync(string courseId, string studentId)
 		{
 			try
