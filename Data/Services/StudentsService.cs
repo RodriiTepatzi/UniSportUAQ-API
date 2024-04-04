@@ -33,7 +33,13 @@ namespace UniSportUAQ_API.Data.Services
 
 			await _userManager.CreateAsync(student, studentSchema.Password!);
 
-			return student;
+			var entity = _context.Entry(student);
+			var result = entity.Entity;
+			entity.State = EntityState.Added;
+
+            await _context.SaveChangesAsync();
+
+            return result;
 		}
 
 		public async Task<List<ApplicationUser>> GetAllInRangeAsync(int start, int end)
@@ -56,7 +62,8 @@ namespace UniSportUAQ_API.Data.Services
                 var result = await _context.ApplicationUsers
 					.Include(u => u.CurrentCourse)
 					.ThenInclude(c => c.Course)
-					.SingleAsync(s => s.Email == email && s.IsStudent);
+					.SingleOrDefaultAsync(s => s.Email == email && s.IsStudent);
+					
 
                 if (result is not null) return result;
                 else return null;
@@ -98,7 +105,7 @@ namespace UniSportUAQ_API.Data.Services
                 var result = await _context.ApplicationUsers
 					.Include(u => u.CurrentCourse)
 					.ThenInclude(c => c.Course)
-					.SingleAsync(s => s.Expediente == exp && s.IsStudent);
+					.SingleOrDefaultAsync(s => s.Expediente == exp && s.IsStudent);
 
                 if (result is not null) return result;
                 else return null;
@@ -115,10 +122,11 @@ namespace UniSportUAQ_API.Data.Services
 			var result = await _context.ApplicationUsers
 				.Include(u => u.CurrentCourse)
                 .ThenInclude(c => c.Course)
-				.Where(s => s.Name.ToLower().Contains(searchTerm) ||
+				.Where(s => (s.Name.ToLower().Contains(searchTerm) ||
 				s.LastName.ToLower().Contains(searchTerm)||
 				s.Expediente.ToLower().Contains(searchTerm) ||
-				s.Email.ToLower().Contains(searchTerm) )
+				s.Email.ToLower().Contains(searchTerm)) && 
+				(s.IsStudent == true))
 				.ToListAsync();
 
 

@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using UniSportUAQ_API.Data.Consts;
 using UniSportUAQ_API.Data.Models;
 using UniSportUAQ_API.Data.Schemas;
@@ -75,7 +76,26 @@ namespace UniSportUAQ_API.Controllers
 			return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 		}
 
-		[HttpPost]
+		[HttpGet]
+		[Route("search/{searchTerm}")]
+		[Authorize]
+		public async Task<IActionResult> GetInstructorSeacrhAsync(string searchTerm)
+        {
+            if (searchTerm is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+
+            var result = await _instructorsService.GetInstructorSeacrhAsync(searchTerm);
+
+            var data = new List<Dictionary<string, object>>();
+
+            foreach (var item in result) data.Add(item.ToDictionary());
+
+            if (result.Count > 0) return Ok(new DataResponse { Data = data, ErrorMessage = null });
+
+            return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+
+        }
+
+        [HttpPost]
 		[Route("promote")]
 		[AllowAnonymous]
 		public async Task<IActionResult> CreateInstructor([FromBody] InstructorSchema instructor)
