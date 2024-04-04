@@ -295,7 +295,7 @@ namespace UniSportUAQ_API.Controllers
 
 			var result = await _inscriptionsService.GetStudentCoursesCountAsync(studentId);
 
-			return Ok(new DataResponse { Data = true, ErrorMessage = null });
+			return Ok(new DataResponse { Data = result, ErrorMessage = null });
 		}
 
 		[HttpDelete]
