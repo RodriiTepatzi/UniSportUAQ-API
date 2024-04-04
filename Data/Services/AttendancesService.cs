@@ -105,7 +105,7 @@ namespace UniSportUAQ_API.Data.Services
             return result;
         }
 
-        public async Task<Attendance> UpDateAttedanceAsync(Attendance attendance) {
+        public async Task<Attendance?> UpDateAttedanceAsync(Attendance attendance) {
 
             //get entity
 
@@ -116,7 +116,7 @@ namespace UniSportUAQ_API.Data.Services
 
             await _context.SaveChangesAsync();
 
-            var newAttendance = await GetAttendanceByIdAsync(attendance.Id!);
+            var newAttendance = await GetAttendanceByIdAsync(attendance.Id);
 
             if (newAttendance is not null) return newAttendance;
 

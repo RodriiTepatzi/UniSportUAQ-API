@@ -13,7 +13,7 @@ namespace UniSportUAQ_API.Data.Services
 
         Task<Attendance> CreateAttendanceAsync(Attendance attendance);
 
-        Task<Attendance> UpDateAttedanceAsync(Attendance attendance);
+        Task<Attendance?> UpDateAttedanceAsync(Attendance attendance);
 
  
     }

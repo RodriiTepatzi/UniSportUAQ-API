@@ -8,5 +8,6 @@
 		public string? Email { get; set; }
 		public string? PhoneNumber { get; set; }
 		public string? Expediente { get; set; }
+		public bool IsInstructor { get; set; }
 	}
 }

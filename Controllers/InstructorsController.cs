@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using UniSportUAQ_API.Data.Consts;
 using UniSportUAQ_API.Data.Models;
 using UniSportUAQ_API.Data.Schemas;
@@ -98,7 +97,7 @@ namespace UniSportUAQ_API.Controllers
         [HttpPost]
 		[Route("promote")]
 		[AllowAnonymous]
-		public async Task<IActionResult> CreateInstructor([FromBody] InstructorSchema instructor)
+		public async Task<IActionResult> CreateInstructorasync([FromBody] InstructorSchema instructor)
 		{
 
 			if (instructor.Id is null) return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
@@ -118,5 +117,35 @@ namespace UniSportUAQ_API.Controllers
 
 			return Ok(new DataResponse { Data = result.InstructorToDictionary(), ErrorMessage = null });
 		}
+
+		[HttpPut]
+		[Route("update")]
+		[Authorize]
+		public async Task<IActionResult> UpdateInstructorAsync([FromBody] InstructorSchema instructorSchema) {
+
+			if (instructorSchema.Id is null) return BadRequest(new DataResponse{Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+			if (instructorSchema.Name is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+			if (instructorSchema.LastName is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+			if (instructorSchema.Expediente is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+			if (instructorSchema.PhoneNumber is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+			if (instructorSchema.Email is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+
+			var instructorUpdt = new ApplicationUser
+			{
+				Id = instructorSchema.Id,
+				Name = instructorSchema.Name,
+				Email = instructorSchema.Email,
+				PhoneNumber = instructorSchema.PhoneNumber,
+				Expediente = instructorSchema.Expediente,
+				LastName = instructorSchema.LastName
+
+			};
+
+			var result = await _instructorsService.UpdateInstructorAsync(instructorUpdt);
+
+			if(result is not null) return Ok(new DataResponse { Data = result.ToDictionary(), ErrorMessage = null});
+
+            return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND});
+        }
 	}
 }

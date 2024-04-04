@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using UniSportUAQ_API.Data.Models;
 using UniSportUAQ_API.Data.Schemas;
 
@@ -41,7 +42,7 @@ namespace UniSportUAQ_API.Data.Services
 			try { 
 				var result = await _context.ApplicationUsers
 					.Include(a => a.Courses)
-					.SingleAsync(i => i.Id == id && i.IsInstructor);
+					.SingleOrDefaultAsync(i => i.Id == id && i.IsInstructor == true);
 
 				return result;
 			}
@@ -56,7 +57,7 @@ namespace UniSportUAQ_API.Data.Services
 			try { 
 				var result = await _context.ApplicationUsers
 					.Include(a => a.Courses)
-					.SingleAsync(i => i.Expediente == exp && i.IsInstructor);
+					.SingleAsync(i => i.Expediente == exp && i.IsInstructor == true);
 
 				return result;
 			}
@@ -116,5 +117,23 @@ namespace UniSportUAQ_API.Data.Services
 
             return result;
         }
+
+		public async Task<ApplicationUser?> UpdateInstructorAsync(ApplicationUser instructor)
+        {
+
+            EntityEntry entityEntry = _context.Entry(instructor);
+
+			entityEntry.State = EntityState.Modified;
+
+			var updatedInstructor = await GetInstructorByIdAsync(instructor.Id);
+
+			if(updatedInstructor is null) return null;
+
+			if(updatedInstructor.IsInstructor) return updatedInstructor;
+
+			await _context.SaveChangesAsync();
+
+            return updatedInstructor;
+		}
     }
 }

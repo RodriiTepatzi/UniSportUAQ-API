@@ -10,7 +10,8 @@ namespace UniSportUAQ_API.Data.Services
 		Task<ApplicationUser?> GetInstructorByExpAsync(string exp);
 		Task<ApplicationUser?> GetInstructorByEmailAsync(string email);
 		Task<List<ApplicationUser>> GetAllInRangeAsync(int start, int end);
-
         Task<List<ApplicationUser>> GetInstructorSeacrhAsync(string searchTerm);
+
+		Task<ApplicationUser?> UpdateInstructorAsync(ApplicationUser instructor);
     }
 }
