@@ -48,8 +48,6 @@ namespace UniSportUAQ_API.Data.Services
 
 			return await _context.ApplicationUsers
 				.OrderBy(u => u.UserName)
-				.Include(u => u.CurrentCourse)
-				.ThenInclude(c => c.Course)
 				.Skip(start)
 				.Take(range)
 				.ToListAsync();
@@ -59,10 +57,7 @@ namespace UniSportUAQ_API.Data.Services
 		{
             try
             {
-                var result = await _context.ApplicationUsers
-					.Include(u => u.CurrentCourse)
-					.ThenInclude(c => c.Course)
-					.SingleOrDefaultAsync(s => s.Email == email && s.IsStudent);
+                var result = await _context.ApplicationUsers.SingleOrDefaultAsync(s => s.Email == email && s.IsStudent);
 					
 
                 if (result is not null) return result;
@@ -79,8 +74,6 @@ namespace UniSportUAQ_API.Data.Services
 			try
 			{
 				var result = await _context.ApplicationUsers
-					.Include(u => u.CurrentCourse)
-					.ThenInclude(c => c.Course)
 					.SingleAsync(i => i.Id == id && i.IsStudent);
 				var entity = _context.Entry(result);
 				if (entity.State == EntityState.Unchanged)
@@ -103,8 +96,6 @@ namespace UniSportUAQ_API.Data.Services
             try
             {
                 var result = await _context.ApplicationUsers
-					.Include(u => u.CurrentCourse)
-					.ThenInclude(c => c.Course)
 					.SingleOrDefaultAsync(s => s.Expediente == exp && s.IsStudent);
 
                 if (result is not null) return result;
@@ -120,8 +111,6 @@ namespace UniSportUAQ_API.Data.Services
 			searchTerm.ToLower();
 
 			var result = await _context.ApplicationUsers
-				.Include(u => u.CurrentCourse)
-                .ThenInclude(c => c.Course)
 				.Where(s => (s.Name.ToLower().Contains(searchTerm) ||
 				s.LastName.ToLower().Contains(searchTerm)||
 				s.Expediente.ToLower().Contains(searchTerm) ||

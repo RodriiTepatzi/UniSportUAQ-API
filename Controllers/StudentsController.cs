@@ -53,7 +53,7 @@ namespace UniSportUAQ_API.Controllers
 
 			var result = await _studentsService.CreateStudentAsync(student);
 
-			return Ok(new DataResponse { Data = result.StudentToDictionary(), ErrorMessage = null });
+			return Ok(new DataResponse { Data = result.ToDictionary, ErrorMessage = null });
 		}
 
 		//get by email
@@ -70,7 +70,7 @@ namespace UniSportUAQ_API.Controllers
 
 			if (result is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 
-			return Ok(new DataResponse { Data = result.StudentToDictionary(), ErrorMessage = null });
+			return Ok(new DataResponse { Data = result.ToDictionary, ErrorMessage = null });
 		}
 
 		//get by id
@@ -84,7 +84,7 @@ namespace UniSportUAQ_API.Controllers
 
 			if (result is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
                
-			return Ok(new DataResponse { Data = result.StudentToDictionary(), ErrorMessage = null});
+			return Ok(new DataResponse { Data = result.ToDictionary, ErrorMessage = null});
 			
 		}
 
@@ -99,7 +99,7 @@ namespace UniSportUAQ_API.Controllers
 
 			if (result is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 
-			return Ok(new DataResponse { Data = result.StudentToDictionary(), ErrorMessage = null }); ;
+			return Ok(new DataResponse { Data = result.ToDictionary, ErrorMessage = null }); ;
 		}
 
         [HttpGet]
@@ -124,7 +124,7 @@ namespace UniSportUAQ_API.Controllers
 
 			var dictionaryResults = new List<Dictionary<string, object>>();
 
-			result.ForEach((value) => dictionaryResults.Add(value.StudentToDictionary()));
+			result.ForEach((value) => dictionaryResults.Add(value.ToDictionary));
 
 			if (result.Count > 0) return Ok(new DataResponse { Data = dictionaryResults, ErrorMessage = null });
 
@@ -142,7 +142,7 @@ namespace UniSportUAQ_API.Controllers
 
             var data = new List<Dictionary<string, object>>();
 
-            foreach (var item in result) data.Add(item.ToDictionary());
+            foreach (var item in result) data.Add(item.ToDictionary);
 
             if (result.Count > 0) return Ok(new DataResponse { Data = data, ErrorMessage = null });
 

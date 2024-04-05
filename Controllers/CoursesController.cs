@@ -264,7 +264,7 @@ namespace UniSportUAQ_API.Controllers
 
             var inscriptionResult = await _inscriptionsService.CreateInscriptionAsync(courseId, studentId);
 
-            return Ok(new DataResponse { Data = inscriptionResult.Dictionary, ErrorMessage = null});
+            return Ok(new DataResponse { Data = inscriptionResult.ToDictionary(), ErrorMessage = null});
         }
 
 		[HttpGet]
@@ -296,6 +296,27 @@ namespace UniSportUAQ_API.Controllers
 			var result = await _inscriptionsService.GetStudentCoursesCountAsync(studentId);
 
 			return Ok(new DataResponse { Data = result, ErrorMessage = null });
+		}
+
+		[HttpGet]
+		[Route("inscription/enrolled/{studentId}")]
+		[Authorize]
+		public async Task<IActionResult> GetEnrolledCoursesByUserId(string studentId)
+		{
+			// First we have to check if the courseId and studentId, both exist on our database. Otherwise we shall return an error.
+
+			if (await _studentsService.GetStudentByIdAsync(studentId) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+
+			var result = await _inscriptionsService.GetInscriptionsByStudentAsync(studentId);
+
+
+			var data = new List<Dictionary<string, object>>();
+
+			foreach (var item in result) data.Add(item.ToDictionary());
+
+			if (result.Count > 0) return Ok(new DataResponse { Data = data, ErrorMessage = null });
+
+			return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 		}
 
 		[HttpDelete]

@@ -63,7 +63,7 @@ namespace UniSportUAQ_API.Data.Models
 			{ nameof(Id), Id },
 			{ nameof(CourseName), CourseName is not null ? CourseName : "" },
 			{ nameof(Description), Description is not null ? Description : ""},
-			{ nameof(Instructor), Instructor is not null ? Instructor.InstructorToDictionary() : "" },
+			{ nameof(Instructor), Instructor is not null ? Instructor.ToDictionary : "" },
 			{ nameof(VirtualOrHybrid), VirtualOrHybrid},
 			{ nameof(Location), Location},
 			{ nameof(Link), Link},

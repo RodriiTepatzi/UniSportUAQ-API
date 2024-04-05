@@ -29,14 +29,21 @@ namespace UniSportUAQ_API.Data.Models
         [ForeignKey("CourseId")]
         public Course? Course { get; set; }
 
-		public Dictionary<string, object> Dictionary => new Dictionary<string, object>
+		public Dictionary<string, object> ToDictionary() => new Dictionary<string, object>
 		{
 			{"Id", Id },
 			{"DateInscription", DateInscription },
 			{"Accredit", Accredit },
-			{"Student", Student is not null ? Student.ToDictionary() : null },
+			{"Student", Student is not null ? Student.ToDictionary : null },
 			{"Course", Course is not null ? Course.Dictionary : null  }
 		};
 
+		public Dictionary<string, object> ToDictionaryWithNoStudent() => new Dictionary<string, object>
+		{
+			{"Id", Id },
+			{"DateInscription", DateInscription },
+			{"Accredit", Accredit },
+			{"Course", Course is not null ? Course.Dictionary : null  }
+		};
 	}
 }

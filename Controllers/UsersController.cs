@@ -32,7 +32,7 @@ namespace UniSportUAQ_API.Controllers
 
 			var data = new List<Dictionary<string, object>>();
 
-			foreach (var item in result) data.Add(item.ToDictionary());
+			foreach (var item in result) data.Add(item.ToDictionary);
 
 			return Ok(new DataResponse { Data = data, ErrorMessage = null});
         }
@@ -46,7 +46,7 @@ namespace UniSportUAQ_API.Controllers
 
 			if (result is null) return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 
-			return Ok(new DataResponse { Data = result.ToDictionary(), ErrorMessage = null});
+			return Ok(new DataResponse { Data = result.ToDictionary, ErrorMessage = null});
 		}
 
 		[HttpGet]
@@ -60,7 +60,7 @@ namespace UniSportUAQ_API.Controllers
 
 			var data = new List<Dictionary<string, object>>();
 
-			foreach (var item in result) data.Add(item.ToDictionary());
+			foreach (var item in result) data.Add(item.ToDictionary);
 
 			return Ok(new DataResponse { Data = data, ErrorMessage = null });
 		}

@@ -28,7 +28,7 @@ namespace UniSportUAQ_API.Controllers
 		{
 			var result = await _instructorsService.GetInstructorByIdAsync(id);
 
-			if (result is not null) return Ok(new DataResponse { Data = result.InstructorToDictionary(), ErrorMessage = null });
+			if (result is not null) return Ok(new DataResponse { Data = result.ToDictionary, ErrorMessage = null });
 
 			return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND});
 		}
@@ -40,7 +40,7 @@ namespace UniSportUAQ_API.Controllers
 		{
 			var result = await _instructorsService.GetInstructorByExpAsync(exp);
 
-			if (result is not null) return Ok(new DataResponse { Data = result.InstructorToDictionary(), ErrorMessage = null });
+			if (result is not null) return Ok(new DataResponse { Data = result.ToDictionary, ErrorMessage = null });
 
 			return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 		}
@@ -52,7 +52,7 @@ namespace UniSportUAQ_API.Controllers
         {
             var result = await _instructorsService.GetInstructorByEmailAsync(email);
 
-			if (result is not null) return Ok(new DataResponse { Data = result.InstructorToDictionary(), ErrorMessage = null });
+			if (result is not null) return Ok(new DataResponse { Data = result.ToDictionary, ErrorMessage = null });
 
 			return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 		}
@@ -68,7 +68,7 @@ namespace UniSportUAQ_API.Controllers
 
 			if (result.Count > 0)
 			{
-                foreach (var item in result) dictionaries.Add(item.InstructorToDictionary());
+                foreach (var item in result) dictionaries.Add(item.ToDictionary);
 
 				return Ok(new DataResponse { Data = dictionaries, ErrorMessage = null });
 			}
@@ -87,7 +87,7 @@ namespace UniSportUAQ_API.Controllers
 
             var data = new List<Dictionary<string, object>>();
 
-            foreach (var item in result) data.Add(item.ToDictionary());
+            foreach (var item in result) data.Add(item.ToDictionary);
 
             if (result.Count > 0) return Ok(new DataResponse { Data = data, ErrorMessage = null });
 
@@ -116,7 +116,7 @@ namespace UniSportUAQ_API.Controllers
 
 			var result = await _instructorsService.CreateInstructorAsync(instructor);
 
-			return Ok(new DataResponse { Data = result.InstructorToDictionary(), ErrorMessage = null });
+			return Ok(new DataResponse { Data = result.ToDictionary, ErrorMessage = null });
 		}
 	}
 }

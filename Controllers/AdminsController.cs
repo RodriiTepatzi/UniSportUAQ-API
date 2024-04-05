@@ -27,7 +27,7 @@ namespace UniSportUAQ_API.Controllers
         {
             var result = await _adminsService.GetAdminByIdAsync(id);
 
-            if (result.Count > 0) return Ok(new DataResponse { Data = result[0].ToDictionary(), ErrorMessage = null});
+            if (result.Count > 0) return Ok(new DataResponse { Data = result[0].ToDictionary, ErrorMessage = null});
 
             return Ok(new DataResponse { Data = result, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
         }
@@ -39,7 +39,7 @@ namespace UniSportUAQ_API.Controllers
         {
             var result = await _adminsService.GetAdminByEmailAsync(email);
 
-            if (result.Count > 0) return Ok(new DataResponse { Data = result[0].ToDictionary(), ErrorMessage = null });
+            if (result.Count > 0) return Ok(new DataResponse { Data = result[0].ToDictionary, ErrorMessage = null });
 
             return Ok(new DataResponse { Data = result, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
         }
@@ -51,7 +51,7 @@ namespace UniSportUAQ_API.Controllers
         {
             var result = await _adminsService.GetAdminByExpAsync(exp);
 
-            if (result.Count > 0) return Ok(new DataResponse { Data = result[0].ToDictionary(), ErrorMessage = null });
+            if (result.Count > 0) return Ok(new DataResponse { Data = result[0].ToDictionary, ErrorMessage = null });
 
             return Ok(new DataResponse { Data = result, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
         }
@@ -63,7 +63,7 @@ namespace UniSportUAQ_API.Controllers
 		{
 			var result = await _adminsService.GetAllInRangeAsync(start, end);
 
-			if (result.Count > 0) return Ok(new DataResponse { Data = result[0].ToDictionary(), ErrorMessage = null });
+			if (result.Count > 0) return Ok(new DataResponse { Data = result[0].ToDictionary, ErrorMessage = null });
 
 			return Ok(new DataResponse { Data = result, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 		}
@@ -79,15 +79,12 @@ namespace UniSportUAQ_API.Controllers
 
             var data = new List<Dictionary<string, object>>();
 
-            foreach (var item in result) data.Add(item.ToDictionary());
+            foreach (var item in result) data.Add(item.ToDictionary);
 
             if (result.Count > 0) return Ok(new DataResponse { Data = data, ErrorMessage = null });
 
             return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
-
         }
-
-
 
         [HttpPost]
         [Route("create")]

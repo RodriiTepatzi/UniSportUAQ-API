@@ -88,8 +88,6 @@ namespace UniSportUAQ_API.Data.Services
             searchTerm.ToLower();
 
             var result = await _context.ApplicationUsers
-                .Include(u => u.CurrentCourse)
-                .ThenInclude(c => c.Course)
                 .Where(s =>
                 (s.IsAdmin == true) &&
                 (s.Name.ToLower().Contains(searchTerm) ||

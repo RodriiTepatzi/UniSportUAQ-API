@@ -223,7 +223,6 @@ namespace UniSportUAQ_API.Data
                         };
 
                         context.Inscriptions.Add(inscription);
-                        studentUser.CurrentCourseId = inscription.Id;
                     }
 
 

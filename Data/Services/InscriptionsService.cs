@@ -3,48 +3,44 @@ using UniSportUAQ_API.Data.Models;
 
 namespace UniSportUAQ_API.Data.Services
 {
-    public class InscriptionsService : IInscriptionsService
-    {
-        private readonly AppDbContext _context;
-        public InscriptionsService(AppDbContext context)
-        {
-            _context = context;
-        }
+	public class InscriptionsService : IInscriptionsService
+	{
+		private readonly AppDbContext _context;
+		public InscriptionsService(AppDbContext context)
+		{
+			_context = context;
+		}
 
-        public async Task<bool> CheckInscriptionByCourseIdAndStudentIdAsync(string courseId, string studentId)
-        {
-            var result = await _context.Inscriptions.Where(
-                i => i.CourseId == courseId && i.StudentId == studentId
-            ).ToListAsync();
+		public async Task<bool> CheckInscriptionByCourseIdAndStudentIdAsync(string courseId, string studentId)
+		{
+			var result = await _context.Inscriptions.Where(
+				i => i.CourseId == courseId && i.StudentId == studentId
+			).ToListAsync();
 
-            if (result.Count > 0) return true;
+			if (result.Count > 0) return true;
 
-            return false;
-        }
+			return false;
+		}
 
-        public async Task<Inscription> CreateInscriptionAsync(string courseId, string studentId)
-        {
+		public async Task<Inscription> CreateInscriptionAsync(string courseId, string studentId)
+		{
 
-            var entity = new Inscription
-            {
-                DateInscription = DateTime.Now,
-                Accredit = false, // False as default.
-                CourseId = courseId,
-                StudentId  = studentId,
-            };
+			var entity = new Inscription
+			{
+				DateInscription = DateTime.Now,
+				Accredit = false, // False as default.
+				CourseId = courseId,
+				StudentId = studentId,
+			};
 
-            var result = await _context.AddAsync(
-                entity
-            );
+			var result = await _context.AddAsync(
+				entity
+			);
 
-			var student = await _context.ApplicationUsers.SingleAsync(au => au.Id == studentId);
+			await _context.SaveChangesAsync();
 
-			student.CurrentCourseId = result.Entity.Id;
-
-            await _context.SaveChangesAsync();
-
-            return result.Entity;
-        }
+			return result.Entity;
+		}
 
 		public async Task<int> GetStudentCoursesCountAsync(string id)
 		{
@@ -52,7 +48,18 @@ namespace UniSportUAQ_API.Data.Services
 				.Where(i => i.StudentId == id)
 				.ToListAsync();
 
-			return (int) result.Count;
+			return (int)result.Count;
+		}
+
+		public async Task<List<Inscription>> GetInscriptionsByStudentAsync(string id)
+		{
+			var result = await _context.Inscriptions
+				.Where(i => i.StudentId == id && i.Accredit == false)
+				.Include(i => i.Course)
+				.IgnoreAutoIncludes()
+				.ToListAsync();
+
+			return result;
 		}
 
 
@@ -60,10 +67,6 @@ namespace UniSportUAQ_API.Data.Services
 		{
 			try
 			{
-				var student = await _context.ApplicationUsers.SingleAsync(au => au.Id == studentId);
-
-				student.CurrentCourseId = null;
-
 				var result = await _context.Inscriptions.SingleAsync(
 					i => i.CourseId == courseId && i.StudentId == studentId
 				);

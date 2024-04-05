@@ -40,7 +40,6 @@ namespace UniSportUAQ_API.Data.Services
 		{
 			try { 
 				var result = await _context.ApplicationUsers
-					.Include(a => a.Courses)
 					.SingleAsync(i => i.Id == id && i.IsInstructor);
 
 				return result;
@@ -55,7 +54,6 @@ namespace UniSportUAQ_API.Data.Services
 		{
 			try { 
 				var result = await _context.ApplicationUsers
-					.Include(a => a.Courses)
 					.SingleAsync(i => i.Expediente == exp && i.IsInstructor);
 
 				return result;
@@ -71,7 +69,6 @@ namespace UniSportUAQ_API.Data.Services
 			try
 			{
 				var result = await _context.ApplicationUsers
-					.Include(a => a.Courses)
 					.SingleAsync(i => i.Email == email && i.IsInstructor);
 
 				return result;
@@ -88,7 +85,6 @@ namespace UniSportUAQ_API.Data.Services
 
 			return await _context.ApplicationUsers
 				.Where(a => a.IsInstructor)
-				.Include(a => a.Courses)
 				.OrderBy(u => u.UserName)
 				.Skip(start)
 				.Take(range)
@@ -101,8 +97,6 @@ namespace UniSportUAQ_API.Data.Services
             searchTerm.ToLower();
 
             var result = await _context.ApplicationUsers
-                .Include(u => u.CurrentCourse)
-                .ThenInclude(c => c.Course)
                 .Where(s => 
 				(
                 s.IsInstructor == true) && 

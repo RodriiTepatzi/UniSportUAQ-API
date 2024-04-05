@@ -20,29 +20,7 @@ namespace UniSportUAQ_API.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
-
-			modelBuilder.Entity<Attendance>().ToTable("Attendances")
-				.HasOne(a => a.Student)
-				.WithMany(s => s.Attendances)
-				.HasForeignKey(a => a.StudentId)
-				.OnDelete(DeleteBehavior.Restrict);
-
-			modelBuilder.Entity<Inscription>()
-				.HasOne(i => i.Student)
-				.WithMany(s => s.Inscriptions)
-				.HasForeignKey(i => i.StudentId)
-				.OnDelete(DeleteBehavior.Restrict);
-
-			modelBuilder.Entity<CartaLiberacion>().ToTable("CartasLiberacion")
-				.HasOne(i => i.Student)
-				.WithMany(c => c.CartasLiberacion)
-				.HasForeignKey(a => a.StudentId)
-				.OnDelete(DeleteBehavior.Restrict);
-
-
-			base.OnModelCreating(modelBuilder);
-
-            
+			base.OnModelCreating(modelBuilder);   
         }
 
 		public DbSet<ApplicationUser> ApplicationUsers { get; set; }
