@@ -8,14 +8,11 @@ namespace UniSportUAQ_API.Data.Models
     {
         [Required]
         [Key]
-		[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-		public string? Id { get; set; }
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public string? Id { get; set; }
 
         [Required]
         public DateTime DateInscription { get; set; }
-
-        
-
 
         [Required]
         public string? StudentId { get; set; }
@@ -23,14 +20,13 @@ namespace UniSportUAQ_API.Data.Models
         [Required]
         public string? CourseId { get; set; }
 
-		public int Grade { get; set; }
+        public int Grade { get; set; }
 
         public bool Accredit { get; set; }
 
         [Required]
-		[DefaultValue(false)]
-		public bool IsFinished { get; set; }
-
+		    [DefaultValue(false)]
+		    public bool IsFinished { get; set; }
 
         [ForeignKey("StudentId")]
         public ApplicationUser? Student { get; set; }
