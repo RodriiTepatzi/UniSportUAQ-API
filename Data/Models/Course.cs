@@ -53,6 +53,9 @@ namespace UniSportUAQ_API.Data.Models
         [DefaultValue(0)]
         public int PendingUsers { get; set; }
 
+		[Required]
+		public string? CoursePictureUrl { get; set; }
+
 		[ForeignKey("InstructorId")]
 		public ApplicationUser? Instructor { get; set; }
 
@@ -73,6 +76,7 @@ namespace UniSportUAQ_API.Data.Models
 			{ nameof(MaxUsers), MaxUsers },
 			{ nameof(CurrentUsers), CurrentUsers },
 			{ nameof(PendingUsers), PendingUsers },
+			{ nameof(CoursePictureUrl), CoursePictureUrl is not null ? CoursePictureUrl : ""}
 		};
 	}
 }
