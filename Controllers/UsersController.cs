@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using UniSportUAQ_API.Data.Consts;
 using UniSportUAQ_API.Data.Models;
+using UniSportUAQ_API.Data.Schemas;
 using UniSportUAQ_API.Data.Services;
 
 namespace UniSportUAQ_API.Controllers
@@ -15,7 +16,6 @@ namespace UniSportUAQ_API.Controllers
     public class UsersController : Controller
     {
         private readonly IUsersService _usersService;
-
         public UsersController(IUsersService usersService)
         {
             _usersService = usersService;
@@ -64,6 +64,44 @@ namespace UniSportUAQ_API.Controllers
 
 			return Ok(new DataResponse { Data = data, ErrorMessage = null });
 		}
-	}
+
+		[HttpPut]
+		[Route("update")]
+		[Authorize]
+
+		public async Task<IActionResult> UpdateUserAsync([FromBody]UserSchema user) {
+
+			if (user.Id == null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+			if (user.Name == null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+			if (user.LastName == null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+			if (user.PhoneNumber == null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+            if (user.Email == null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+            if (user.PictureUrl == null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+
+			var userUpdt = new ApplicationUser { 
+
+				Id = user.Id,
+				Name = user.Name,
+				LastName = user.LastName,
+				PhoneNumber = user.PhoneNumber,
+				Email = user.Email,
+				IsInFIF = user.IsInFIF,
+				Semester = user.Semester,
+				IsActive = user.IsActive,
+				IsAdmin = user.IsAdmin,
+				IsStudent = user.IsStudent,
+				IsInstructor = user.IsInstructor,
+				PictureUrl = user.PictureUrl,
+				
+			};
+
+			var result = await _usersService.UpdateUserAsync(userUpdt);
+
+			if(result == null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND});
+
+            return Ok(new DataResponse { Data = userUpdt.ToDictionary, ErrorMessage = null});
+		}
+
+    }
 }
 
