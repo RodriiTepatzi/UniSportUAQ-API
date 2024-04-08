@@ -56,6 +56,7 @@ namespace UniSportUAQ_API.Data.Services
 			var result = await _context.Inscriptions
 				.Where(i => i.StudentId == id && i.Accredit == false)
 				.Include(i => i.Course)
+				.ThenInclude(c => c.Instructor)
 				.IgnoreAutoIncludes()
 				.ToListAsync();
 
