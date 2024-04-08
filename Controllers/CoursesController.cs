@@ -319,6 +319,26 @@ namespace UniSportUAQ_API.Controllers
 			return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 		}
 
+		[HttpGet]
+		[Route("inscription/finished/{studentId}")]
+		[Authorize]
+		public async Task<IActionResult> GetFinishedCoursesById(string studentId)
+		{
+			// First we have to check if the courseId and studentId, both exist on our database. Otherwise we shall return an error.
+
+			if (await _studentsService.GetStudentByIdAsync(studentId) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+
+			var result = await _inscriptionsService.GetFinishedInscriptionsByStudentAsync(studentId);
+
+			var data = new List<Dictionary<string, object>>();
+
+			foreach (var item in result) data.Add(item.ToDictionary());
+
+			if (result.Count > 0) return Ok(new DataResponse { Data = data, ErrorMessage = null });
+
+			return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+		}
+
 		[HttpDelete]
 		[Route("inscription/remove/{courseId}/{studentId}")]
 		[Authorize]

@@ -13,6 +13,7 @@ namespace UniSportUAQ_API.Data.Services
         Task<bool> CheckInscriptionByCourseIdAndStudentIdAsync(string courseId, string studentId);
 		Task<int> GetStudentCoursesCountAsync(string id);
 		Task<List<Inscription>> GetInscriptionsByStudentAsync(string id);
+		Task<List<Inscription>> GetFinishedInscriptionsByStudentAsync(string id);
 		Task<bool> RemoveInscriptionByCourseIdAndStudentIdAsync(string courseId, string studentId);
 		Task<Inscription> CreateInscriptionAsync(string courseId, string studentId);
     }

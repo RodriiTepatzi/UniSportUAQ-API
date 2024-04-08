@@ -54,7 +54,19 @@ namespace UniSportUAQ_API.Data.Services
 		public async Task<List<Inscription>> GetInscriptionsByStudentAsync(string id)
 		{
 			var result = await _context.Inscriptions
-				.Where(i => i.StudentId == id && i.Accredit == false)
+				.Where(i => i.StudentId == id && i.IsFinished == false)
+				.Include(i => i.Course)
+				.ThenInclude(c => c.Instructor)
+				.IgnoreAutoIncludes()
+				.ToListAsync();
+
+			return result;
+		}
+
+		public async Task<List<Inscription>> GetFinishedInscriptionsByStudentAsync(string id)
+		{
+			var result = await _context.Inscriptions
+				.Where(i => i.StudentId == id && i.IsFinished == true)
 				.Include(i => i.Course)
 				.ThenInclude(c => c.Instructor)
 				.IgnoreAutoIncludes()
