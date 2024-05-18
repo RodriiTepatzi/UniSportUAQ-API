@@ -339,6 +339,26 @@ namespace UniSportUAQ_API.Controllers
 			return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 		}
 
+		[HttpPut]
+		[Route("inscription/acredit")]
+		[Authorize]
+
+		public async Task<IActionResult> AcreditCourse([FromBody] Inscription inscription) {
+
+			if (!Guid.TryParse(inscription.Id, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+            if (!Guid.TryParse(inscription.CourseId, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+            if (!Guid.TryParse(inscription.StudentId, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+
+			var result = await _inscriptionsService.AcreditIsncriptionAsync(inscription.CourseId, inscription.StudentId);
+
+			if (result) return Ok(new DataResponse { Data = result, ErrorMessage = null });
+
+            return Ok(new DataResponse { Data = result, ErrorMessage = null });
+		}
+
+
+
+
 		[HttpDelete]
 		[Route("inscription/remove/{courseId}/{studentId}")]
 		[Authorize]
@@ -375,6 +395,8 @@ namespace UniSportUAQ_API.Controllers
 			return BadRequest(new DataResponse { Data = false, ErrorMessage = ResponseMessages.ERROR_REMOVING_USER_FROM_COURSE });
 		}
 
+
+
 		//local use
 
         private bool IsScheduleConflict(Course existingCourse, CourseSchema newCourse)
@@ -395,6 +417,8 @@ namespace UniSportUAQ_API.Controllers
 
             return false; // No  Conflict in schedule
         }
+
+		
 
     }
 }

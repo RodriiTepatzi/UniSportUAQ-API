@@ -156,7 +156,9 @@ namespace UniSportUAQ_API.Data
                             Day = "Lunes",
                             StartHour = "8:00",
                             EndHour = "11:00",
-                            IsActive = true
+                            IsActive = true,
+                            CoursePictureUrl = "this is url",
+                            Location = "info"
                         },
                         new Course
                         {
@@ -168,7 +170,9 @@ namespace UniSportUAQ_API.Data
                             Day = "Martes",
                             StartHour = "12:00",
                             EndHour = "14:00",
-                            IsActive = true
+                            IsActive = true,
+                            CoursePictureUrl = "this is url",
+                            Location = "info"
                         },
 
                     };

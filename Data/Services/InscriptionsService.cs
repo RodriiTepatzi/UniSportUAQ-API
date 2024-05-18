@@ -96,5 +96,41 @@ namespace UniSportUAQ_API.Data.Services
 				return false;
 			}
 		}
-	}
+
+		public async Task<bool> AcreditIsncriptionAsync(string courseId, string studentId) {
+
+			try {
+
+				var result = await _context.Inscriptions.SingleOrDefaultAsync(
+						i => i.CourseId == courseId && i.StudentId == studentId
+					);
+
+				if (result != null)
+				{
+
+					//modify acredit to true
+
+					var entity = _context.Entry(result);
+
+					entity.Entity.Accredit = true;
+
+					entity.State = EntityState.Modified;
+
+					await _context.SaveChangesAsync();
+
+					return true;
+
+				}
+				else return false;
+
+			}catch{
+
+                return false;
+
+            }
+
+			
+		}
+
+    }
 }
