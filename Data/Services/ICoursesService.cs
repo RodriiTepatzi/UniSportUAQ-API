@@ -19,7 +19,7 @@ namespace UniSportUAQ_API.Data.Services
 		Task<bool> EndCourseAsync(string CourseId);
 
 
-        Task<Course> UpdateCourseAsync(Course course);
+        Task<Course?> UpdateCourseAsync(Course course);
 
     }
 }
