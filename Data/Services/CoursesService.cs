@@ -67,9 +67,21 @@ namespace UniSportUAQ_API.Data.Services
             return result;
         }
 
-        public async Task<Course> UpdateCourseAsync(Course course)
+        public async Task<Course?> UpdateCourseAsync(Course course)
         {
-            EntityEntry entityEntry = _context.Entry(course);
+			var result = await _context.Courses.SingleOrDefaultAsync(c => c.Id == course.Id);
+
+			if (result == null) return null; 
+
+            var entityEntry = _context.Entry(result);
+
+			entityEntry.Entity.CoursePictureUrl = course.CoursePictureUrl;
+			entityEntry.Entity.CourseName = course.CourseName;
+			entityEntry.Entity.Day = course.Day;
+			entityEntry.Entity.Description = course.Description;
+			entityEntry.Entity.EndHour = course.EndHour;
+			entityEntry.Entity.MaxUsers = course.MaxUsers;
+			entityEntry.Entity.StartHour = course.StartHour;
 
             entityEntry.State = EntityState.Modified;
 
