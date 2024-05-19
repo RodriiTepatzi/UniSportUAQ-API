@@ -165,13 +165,13 @@ namespace UniSportUAQ_API.Controllers
             var course = new Course
 			{
 				Id = courseSchema.Id,
-                CourseName = courseSchema.CourseName,
-                Day = courseSchema.Day,
-                StartHour = courseSchema.StartHour,
-                EndHour = courseSchema.EndHour,
-                InstructorId = courseSchema.InstructorId,
-                IsActive = true,
-                MaxUsers = courseSchema.MaxUsers
+				CourseName = courseSchema.CourseName,
+				Day = courseSchema.Day,
+				StartHour = courseSchema.StartHour,
+				EndHour = courseSchema.EndHour,
+				MaxUsers = courseSchema.MaxUsers,
+				Description = courseSchema.Description,
+				CoursePictureUrl = courseSchema.CoursePictureUrl,
             };
 
 			var result = await _coursesService.UpdateCourseAsync(course);
@@ -232,7 +232,7 @@ namespace UniSportUAQ_API.Controllers
 			return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.INTERNAL_ERROR});
 		}
 
-		[HttpPut]
+		/*[HttpPut]
 		[Route("endcourse")]
 		[Authorize]
 		public async Task<IActionResult> EndCourse([FromBody] CourseSchema course) {
@@ -256,7 +256,7 @@ namespace UniSportUAQ_API.Controllers
 			}
 
             return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
-        }
+        }*/
 		
 
        
