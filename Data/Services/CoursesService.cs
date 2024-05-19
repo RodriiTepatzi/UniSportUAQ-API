@@ -140,5 +140,47 @@ namespace UniSportUAQ_API.Data.Services
 			
 		}
 
+		public async Task<bool> EndCourseAsync(string CourseId) {
+
+			try
+			{
+				var result = await _context.Courses.SingleOrDefaultAsync(
+						i => i.Id == CourseId
+					);
+
+				if (result == null) return false;
+
+				if (result.IsActive == false) return false;
+
+				var entity =  _context.Entry(result);
+
+				entity.Entity.IsActive = false;
+
+				entity.State = EntityState.Modified;
+
+				await _context.SaveChangesAsync();
+
+				return true;
+
+			}
+			catch {
+
+				return false;
+			
+			}
+		}
+        /*
+         * public async Task<Course> UpdateCourseAsync(Course course)
+        {
+            EntityEntry entityEntry = _context.Entry(course);
+
+            entityEntry.State = EntityState.Modified;
+
+            await _context.SaveChangesAsync();
+
+			var newCourse = await GetCourseByIdAsync(course.Id!);
+
+            return course;
+        }*/
     }
 }
