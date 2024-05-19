@@ -16,8 +16,9 @@ namespace UniSportUAQ_API.Data.Services
 		Task<List<Course>> GetActivesCoursesByIdInstructor(string instructorId);
 		Task<List<Course>> GetInactivesCoursesByIdInstructor(string instructorId);
 		Task<List<Course>> GetCoursesSearch(string searchTerm);
-
+		Task<bool> EndCourseAsync(string CourseId);
 		Task<Course?> UpdateCourseAsync(Course course);
+
 
     }
 }
