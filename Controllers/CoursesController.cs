@@ -364,7 +364,33 @@ namespace UniSportUAQ_API.Controllers
 			return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 		}
 
-		[HttpPut]
+		[HttpGet]
+		[Route("inscription/getbycourse/{courseId}")]
+		[Authorize]
+
+		public async Task<IActionResult> GetInscriptionsByCourseAsync(string courseId) { 
+
+			if(!Guid.TryParse(courseId, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+			
+			var course = await _coursesService.GetCourseByIdAsync(courseId);
+
+			if (course == null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+
+			var result = await _inscriptionsService.GetInscriptionsByCourseAsync(courseId);
+
+			if (result is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.NONE_INSCRIPTION_COURSE });
+
+			var data = new List<Dictionary<string, object>>();
+
+			foreach (var item in result) data.Add(item.ToDictionary());
+
+            return Ok(new DataResponse { Data = data, ErrorMessage = null });
+
+
+        }
+
+
+        [HttpPut]
 		[Route("inscription/acredit")]
 		[Authorize]
 
