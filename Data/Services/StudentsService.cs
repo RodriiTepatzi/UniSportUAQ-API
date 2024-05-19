@@ -35,9 +35,7 @@ namespace UniSportUAQ_API.Data.Services
 
 			var entity = _context.Entry(student);
 			var result = entity.Entity;
-			entity.State = EntityState.Added;
 
-            await _context.SaveChangesAsync();
 
             return result;
 		}
