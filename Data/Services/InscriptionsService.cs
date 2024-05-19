@@ -172,6 +172,7 @@ namespace UniSportUAQ_API.Data.Services
 
 			var result = await _context.Inscriptions.Where(i => i.CourseId == courseId)
 				.Include(i => i.Course)
+				.Include(s => s.Student)
                 .IgnoreAutoIncludes()
                 .ToListAsync();
 
