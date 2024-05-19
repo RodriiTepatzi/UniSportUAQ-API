@@ -232,6 +232,31 @@ namespace UniSportUAQ_API.Controllers
 			return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.INTERNAL_ERROR});
 		}
 
+		[HttpPut]
+		[Route("endcourse")]
+		[Authorize]
+		public async Task<IActionResult> EndCourse([FromBody] CourseSchema course) {
+
+			if(!Guid.TryParse(course.Id, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST});
+
+			var result = await _coursesService.GetCourseByIdAsync(course.Id);
+
+			if (result is not null) {
+
+                var endInscriptions = await _inscriptionsService.EndInscriptionsByCourseIdAsync(course.Id);
+
+                if (endInscriptions == false) return BadRequest(new DataResponse { Data = false, ErrorMessage = ResponseMessages.END_INSCRIPTIONS_ERROR });
+
+                var endCourse = await _coursesService.EndCourseAsync(course.Id);
+
+                if (endCourse == false) return BadRequest(new DataResponse { Data = false, ErrorMessage = ResponseMessages.COURSE_ENDED });
+
+                return Ok(new DataResponse { Data = true, ErrorMessage = null }); 
+			
+			}
+
+            return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+        }
 		
 
        
@@ -339,6 +364,26 @@ namespace UniSportUAQ_API.Controllers
 			return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 		}
 
+		[HttpPut]
+		[Route("inscription/acredit")]
+		[Authorize]
+
+		public async Task<IActionResult> AcreditCourse([FromBody] Inscription inscription) {
+
+			if (!Guid.TryParse(inscription.Id, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+            if (!Guid.TryParse(inscription.CourseId, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+            if (!Guid.TryParse(inscription.StudentId, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+
+			var result = await _inscriptionsService.AcreditIsncriptionAsync(inscription.CourseId, inscription.StudentId);
+
+			if (result) return Ok(new DataResponse { Data = result, ErrorMessage = null });
+
+            return Ok(new DataResponse { Data = result, ErrorMessage = null });
+		}
+
+
+
+
 		[HttpDelete]
 		[Route("inscription/remove/{courseId}/{studentId}")]
 		[Authorize]
@@ -375,17 +420,19 @@ namespace UniSportUAQ_API.Controllers
 			return BadRequest(new DataResponse { Data = false, ErrorMessage = ResponseMessages.ERROR_REMOVING_USER_FROM_COURSE });
 		}
 
+
+
 		//local use
 
         private bool IsScheduleConflict(Course existingCourse, CourseSchema newCourse)
         {
             if (existingCourse.Day == newCourse.Day)
             {
-                DateTime existingStartHour = DateTime.Parse(existingCourse.StartHour);
-                DateTime existingEndHour = DateTime.Parse(existingCourse.EndHour);
+                DateTime existingStartHour = DateTime.Parse(existingCourse.StartHour!);
+                DateTime existingEndHour = DateTime.Parse(existingCourse.EndHour!);
 
-                DateTime newStartHour = DateTime.Parse(newCourse.StartHour);
-                DateTime newEndHour = DateTime.Parse(newCourse.EndHour);
+                DateTime newStartHour = DateTime.Parse(newCourse.StartHour!);
+                DateTime newEndHour = DateTime.Parse(newCourse.EndHour!);
 
                 if (existingStartHour < newEndHour && newStartHour < existingEndHour)
                 {
@@ -395,6 +442,8 @@ namespace UniSportUAQ_API.Controllers
 
             return false; // No  Conflict in schedule
         }
+
+		
 
     }
 }

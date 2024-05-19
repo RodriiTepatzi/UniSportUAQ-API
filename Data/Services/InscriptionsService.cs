@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.Diagnostics.Eventing.Reader;
 using UniSportUAQ_API.Data.Models;
 
 namespace UniSportUAQ_API.Data.Services
@@ -96,5 +97,76 @@ namespace UniSportUAQ_API.Data.Services
 				return false;
 			}
 		}
-	}
+
+		public async Task<bool> AcreditIsncriptionAsync(string courseId, string studentId) {
+
+			try {
+
+				var result = await _context.Inscriptions.SingleOrDefaultAsync(
+						i => i.CourseId == courseId && i.StudentId == studentId
+					);
+
+				if (result != null)
+				{
+
+					//modify acredit to true
+
+					var entity = _context.Entry(result);
+
+					entity.Entity.Accredit = true;
+
+					entity.State = EntityState.Modified;
+
+					await _context.SaveChangesAsync();
+
+					return true;
+
+				}
+				else return false;
+
+			}catch{
+
+                return false;
+
+            }
+
+			
+		}
+
+		public async Task<bool> EndInscriptionsByCourseIdAsync(string courseId) { 
+
+			int ModInscriptions = 0;
+
+			//get inscriptions list with courseId
+
+			var inscriptions = await _context.Inscriptions.Where(i => i.CourseId == courseId).ToListAsync();
+
+			if (inscriptions.Count() < 1) return false;
+
+			foreach (var inscription in inscriptions) {
+
+				//locate entity
+				var entity = _context.Entry(inscription);
+				//modify values
+				entity.Entity.IsFinished = true;
+
+				if (inscription.Accredit == true) entity.Entity.Grade = 10;
+				if (inscription.Accredit == false) entity.Entity.Grade = 5;
+
+                entity.State = EntityState.Modified;
+
+				ModInscriptions++;
+            }
+
+			if (ModInscriptions == inscriptions.Count())
+			{
+				await _context.SaveChangesAsync();
+				return true;
+			}
+			else return false;
+			
+
+		}
+
+    }
 }
