@@ -76,6 +76,7 @@ namespace UniSportUAQ_API.Data.Services
 			int range = end - start + 1;
 
 			return await _context.ApplicationUsers
+				.Where(a => a.IsAdmin)
 				.OrderBy(u => u.UserName)
 				.Skip(start)
 				.Take(range)
