@@ -232,7 +232,7 @@ namespace UniSportUAQ_API.Controllers
 			return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.INTERNAL_ERROR});
 		}
 
-		/*[HttpPut]
+		[HttpPut]
 		[Route("endcourse")]
 		[Authorize]
 		public async Task<IActionResult> EndCourse([FromBody] CourseSchema course) {
@@ -256,7 +256,7 @@ namespace UniSportUAQ_API.Controllers
 			}
 
             return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
-        }*/
+        }
 		
 
        
