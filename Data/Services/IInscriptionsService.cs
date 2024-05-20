@@ -14,6 +14,7 @@ namespace UniSportUAQ_API.Data.Services
 		Task<int> GetStudentCoursesCountAsync(string id);
         Task<bool> AcreditIsncriptionAsync(string courseId, string studentId); 
 		Task<List<Inscription>> GetInscriptionsByStudentAsync(string id);
+        Task<List<Inscription>?> GetInscriptionsByCourseAsync(string courseId);
 		Task<List<Inscription>> GetFinishedInscriptionsByStudentAsync(string id);
 		Task<bool> RemoveInscriptionByCourseIdAndStudentIdAsync(string courseId, string studentId);
         Task<bool> EndInscriptionsByCourseIdAsync(string courseId);

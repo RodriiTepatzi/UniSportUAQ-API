@@ -168,5 +168,20 @@ namespace UniSportUAQ_API.Data.Services
 
 		}
 
+		public async Task<List<Inscription>?> GetInscriptionsByCourseAsync(string courseId){
+
+			var result = await _context.Inscriptions.Where(i => i.CourseId == courseId)
+				.Include(i => i.Course)
+				.Include(s => s.Student)
+                .IgnoreAutoIncludes()
+                .ToListAsync();
+
+            if (result.Count() < 1) return null;
+
+			return result;
+		
+			
+		}
+
     }
 }

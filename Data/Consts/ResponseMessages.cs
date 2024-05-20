@@ -17,7 +17,8 @@
 		public const string LIBERATION_LIMIT = "Student liberation letter limit(3) has reached";
 		public const string INSTRUCTOR_HINDERED = "An instructor cannot be in further than one course at the same time. Please change Day or Start and End hour to avoid problems.";
 		public const string END_INSCRIPTIONS_ERROR = "There is an error ending al inscriptions in this course";
-		public const string COURSE_ENDED = "Thsi course has already end";
+		public const string COURSE_ENDED = "This course has already end";
+		public const string NONE_INSCRIPTION_COURSE = "There is not found inscriptions with this course.";
 
 
 
