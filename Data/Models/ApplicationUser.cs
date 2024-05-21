@@ -19,6 +19,12 @@ namespace UniSportUAQ_API.Data.Models
 		public bool IsInstructor { get; set; }
 		public bool IsAdmin { get; set; }
 
+		[NotMapped]
+		public string FullName {
+
+			get { return $"{Name} {LastName}"; }
+		}
+
 
 		[DefaultValue("False")]
 		public bool IsInFIF { get; set; }
@@ -33,6 +39,7 @@ namespace UniSportUAQ_API.Data.Models
 			{ nameof(Id), Id },
 			{ nameof(Name), Name is not null ? Name : "" },
 			{ nameof(LastName), LastName is not null ? LastName : "" },
+			{ nameof(FullName), FullName is not null ? FullName: ""},
 			{ nameof(PhoneNumber), PhoneNumber is not null ? PhoneNumber : "" },
 			{ nameof(Email), Email is not null ? Email : "" },
 			{ nameof(UserName), UserName is not null ? UserName : "" },
