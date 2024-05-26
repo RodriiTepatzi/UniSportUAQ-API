@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using IronPython.Runtime.Operations;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Globalization;
 using UniSportUAQ_API.Data.Consts;
 using UniSportUAQ_API.Data.Models;
 using UniSportUAQ_API.Data.Schemas;
@@ -160,24 +162,39 @@ namespace UniSportUAQ_API.Controllers
 
         public async Task<IActionResult> CreateAttendanceAsync([FromBody] AttendanceSchema attendanceSchema) {
 
-            string? studentId = attendanceSchema.StudentId;
-            string? courseId = attendanceSchema.CourseId;
+            if(!Guid.TryParse(attendanceSchema.StudentId, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST});
+            if (!Guid.TryParse(attendanceSchema.CourseId, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
 
-            string? day = attendanceSchema.Date.ToString();
+            if (await _studentsService.GetStudentByIdAsync(attendanceSchema.StudentId) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+            if (await _coursesService.GetCourseByIdAsync(attendanceSchema.CourseId) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 
+            //get the course
+            var course = await _coursesService.GetCourseByIdAsync(attendanceSchema.CourseId);
 
-            if (await _studentsService.GetStudentByIdAsync(studentId) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
-            if (await _coursesService.GetCourseByIdAsync(courseId) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
-
-
-            var result = await _atenndancesService.GetAttendancesAsync(courseId, studentId);
+            //asign asist date to today
 
             attendanceSchema.Date = DateTime.Now.Date;
+
+            //review if coincide with course day of week
+
+            string newDateDayOfWeek = attendanceSchema.Date.ToString("dddd", new CultureInfo("es-ES")).ToLower();
+
+            string[]? courseDay = course!.Day?.Split(",");
+
+            foreach (string dayElment in courseDay!) {
+
+                dayElment.ToLower();
+
+                if(dayElment != newDateDayOfWeek) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_COURSE_DAY });
+
+            }
+
+
+            var result = await _atenndancesService.GetAttendancesAsync(attendanceSchema.CourseId, attendanceSchema.StudentId);
 
             if (result is not null) foreach (var att in result)
                 {
                     if (att.Date == attendanceSchema.Date) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.ATTENDANCE_ENTITY_EXISTS });
-
 
                 }
 

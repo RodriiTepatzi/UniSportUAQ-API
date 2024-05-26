@@ -19,6 +19,7 @@
 		public const string END_INSCRIPTIONS_ERROR = "There is an error ending al inscriptions in this course";
 		public const string COURSE_ENDED = "This course has already end";
 		public const string NONE_INSCRIPTION_COURSE = "There is not found inscriptions with this course.";
+        public const string BAD_COURSE_DAY = "You can not take asistance in days out of course days";
 
 
 

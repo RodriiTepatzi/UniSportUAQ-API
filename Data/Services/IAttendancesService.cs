@@ -11,9 +11,9 @@ namespace UniSportUAQ_API.Data.Services
 
         Task<List<Attendance>> GetAttendancesAsync(string idCourse, string idStudent);
 
-        Task<Attendance> CreateAttendanceAsync(Attendance attendance);
+        Task<Attendance?> CreateAttendanceAsync(Attendance attendance);
 
-        Task<Attendance> UpDateAttedanceAsync(Attendance attendance);
+        Task<Attendance?> UpDateAttedanceAsync(Attendance attendance);
 
  
     }
