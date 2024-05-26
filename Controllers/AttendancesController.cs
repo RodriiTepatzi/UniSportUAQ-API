@@ -213,6 +213,8 @@ namespace UniSportUAQ_API.Controllers
 
             var attendanceRegister = await _atenndancesService.CreateAttendanceAsync(attendance);
 
+            if(attendanceRegister is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.ATTENDANCE_ENTITY_EXISTS});
+
             return Ok(new DataResponse { Data = attendanceRegister.Dictionary, ErrorMessage = null });
         }
 
