@@ -176,22 +176,26 @@ namespace UniSportUAQ_API.Controllers
             TimeZoneInfo utcMinusSixZone = TimeZoneInfo.CreateCustomTimeZone("UTC-06", TimeSpan.FromHours(-6), "UTC-06", "UTC-06");
             DateTime utcTime = DateTime.UtcNow;
             DateTime utcMinusSixTime = TimeZoneInfo.ConvertTimeFromUtc(utcTime, utcMinusSixZone);
-            attendanceSchema.Date = utcMinusSixTime.Date;
+            attendanceSchema.Date = utcMinusSixTime.Date; 
 
 
             //review if coincide with course day of week
 
-            string newDateDayOfWeek = attendanceSchema.Date.ToString("dddd", new CultureInfo("es-ES")).ToLower();
+            string newDateDayOfWeek = attendanceSchema.Date.ToString("dddd", new CultureInfo("en-US")).ToLower();
 
-            string[]? courseDay = course!.Day?.Split(",");
+            string[]? courseDay = course!.Day?.ToLower().Split(",");
+
+            bool CorrectDay = false;
 
             foreach (string dayElment in courseDay!) {
 
                 dayElment.ToLower();
 
-                if(dayElment != newDateDayOfWeek) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_COURSE_DAY });
+                if(dayElment == newDateDayOfWeek) CorrectDay = true;
 
             }
+
+            if(CorrectDay is false) return BadRequest(new DataResponse {Data = null, ErrorMessage=ResponseMessages.BAD_COURSE_DAY });
 
 
             var result = await _atenndancesService.GetAttendancesAsync(attendanceSchema.CourseId, attendanceSchema.StudentId);
