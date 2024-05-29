@@ -102,9 +102,18 @@ namespace UniSportUAQ_API.Data.Services
             return result;
         }
 
-        public async Task<Attendance> CreateAttendanceAsync(Attendance attendance) {
+        public async Task<Attendance?> CreateAttendanceAsync(Attendance attendance) {
+
+            var CourseCheckDay = await _context.Courses.SingleOrDefaultAsync(
+                    c => c.Id == attendance.CourseId
+                );
+
+            if (CourseCheckDay is null) return null;
+
+
 
             var entity = _context.Entry(attendance);
+
             var result = entity.Entity;
 
             entity.State = EntityState.Added;
@@ -114,13 +123,14 @@ namespace UniSportUAQ_API.Data.Services
             return result;
         }
 
-        public async Task<Attendance> UpDateAttedanceAsync(Attendance attendance) {
+        public async Task<Attendance?> UpDateAttedanceAsync(Attendance attendance) {
 
             //get entity
 
             EntityEntry entityEntry = _context.Entry(attendance);
 
             //modify the entity
+            
             entityEntry.State = EntityState.Modified;
 
             await _context.SaveChangesAsync();
