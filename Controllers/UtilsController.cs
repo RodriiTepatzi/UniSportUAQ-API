@@ -26,10 +26,7 @@ namespace UniSportUAQ_API.Controllers
 
             var data = await _utilsService.GetServerDateAsync();
 
-            if (data == null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.INTERNAL_ERROR });
-
-
-            return Ok(new DataResponse { Data = data, ErrorMessage = null });
+            return Ok(new DataResponse { Data = data.ToString("s"), ErrorMessage = null });
         
         }
     }
