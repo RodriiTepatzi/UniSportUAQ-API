@@ -7,18 +7,14 @@
         public UtilsService() { 
         
         }
-        public Task<DateTime?> GetServerDateAsync()
+
+        public async Task<DateTime> GetServerDateAsync()
         {
-            var timeZone = TimeZoneInfo.FindSystemTimeZoneById("Central Standard Time"); // UTC-6
+            TimeZoneInfo utcMinusSixZone = TimeZoneInfo.CreateCustomTimeZone("UTC-06", TimeSpan.FromHours(-6), "UTC-06", "UTC-06");
             DateTime utcTime = DateTime.UtcNow;
-
-            // Convertir la hora UTC a la zona horaria "Central Standard Time" (UTC-6)
-            DateTime utcMinusSixTime = TimeZoneInfo.ConvertTimeFromUtc(utcTime, timeZone);
-
-            // Devolver la hora convertida como una tarea
-            return Task.FromResult<DateTime?>(utcMinusSixTime);
-
+            DateTime utcMinusSixTime = TimeZoneInfo.ConvertTimeFromUtc(utcTime, utcMinusSixZone);
+			      
+            return utcMinusSixTime;
         }
-
     }
 }

@@ -32,8 +32,10 @@ namespace UniSportUAQ_API.Data.Services
             try
             {
                 var result = await _context.Attendances.Include(s => s.Student)
-                    .Include(c => c.Course)
-                    .SingleAsync(i => i.Id == id);
+                    .Include(c => c.Course).
+					Include(c => c.Course)
+					.ThenInclude(c => c.Instructor)
+					.SingleAsync(i => i.Id == id);
 
 
                 if (result == null)
@@ -64,7 +66,10 @@ namespace UniSportUAQ_API.Data.Services
 
             var result = await _context.Attendances.Include(c => c.Course).
                 Include(c => c.Student).
-                Where(att => att.CourseId == idCourse
+				Include(c => c.Course)
+				.ThenInclude(c => c.Instructor)
+				.
+				Where(att => att.CourseId == idCourse
                 ).ToListAsync();
 
             return result;
@@ -74,7 +79,9 @@ namespace UniSportUAQ_API.Data.Services
 
             var result = await _context.Attendances.Include(c => c.Course).
                Include(c => c.Student).
-               Where(att => att.StudentId == studenId
+			   Include(c => c.Course)
+			   .ThenInclude(c => c.Instructor).
+			   Where(att => att.StudentId == studenId
                ).ToListAsync();
 
             return result;
@@ -84,8 +91,10 @@ namespace UniSportUAQ_API.Data.Services
         {
 
             var result = await _context.Attendances.Include(c => c.Course).
-                    Include(s => s.Student)
-                    .Where(a => a.CourseId == idCourse &&
+                    Include(s => s.Student).
+					Include(c => c.Course)
+					.ThenInclude(c => c.Instructor)
+					.Where(a => a.CourseId == idCourse &&
                     a.StudentId == idStudent
                 ).ToListAsync();
 
