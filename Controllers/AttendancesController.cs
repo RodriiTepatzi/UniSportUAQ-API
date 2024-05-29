@@ -183,17 +183,22 @@ namespace UniSportUAQ_API.Controllers
 
             //review if coincide with course day of week
 
-            string newDateDayOfWeek = attendanceSchema.Date.ToString("dddd", new CultureInfo("es-ES")).ToLower();
+            string newDateDayOfWeek = attendanceSchema.Date.ToString("dddd", new CultureInfo("en-US")).ToLower();
 
-            string[]? courseDay = course!.Day?.Split(",");
+            string[]? courseDay = course!.Day?.ToLower().Split(",");
 
-            foreach (string dayElment in courseDay!) {
+            bool CorrectDay = false;
+
+            foreach (string dayElment in courseDay!)
+            {
 
                 dayElment.ToLower();
 
-                if(dayElment != newDateDayOfWeek) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_COURSE_DAY });
+                if (dayElment == newDateDayOfWeek) CorrectDay = true;
 
             }
+
+            if (CorrectDay is false) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_COURSE_DAY });
 
 
             var result = await _atenndancesService.GetAttendancesAsync(attendanceSchema.CourseId, attendanceSchema.StudentId);
