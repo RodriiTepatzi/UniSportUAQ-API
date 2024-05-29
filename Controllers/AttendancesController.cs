@@ -173,7 +173,10 @@ namespace UniSportUAQ_API.Controllers
 
             //asign asist date to today
 
-            attendanceSchema.Date = DateTime.Now.Date;
+            TimeZoneInfo mxZone = TimeZoneInfo.FindSystemTimeZoneById("Central Standard Time (Mexico)");
+            DateTime utcTime = DateTime.UtcNow;
+            DateTime mxTime = TimeZoneInfo.ConvertTimeFromUtc(utcTime, mxZone);
+            attendanceSchema.Date = mxTime.Date;
 
             //review if coincide with course day of week
 
