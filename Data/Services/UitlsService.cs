@@ -7,13 +7,13 @@
         public UitlsService() { 
         
         }
-
         public Task<DateTime?> GetServerDateAsync()
         {
-            TimeZoneInfo mxZone = TimeZoneInfo.FindSystemTimeZoneById("Central Standard Time (Mexico)");
+            TimeZoneInfo utcMinusSixZone = TimeZoneInfo.CreateCustomTimeZone("UTC-06", TimeSpan.FromHours(-6), "UTC-06", "UTC-06");
             DateTime utcTime = DateTime.UtcNow;
-            DateTime mxTime = TimeZoneInfo.ConvertTimeFromUtc(utcTime, mxZone);
-            return Task.FromResult<DateTime?>(mxTime);
+            DateTime utcMinusSixTime = TimeZoneInfo.ConvertTimeFromUtc(utcTime, utcMinusSixZone);
+            return Task.FromResult<DateTime?>(utcMinusSixTime);
         }
+
     }
 }
