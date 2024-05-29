@@ -173,10 +173,12 @@ namespace UniSportUAQ_API.Controllers
 
             //asign asist date to today
 
-            TimeZoneInfo utcMinusSixZone = TimeZoneInfo.CreateCustomTimeZone("UTC-06", TimeSpan.FromHours(-6), "UTC-06", "UTC-06");
-            DateTime utcTime = DateTime.UtcNow;
-            DateTime utcMinusSixTime = TimeZoneInfo.ConvertTimeFromUtc(utcTime, utcMinusSixZone);
-            attendanceSchema.Date = utcMinusSixTime.Date;
+            var timeZone = TimeZoneInfo.FindSystemTimeZoneById("Central Standard Time"); // UTC-6
+            DateTime yourDate = DateTime.Now; // Reemplaza esto con tu fecha específica
+            DateTime UTC6date = TimeZoneInfo.ConvertTimeFromUtc(yourDate.ToUniversalTime(), timeZone);
+            attendanceSchema.Date = UTC6date.Date;
+
+
 
 
             //review if coincide with course day of week
