@@ -172,7 +172,7 @@ namespace UniSportUAQ_API.Controllers
             //get the course
             var course = await _coursesService.GetCourseByIdAsync(attendanceSchema.CourseId);
 
-            attendanceSchema.Date = await _utilsService.GetServerDateAsync();
+            attendanceSchema.Date = attendanceSchema.Date.Date;
 
             //review if coincide with course day of week
 
