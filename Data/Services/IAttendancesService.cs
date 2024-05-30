@@ -11,6 +11,8 @@ namespace UniSportUAQ_API.Data.Services
 
         Task<List<Attendance>> GetAttendancesAsync(string idCourse, string idStudent);
 
+        Task<List<Attendance>?> GetAttendancesByCourseStudentTimeLapse(string courseId, string studentId, DateTime start, DateTime end);
+
         Task<Attendance?> CreateAttendanceAsync(Attendance attendance);
 
         Task<Attendance?> UpDateAttedanceAsync(Attendance attendance);
