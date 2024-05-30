@@ -126,6 +126,36 @@ namespace UniSportUAQ_API.Controllers
             return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
         }
 
+        [HttpGet]
+        [Route("course/{courseid}/student/{studentid}/start/{start}/end/{end}")]
+        [Authorize]
+        public async Task<IActionResult> GetAttendancesByCourseStudentTimeLapse(string courseId, string studentId, string start, string end)
+        {
+
+            if (!Guid.TryParse(courseId, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = "error en curso" + ResponseMessages.BAD_REQUEST });
+
+            if (!Guid.TryParse(studentId, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = "error en student" + ResponseMessages.BAD_REQUEST });
+
+            if (!DateTime.TryParse(start, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = "error en fecha inicio" + ResponseMessages.BAD_REQUEST });
+
+            if (!DateTime.TryParse(end, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = "error en fecha final" + ResponseMessages.BAD_REQUEST });
+
+            DateTime dateStart = DateTime.Parse(start).Date;
+            DateTime dateEnd = DateTime.Parse(end).Date;
+
+            var result = await _atenndancesService.GetAttendancesByCourseStudentTimeLapse(courseId, studentId, dateStart, dateEnd);
+
+            if (result == null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+
+            var data = new List<Dictionary<string, object>>();
+
+            foreach (var element in result) data.Add(element.Dictionary);
+
+            if (data.Count > 0) return Ok(new DataResponse { Data = data, ErrorMessage = null });
+
+            return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+        }
+
 
 
         [HttpGet]
@@ -155,6 +185,8 @@ namespace UniSportUAQ_API.Controllers
 
             return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
         }
+
+        
 
 
         [HttpPost]
