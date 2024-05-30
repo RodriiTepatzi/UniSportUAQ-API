@@ -103,6 +103,23 @@ namespace UniSportUAQ_API.Data.Services
             return result;
         }
 
+        public async Task<List<Attendance>?> GetAttendancesByCourseTimeLapse(string courseId, DateTime start, DateTime end)
+        {
+
+            var asists = await _context.Attendances.
+                Include(c => c.Course).
+                Include(s => s.Student).
+                Where(a =>
+                a.CourseId == courseId &&
+                a.Date >= start &&
+                a.Date <= end
+                ).ToListAsync();
+
+            if (asists.Count <= 0) return null;
+
+            return asists;
+        }
+
         public async Task<List<Attendance>?> GetAttendancesByCourseStudentTimeLapse(string courseId, string studentId, DateTime start, DateTime end) {
 
             var asists = await _context.Attendances.
