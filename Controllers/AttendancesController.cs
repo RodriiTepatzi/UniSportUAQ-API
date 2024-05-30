@@ -17,14 +17,15 @@ namespace UniSportUAQ_API.Controllers
         private readonly IAttendancesService _atenndancesService;
         private readonly ICoursesService _coursesService;
         private readonly IStudentsService _studentsService;
+		private readonly IUtilsService _utilsService;
 
-        public AttendancesController(IAttendancesService attendancesService, ICoursesService coursesService, IStudentsService studentsService)
+        public AttendancesController(IAttendancesService attendancesService, ICoursesService coursesService, IStudentsService studentsService, IUtilsService utilsService)
         {
 
             _atenndancesService = attendancesService;
             _coursesService = coursesService;
             _studentsService = studentsService;
-
+			_utilsService = utilsService;
         }
 
 
@@ -171,15 +172,7 @@ namespace UniSportUAQ_API.Controllers
             //get the course
             var course = await _coursesService.GetCourseByIdAsync(attendanceSchema.CourseId);
 
-            //asign asist date to today
-
-            var timeZone = TimeZoneInfo.FindSystemTimeZoneById("Central Standard Time"); // UTC-6
-            DateTime yourDate = DateTime.Now; // Reemplaza esto con tu fecha específica
-            DateTime UTC6date = TimeZoneInfo.ConvertTimeFromUtc(yourDate.ToUniversalTime(), timeZone);
-            attendanceSchema.Date = UTC6date.Date;
-
-
-
+            attendanceSchema.Date = await _utilsService.GetServerDateAsync();
 
             //review if coincide with course day of week
 
