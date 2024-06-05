@@ -76,7 +76,8 @@ namespace UniSportUAQ_API.Data.Models
 			{ nameof(MaxUsers), MaxUsers },
 			{ nameof(CurrentUsers), CurrentUsers },
 			{ nameof(PendingUsers), PendingUsers },
-			{ nameof(CoursePictureUrl), CoursePictureUrl is not null ? CoursePictureUrl : ""}
+			{ nameof(CoursePictureUrl), CoursePictureUrl is not null ? CoursePictureUrl : ""},
+			{ nameof(IsActive), IsActive},
 		};
 	}
 }
