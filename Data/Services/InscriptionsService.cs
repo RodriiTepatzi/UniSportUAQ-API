@@ -46,8 +46,9 @@ namespace UniSportUAQ_API.Data.Services
 		public async Task<int> GetStudentCoursesCountAsync(string id)
 		{
 			var result = await _context.Inscriptions
-				.Where(i => i.StudentId == id)
+				.Where(i => i.StudentId == id && i.IsFinished == false)
 				.ToListAsync();
+
 
 			return (int)result.Count;
 		}
