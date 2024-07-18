@@ -114,13 +114,18 @@ namespace UniSportUAQ_API.Controllers
 
             var instructor = await _instructorsService.GetInstructorByIdAsync(schema.InstructorId!);
 
+            var inscriptions = await _inscriptionsService.GetInscriptionByStudentIdAndCourseIdAsync(schema.StudentId!, schema.CourseId!);
+
             //check if concluded and aprobed course by inscription
 
-            
+
 
             //Generate byteArray
-
             byte[] streamBytes = GeneratePDf(student!, instructor!, course!);
+
+
+
+            if (inscriptions!.Accredit == false) BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.STUDENT_NOT_ACCREDITED});
 
             try { 
 
