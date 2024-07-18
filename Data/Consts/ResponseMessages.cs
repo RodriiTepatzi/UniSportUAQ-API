@@ -20,7 +20,9 @@
 		public const string COURSE_ENDED = "This course has already end";
 		public const string NONE_INSCRIPTION_COURSE = "There is not found inscriptions with this course.";
         public const string BAD_COURSE_DAY = "You can not take asistance in days out of course days";
-
+		public const string STREAM_ERROR = "Can not convert stream into bytes[]";
+		public const string STUDENT_NOT_ACCREDITED = "Can not generate Carta liberacion this student is not accredited in this course or course has not ended";
+		public const string CARTA_EXIST = "Can not generate a new carta because this already exist";
 
 
     }
