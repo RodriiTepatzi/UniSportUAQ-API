@@ -1,19 +1,29 @@
-﻿
-
+﻿using Firebase.Auth;
+using Firebase.Storage;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using iTextSharp.text;
+using iTextSharp.text.pdf;
 using UniSportUAQ_API.Data.Models;
+using Microsoft.Scripting.Interpreter;
+using System.IO;
 
 namespace UniSportUAQ_API.Data.Services
 {
-    public class CartasLiberacionService: ICartasLiberacionService
+    public class CartasLiberacionService : ICartasLiberacionService
     {
+        private static string ApiKey = "AIzaSyCy6D1jpRckWh_HN_AKrorYF4-UB0IdfKI";
+        private static string Bucket = "unisport-uaq.appspot.com";
+        private static string AuthEmail = "gmorales37@alumnos.uaq.mx";
+        private static string AuthPasswrord = "Uni$portUaq";
+
         private readonly AppDbContext _context;
         private readonly IStudentsService _studentsService;
         private readonly ICoursesService _coursesService;
         private readonly UserManager<ApplicationUser> _userManager;
 
-        public CartasLiberacionService(AppDbContext context,  IStudentsService studentsService, ICoursesService coursesService, UserManager<ApplicationUser> userManager) { 
+        public CartasLiberacionService(AppDbContext context, IStudentsService studentsService, ICoursesService coursesService, UserManager<ApplicationUser> userManager)
+        {
 
             _context = context;
             _studentsService = studentsService;
@@ -23,9 +33,11 @@ namespace UniSportUAQ_API.Data.Services
 
         }
 
-        public async Task<CartaLiberacion?> GetCartaByIdAsync(string id) {
+        public async Task<CartaLiberacion?> GetCartaByIdAsync(string id)
+        {
 
-            try {
+            try
+            {
 
                 var result = await _context.CartasLiberacion.Include(s => s.Student)
                     .Include(c => c.Course)
@@ -53,7 +65,7 @@ namespace UniSportUAQ_API.Data.Services
                 return null;
             }
 
-            
+
         }
 
         public async Task<List<CartaLiberacion>> GetCartaByStudentIdAsync(string studentId)
@@ -86,6 +98,47 @@ namespace UniSportUAQ_API.Data.Services
             return result;
 
         }
+
+        public async Task<string?> UploadLetterAsync(Stream stream, string fileName)
+        {
+            var auth = new FirebaseAuthProvider(new FirebaseConfig(ApiKey));
+            var a = await auth.SignInWithEmailAndPasswordAsync(AuthEmail, AuthPasswrord);
+
+            if (stream.CanSeek)
+            {
+                stream.Position = 0;
+            }
+
+            var cancellation = new CancellationTokenSource();
+
+            var storage = new FirebaseStorage(
+                Bucket,
+                new FirebaseStorageOptions
+                {
+                    AuthTokenAsyncFactory = () => Task.FromResult(a.FirebaseToken),
+                    ThrowOnCancel = true //manejar la cancelación adecuadamente
+                }
+            );
+
+            var storageReference = storage.Child("uploads").Child("user_letters").Child(fileName);
+
+            try
+            {
+                // Subir el archivo
+                var uploadTask = await storageReference.PutAsync(stream, cancellation.Token);
+
+
+                // Intentar obtener el enlace de descarga público
+                var link = await storageReference.GetDownloadUrlAsync();
+                return link; // Devuelve el enlace de descarga público
+            }
+            catch (Exception ex)
+            {
+                
+                return null; // Devolver una cadena vacía o manejar el error de manera diferente
+            }
+        }
+
 
 
     }

@@ -4,6 +4,7 @@
     {
 
         public string? Id { get; set; }
+        public string? InstructorId { get; set; }
         public string? StudentId { get; set; }
         public string? CourseId { get; set; }
         public string? Url { get; set; }

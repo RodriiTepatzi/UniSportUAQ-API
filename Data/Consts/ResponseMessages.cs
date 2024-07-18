@@ -20,6 +20,7 @@
 		public const string COURSE_ENDED = "This course has already end";
 		public const string NONE_INSCRIPTION_COURSE = "There is not found inscriptions with this course.";
         public const string BAD_COURSE_DAY = "You can not take asistance in days out of course days";
+		public const string STREAM_ERROR = "Can not convert stream into bytes[]";
 
 
 

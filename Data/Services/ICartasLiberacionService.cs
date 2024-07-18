@@ -12,10 +12,14 @@ namespace UniSportUAQ_API.Data.Services
 
         Task <CartaLiberacion>CreateCartaAsync(CartaLiberacion cartaLiberacion);
 
-        
+        Task <string?> UploadLetterAsync(Stream stream, string fileName);
 
-        
 
-        
+
+
+
+
+
+
     }
 }
