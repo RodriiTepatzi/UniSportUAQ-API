@@ -118,6 +118,7 @@ namespace UniSportUAQ_API.Controllers
             }
 
             //get student course and instructor
+
             var  course = await _coursesService.GetCourseByIdAsync(schema.CourseId!);
 
             var student = await _studentsService.GetStudentByIdAsync(schema.StudentId!);
