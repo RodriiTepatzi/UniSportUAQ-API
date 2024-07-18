@@ -102,10 +102,20 @@ namespace UniSportUAQ_API.Controllers
             //check if student is inscribed
             if (!await _inscriptionsService.CheckInscriptionByCourseIdAndStudentIdAsync(schema.CourseId!, schema.StudentId!)) return BadRequest(new DataResponse { Data = null, ErrorMessage = "Inscription:" + ResponseMessages.NOT_FOUND_IN_COURSE});
             
-            //check limit of liberation
+            //check if carta exist
+
+
+            //check existance and limit of liberation
             var result = await _cartasLiberacionService.GetCartaByStudentIdAsync(schema.StudentId!);
 
             if (result is not null && result.Count >= 6) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.LIBERATION_LIMIT});
+
+            foreach (CartaLiberacion carta in result!) {
+
+                if (carta.CourseId == schema.CourseId && carta.StudentId == schema.StudentId) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.CARTA_EXIST});
+
+
+            }
 
             //get student course and instructor
             var  course = await _coursesService.GetCourseByIdAsync(schema.CourseId!);
@@ -118,14 +128,11 @@ namespace UniSportUAQ_API.Controllers
 
             //check if concluded and aprobed course by inscription
 
-
+            if (inscriptions!.IsFinished is false) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.STUDENT_NOT_ACCREDITED });
+            if (inscriptions!.Accredit is false) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.STUDENT_NOT_ACCREDITED });
 
             //Generate byteArray
             byte[] streamBytes = GeneratePDf(student!, instructor!, course!);
-
-
-
-            if (inscriptions!.Accredit == false) BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.STUDENT_NOT_ACCREDITED});
 
             try { 
 
