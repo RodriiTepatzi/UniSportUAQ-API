@@ -12,23 +12,37 @@ namespace UniSportUAQ_API.Data.Services
 {
     public class CartasLiberacionService : ICartasLiberacionService
     {
-        private static string ApiKey = "AIzaSyCy6D1jpRckWh_HN_AKrorYF4-UB0IdfKI";
-        private static string Bucket = "unisport-uaq.appspot.com";
-        private static string AuthEmail = "gmorales37@alumnos.uaq.mx";
-        private static string AuthPasswrord = "Uni$portUaq";
+        
+
+        
 
         private readonly AppDbContext _context;
         private readonly IStudentsService _studentsService;
         private readonly ICoursesService _coursesService;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly string? _apiKey; 
+        private readonly string? _bucket;
+        private readonly string? _authPassword;
+        private readonly string? _authEmail;
+       
 
-        public CartasLiberacionService(AppDbContext context, IStudentsService studentsService, ICoursesService coursesService, UserManager<ApplicationUser> userManager)
+        public CartasLiberacionService(
+            AppDbContext context, 
+            IStudentsService studentsService, 
+            ICoursesService coursesService, 
+            UserManager<ApplicationUser> userManager, 
+            IConfiguration configuration)
         {
 
             _context = context;
             _studentsService = studentsService;
             _coursesService = coursesService;
             _userManager = userManager;
+            _apiKey = configuration["Firebase:ApiKey"];
+            _bucket = configuration["Firebase:Bucket"];
+            _authEmail = configuration["Firebase:AuthEmail"];
+            _authPassword = configuration["Firebase:AuthPassword"];
+
 
 
         }
@@ -101,8 +115,8 @@ namespace UniSportUAQ_API.Data.Services
 
         public async Task<string?> UploadLetterAsync(Stream stream, string fileName)
         {
-            var auth = new FirebaseAuthProvider(new FirebaseConfig(ApiKey));
-            var a = await auth.SignInWithEmailAndPasswordAsync(AuthEmail, AuthPasswrord);
+            var auth = new FirebaseAuthProvider(new FirebaseConfig(_apiKey));
+            var a = await auth.SignInWithEmailAndPasswordAsync(_authEmail, _authPassword);
 
             if (stream.CanSeek)
             {
@@ -112,7 +126,7 @@ namespace UniSportUAQ_API.Data.Services
             var cancellation = new CancellationTokenSource();
 
             var storage = new FirebaseStorage(
-                Bucket,
+                _bucket,
                 new FirebaseStorageOptions
                 {
                     AuthTokenAsyncFactory = () => Task.FromResult(a.FirebaseToken),
