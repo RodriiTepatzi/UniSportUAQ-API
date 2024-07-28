@@ -1,4 +1,6 @@
-﻿namespace UniSportUAQ_API.Data.Services
+﻿using UniSportUAQ_API.Data.Interfaces;
+
+namespace UniSportUAQ_API.Data.Services
 {
     public class UtilsService:IUtilsService
     {

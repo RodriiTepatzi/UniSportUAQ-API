@@ -1,6 +1,6 @@
 ﻿using UniSportUAQ_API.Data.Models;
 
-namespace UniSportUAQ_API.Data.Services
+namespace UniSportUAQ_API.Data.Interfaces
 {
     public interface ICartasLiberacionService
     {
@@ -10,9 +10,9 @@ namespace UniSportUAQ_API.Data.Services
 
         Task<List<CartaLiberacion>> GetCartaByCourseIdAsync(string courseId);
 
-        Task <CartaLiberacion>CreateCartaAsync(CartaLiberacion cartaLiberacion);
+        Task<CartaLiberacion> CreateCartaAsync(CartaLiberacion cartaLiberacion);
 
-        Task <string?> UploadLetterAsync(Stream stream, string fileName);
+        Task<string?> UploadLetterAsync(Stream stream, string fileName);
 
 
 

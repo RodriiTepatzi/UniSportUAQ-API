@@ -2,8 +2,8 @@
 using Microsoft.AspNetCore.Mvc;
 using UniSportUAQ_API.Data.Consts;
 using UniSportUAQ_API.Data.Models;
-using UniSportUAQ_API.Data.Services;
 using UniSportUAQ_API.Data.Schemas;
+using UniSportUAQ_API.Data.Interfaces;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 

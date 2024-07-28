@@ -1,10 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel;
+using UniSportUAQ_API.Data.Base;
 
 namespace UniSportUAQ_API.Data.Models
 {
-    public class Attendance
+    public class Attendance : IEntityBase
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]

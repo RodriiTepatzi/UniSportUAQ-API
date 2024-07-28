@@ -3,9 +3,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Globalization;
 using UniSportUAQ_API.Data.Consts;
+using UniSportUAQ_API.Data.Interfaces;
 using UniSportUAQ_API.Data.Models;
 using UniSportUAQ_API.Data.Schemas;
-using UniSportUAQ_API.Data.Services;
 
 namespace UniSportUAQ_API.Controllers
 {
@@ -37,7 +37,7 @@ namespace UniSportUAQ_API.Controllers
         {
             if (!Guid.TryParse(id, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
 
-            var result = await _atenndancesService.GetAttendanceByIdAsync(id);
+            var result = await _atenndancesService.GetByIdAsync(id);
 
             if (result is not null) return Ok(new DataResponse { Data = result.Dictionary, ErrorMessage = null });
 
@@ -52,13 +52,13 @@ namespace UniSportUAQ_API.Controllers
 
             if (!Guid.TryParse(courseid, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
 
-            var result = await _atenndancesService.GetAttendancesByCourseIdAsync(courseid);
+            var result = await _atenndancesService.GetAllAsync(a => a.CourseId == courseid);
 
             var data = new List<Dictionary<string, object>>();
 
             foreach (var item in result) data.Add(item.Dictionary);
 
-            if (result.Count > 0) return Ok(new DataResponse { Data = data, ErrorMessage = null });
+            if (result.Count() > 0) return Ok(new DataResponse { Data = data, ErrorMessage = null });
 
             return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
         }
@@ -70,13 +70,13 @@ namespace UniSportUAQ_API.Controllers
 
             if (!Guid.TryParse(studentid, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
 
-            var result = await _atenndancesService.GetAttendancesByStudentIdAsync(studentid);
+            var result = await _atenndancesService.GetAllAsync(a => a.StudentId == studentid);
 
             var Data = new List<Dictionary<string, object>>();
 
             foreach (var item in result) Data.Add(item.Dictionary);
 
-            if (result.Count > 0) return Ok(new DataResponse { Data = Data, ErrorMessage = null });
+            if (result.Count() > 0) return Ok(new DataResponse { Data = Data, ErrorMessage = null });
 
             return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 
@@ -90,7 +90,7 @@ namespace UniSportUAQ_API.Controllers
 
             if (!DateTime.TryParse(day, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
 
-            var result = await _atenndancesService.GetAttendancesByCourseIdAsync(courseid);
+            var result = await _atenndancesService.GetAllAsync(a => a.CourseId == courseid);
 
             DateTime dayDate = DateTime.Parse(day);
 
@@ -115,7 +115,11 @@ namespace UniSportUAQ_API.Controllers
 
             if (!Guid.TryParse(studentid, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
 
-            var result = await _atenndancesService.GetAttendancesAsync(courseid, studentid);
+            var result = await _atenndancesService.GetAllAsync(a => a.CourseId == courseid && a.StudentId == studentid,
+				a => a.Course!,
+				a => a.Student!,
+				a => a.Course!.Instructor!
+			);
 
             var Data = new List<Dictionary<string, object>>();
 
@@ -140,7 +144,11 @@ namespace UniSportUAQ_API.Controllers
             DateTime dateStart = DateTime.Parse(start).Date;
             DateTime dateEnd = DateTime.Parse(end).Date;
 
-            var result = await _atenndancesService.GetAttendancesByCourseTimeLapse(courseId, dateStart, dateEnd);
+            var result = await _atenndancesService.GetAllAsync(a =>	a.CourseId == courseId && a.Date >= dateStart && a.Date <= dateEnd,
+				a => a.Course!,
+				a => a.Student!,
+				a => a.Course!.Instructor!
+			);
 
             if (result == null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 
@@ -172,7 +180,11 @@ namespace UniSportUAQ_API.Controllers
             DateTime dateStart = DateTime.Parse(start).Date;
             DateTime dateEnd = DateTime.Parse(end).Date;
 
-            var result = await _atenndancesService.GetAttendancesByCourseStudentTimeLapse(courseId, studentId, dateStart, dateEnd);
+            var result = await _atenndancesService.GetAllAsync(a => a.CourseId == courseId && a.StudentId == studentId && a.Date >= dateStart && a.Date <= dateEnd,
+				a => a.Course!,
+				a => a.Student!,
+				a => a.Course!.Instructor!
+			);
 
             if (result == null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 
@@ -199,7 +211,11 @@ namespace UniSportUAQ_API.Controllers
 
             if (!DateTime.TryParse(day, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = "error en fecha" + ResponseMessages.BAD_REQUEST });
 
-            var result = await _atenndancesService.GetAttendancesAsync(courseId, studentId);
+            var result = await _atenndancesService.GetAllAsync(a => a.CourseId == courseId && a.StudentId == studentId,
+				a => a.Course!,
+				a => a.Student!,
+				a => a.Course!.Instructor!
+			);
 
             DateTime date = DateTime.Parse(day).Date;
 
@@ -257,7 +273,7 @@ namespace UniSportUAQ_API.Controllers
             if (CorrectDay is false) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_COURSE_DAY });
 
 
-            var result = await _atenndancesService.GetAttendancesAsync(attendanceSchema.CourseId, attendanceSchema.StudentId);
+            var result = await _atenndancesService.GetAllAsync(a => a.CourseId == attendanceSchema.CourseId && a.StudentId == attendanceSchema.StudentId);
 
             if (result is not null) foreach (var att in result)
                 {
@@ -304,23 +320,14 @@ namespace UniSportUAQ_API.Controllers
                 StudentId = attendanceSchema.StudentId,
                 Date = attendanceSchema.Date,
                 AttendanceClass = attendanceSchema.AttendanceClass
-
             };
 
-            var result = await _atenndancesService.UpDateAttedanceAsync(attendance);
+            var result = await _atenndancesService.UpdateAsync(attendance);
 
             if (result is not null) return Ok(new DataResponse { Data = result.Dictionary, ErrorMessage = null });
 
 
             return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND }); ;
         }
-
-
-       
-
-
-
-
-
     }
 }

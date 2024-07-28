@@ -5,7 +5,7 @@ using iTextSharp.text.pdf;
 using UniSportUAQ_API.Data.Consts;
 using UniSportUAQ_API.Data.Models;
 using UniSportUAQ_API.Data.Schemas;
-using UniSportUAQ_API.Data.Services;
+using UniSportUAQ_API.Data.Interfaces;
 
 
 

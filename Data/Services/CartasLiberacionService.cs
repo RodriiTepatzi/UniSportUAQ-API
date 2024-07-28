@@ -7,6 +7,7 @@ using iTextSharp.text.pdf;
 using UniSportUAQ_API.Data.Models;
 using Microsoft.Scripting.Interpreter;
 using System.IO;
+using UniSportUAQ_API.Data.Interfaces;
 
 namespace UniSportUAQ_API.Data.Services
 {

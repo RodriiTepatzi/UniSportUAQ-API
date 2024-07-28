@@ -1,10 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.Diagnostics.Eventing.Reader;
+using UniSportUAQ_API.Data.Interfaces;
 using UniSportUAQ_API.Data.Models;
 
 namespace UniSportUAQ_API.Data.Services
 {
-	public class InscriptionsService : IInscriptionsService
+    public class InscriptionsService : IInscriptionsService
 	{
 		private readonly AppDbContext _context;
 		public InscriptionsService(AppDbContext context)

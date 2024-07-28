@@ -1,10 +1,11 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore;
+using UniSportUAQ_API.Data.Interfaces;
 using UniSportUAQ_API.Data.Models;
 
 namespace UniSportUAQ_API.Data.Services
 {
-	public class UsersService : IUsersService
+    public class UsersService : IUsersService
 	{
         private readonly AppDbContext _context;
 		public UsersService(AppDbContext context)

@@ -4,139 +4,21 @@ using Microsoft.EntityFrameworkCore;
 using UniSportUAQ_API.Data.Models;
 using UniSportUAQ_API.Data.Schemas;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using UniSportUAQ_API.Data.Interfaces;
+using UniSportUAQ_API.Data.Base;
 
 namespace UniSportUAQ_API.Data.Services
 
 {
-    public class AttendancesService : IAttendancesService
+    public class AttendancesService : EntityBaseRepository<Attendance>, IAttendancesService
     {
 
         private readonly AppDbContext _context;
-        private readonly ICoursesService _coursesService;
-        private readonly IStudentsService _studentsService;
-        private readonly UserManager<ApplicationUser> _userManager;
 
-        public AttendancesService(AppDbContext context, ICoursesService coursesService, IStudentsService studentsService, UserManager<ApplicationUser> userManager)
+        public AttendancesService(AppDbContext context, ICoursesService coursesService) : base(context)
         {
-            _userManager = userManager;
-
-            _context = context;
-            _coursesService = coursesService;
-            _studentsService = studentsService;
+			_context = context;
         }
-
-
-        //return one object
-        public async Task<Attendance?> GetAttendanceByIdAsync(string id)
-        {
-            try
-            {
-                var result = await _context.Attendances.Include(s => s.Student)
-                    .Include(c => c.Course).
-					Include(c => c.Course)
-					.ThenInclude(c => c.Instructor)
-					.SingleAsync(i => i.Id == id);
-
-
-                if (result == null)
-                {
-                    return null;
-                }
-
-
-                var entity = _context.Entry(result);
-
-                if (entity.State == EntityState.Unchanged)
-                {
-                    return entity.Entity;
-                }
-                else
-                {
-                    return entity.Entity;
-                }
-
-            }
-            catch (InvalidOperationException)
-            {
-                return null;
-            }
-        }
-
-        public async Task<List<Attendance>> GetAttendancesByCourseIdAsync(string idCourse) {
-
-            var result = await _context.Attendances.Include(c => c.Course).
-                Include(c => c.Student).
-				Include(c => c.Course)
-				.ThenInclude(c => c.Instructor)
-				.
-				Where(att => att.CourseId == idCourse
-                ).ToListAsync();
-
-            return result;
-        }
-
-        public async Task<List<Attendance>> GetAttendancesByStudentIdAsync(string studenId) {
-
-            var result = await _context.Attendances.Include(c => c.Course).
-               Include(c => c.Student).
-			   Include(c => c.Course)
-			   .ThenInclude(c => c.Instructor).
-			   Where(att => att.StudentId == studenId
-               ).ToListAsync();
-
-            return result;
-        }
-
-        public async Task<List<Attendance>> GetAttendancesAsync(string idCourse, string idStudent)
-        {
-
-            var result = await _context.Attendances.
-                    Include(c => c.Course).
-                    Include(s => s.Student).
-					Include(c => c.Course)
-					.ThenInclude(c => c.Instructor)
-					.Where(a => a.CourseId == idCourse &&
-                    a.StudentId == idStudent
-                ).ToListAsync();
-
-
-            return result;
-        }
-
-        public async Task<List<Attendance>?> GetAttendancesByCourseTimeLapse(string courseId, DateTime start, DateTime end)
-        {
-
-            var asists = await _context.Attendances.
-                Include(c => c.Course).
-                Include(s => s.Student).
-                Where(a =>
-                a.CourseId == courseId &&
-                a.Date >= start &&
-                a.Date <= end
-                ).ToListAsync();
-
-            if (asists.Count <= 0) return null;
-
-            return asists;
-        }
-
-        public async Task<List<Attendance>?> GetAttendancesByCourseStudentTimeLapse(string courseId, string studentId, DateTime start, DateTime end) {
-
-            var asists = await _context.Attendances.
-                Include(c => c.Course).
-                Include(s => s.Student).
-                Where(a => 
-                a.CourseId == courseId &&
-                a.StudentId == studentId &&
-                a.Date >= start && 
-                a.Date <= end 
-                ).ToListAsync();
-
-            if (asists.Count <= 0) return null;
-
-            return asists;
-        }
-
 
         public async Task<Attendance?> CreateAttendanceAsync(Attendance attendance) {
 
@@ -158,30 +40,6 @@ namespace UniSportUAQ_API.Data.Services
 
             return result;
         }
-
-        public async Task<Attendance?> UpDateAttedanceAsync(Attendance attendance) {
-
-            //get entity
-
-            EntityEntry entityEntry = _context.Entry(attendance);
-
-            //modify the entity
-            
-            entityEntry.State = EntityState.Modified;
-
-            await _context.SaveChangesAsync();
-
-            var newAttendance = await GetAttendanceByIdAsync(attendance.Id!);
-
-            if (newAttendance is not null) return newAttendance;
-
-            return null;
-        }
-
-
-
-
-
 
     }
 }

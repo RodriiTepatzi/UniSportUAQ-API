@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using UniSportUAQ_API.Data.Consts;
+using UniSportUAQ_API.Data.Interfaces;
 using UniSportUAQ_API.Data.Models;
 using UniSportUAQ_API.Data.Schemas;
-using UniSportUAQ_API.Data.Services;
 
 namespace UniSportUAQ_API.Controllers
 {

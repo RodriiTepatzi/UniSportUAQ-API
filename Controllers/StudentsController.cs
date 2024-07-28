@@ -4,14 +4,14 @@ using Microsoft.Owin.Security.Provider;
 using System.Collections;
 using System.Text.RegularExpressions;
 using UniSportUAQ_API.Data.Consts;
+using UniSportUAQ_API.Data.Interfaces;
 using UniSportUAQ_API.Data.Models;
 using UniSportUAQ_API.Data.Schemas;
-using UniSportUAQ_API.Data.Services;
 
 
 namespace UniSportUAQ_API.Controllers
 {
-	[ApiController]
+    [ApiController]
 	[Route("api/users/students")]
 	public class StudentsController : Controller
 	{

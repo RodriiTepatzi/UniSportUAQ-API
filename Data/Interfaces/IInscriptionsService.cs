@@ -1,6 +1,6 @@
 ﻿using UniSportUAQ_API.Data.Models;
 
-namespace UniSportUAQ_API.Data.Services
+namespace UniSportUAQ_API.Data.Interfaces
 {
     public interface IInscriptionsService
     {
@@ -11,15 +11,15 @@ namespace UniSportUAQ_API.Data.Services
         /// <param name="studentId"></param>
         /// <returns>It will return a true value in case the user provided is already in this course. Otherwise it will always return false.</returns>
         Task<bool> CheckInscriptionByCourseIdAndStudentIdAsync(string courseId, string studentId);
-		Task<int> GetStudentCoursesCountAsync(string id);
-        Task<bool> AcreditIsncriptionAsync(string courseId, string studentId); 
-		Task<List<Inscription>> GetInscriptionsByStudentAsync(string id);
+        Task<int> GetStudentCoursesCountAsync(string id);
+        Task<bool> AcreditIsncriptionAsync(string courseId, string studentId);
+        Task<List<Inscription>> GetInscriptionsByStudentAsync(string id);
         Task<List<Inscription>?> GetInscriptionsByCourseAsync(string courseId);
 
         Task<Inscription?> GetInscriptionByStudentIdAndCourseIdAsync(string studentId, string courseId);
-		Task<List<Inscription>> GetFinishedInscriptionsByStudentAsync(string id);
-		Task<bool> RemoveInscriptionByCourseIdAndStudentIdAsync(string courseId, string studentId);
+        Task<List<Inscription>> GetFinishedInscriptionsByStudentAsync(string id);
+        Task<bool> RemoveInscriptionByCourseIdAndStudentIdAsync(string courseId, string studentId);
         Task<bool> EndInscriptionsByCourseIdAsync(string courseId);
-		Task<Inscription> CreateInscriptionAsync(string courseId, string studentId);
+        Task<Inscription> CreateInscriptionAsync(string courseId, string studentId);
     }
 }
