@@ -9,7 +9,7 @@ namespace UniSportUAQ_API.Data.Base
 		Task<IEnumerable<T>> GetAllAsync(Expression<Func<T, bool>> filter, params Expression<Func<T, object>>[] includeProperties);
 		Task<T?> GetByIdAsync(string id);
 		Task<T?> GetByIdAsync(string id, params Expression<Func<T, object>>[] includes);
-		Task<bool> AddAsync(T entity);
+		Task<T?> AddAsync(T entity);
 		Task<T> UpdateAsync(T entity);
 		Task<bool> DeleteAsync(string id);
 	}

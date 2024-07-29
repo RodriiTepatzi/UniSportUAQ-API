@@ -1,24 +1,10 @@
-﻿using UniSportUAQ_API.Data.Models;
+﻿using UniSportUAQ_API.Data.Base;
+using UniSportUAQ_API.Data.Models;
 
 namespace UniSportUAQ_API.Data.Interfaces
 {
-    public interface ICoursesService
+    public interface ICoursesService : IEntityBaseRepository<Course>
     {
-
-        Task<Course> CreateCourseAsync(Course course);
-
-        Task<Course?> GetCourseByIdAsync(string id);
-
-        Task<List<Course>> GetAllCoursesAsync();
-        Task<List<Course>> GetAllInactiveCoursesAsync();
-
-        Task<List<Course>> GetCoursesByIdInstructor(string instructorId);
-        Task<List<Course>> GetActivesCoursesByIdInstructor(string instructorId);
-        Task<List<Course>> GetInactivesCoursesByIdInstructor(string instructorId);
-        Task<List<Course>> GetCoursesSearch(string searchTerm);
-        Task<bool> EndCourseAsync(string CourseId);
-        Task<Course?> UpdateCourseAsync(Course course);
-
 
     }
 }

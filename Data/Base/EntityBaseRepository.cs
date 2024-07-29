@@ -13,18 +13,18 @@ namespace UniSportUAQ_API.Data.Base
 			_context = context;
 		}
 
-		public async Task<bool> AddAsync(T entity)
+		public async Task<T?> AddAsync(T entity)
 		{
 			try
 			{
 				var result = await _context.Set<T>().AddAsync(entity);
 				await _context.SaveChangesAsync();
 
-				return true;
+				return result.Entity;
 			}
 			catch
 			{
-				return false;
+				return null;
 			}
 		}
 

@@ -37,7 +37,11 @@ namespace UniSportUAQ_API.Controllers
         {
             if (!Guid.TryParse(id, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
 
-            var result = await _atenndancesService.GetByIdAsync(id);
+            var result = await _atenndancesService.GetByIdAsync(id,
+				a => a.Course!,
+				a => a.Student!,
+				a => a.Course!.Instructor!
+			);
 
             if (result is not null) return Ok(new DataResponse { Data = result.Dictionary, ErrorMessage = null });
 
@@ -52,7 +56,11 @@ namespace UniSportUAQ_API.Controllers
 
             if (!Guid.TryParse(courseid, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
 
-            var result = await _atenndancesService.GetAllAsync(a => a.CourseId == courseid);
+            var result = await _atenndancesService.GetAllAsync(a => a.CourseId == courseid,
+				a => a.Course!,
+				a => a.Student!,
+				a => a.Course!.Instructor!
+			);
 
             var data = new List<Dictionary<string, object>>();
 
@@ -70,7 +78,11 @@ namespace UniSportUAQ_API.Controllers
 
             if (!Guid.TryParse(studentid, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
 
-            var result = await _atenndancesService.GetAllAsync(a => a.StudentId == studentid);
+            var result = await _atenndancesService.GetAllAsync(a => a.StudentId == studentid,
+				a => a.Course!,
+				a => a.Student!,
+				a => a.Course!.Instructor!
+			);
 
             var Data = new List<Dictionary<string, object>>();
 
@@ -90,7 +102,11 @@ namespace UniSportUAQ_API.Controllers
 
             if (!DateTime.TryParse(day, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
 
-            var result = await _atenndancesService.GetAllAsync(a => a.CourseId == courseid);
+            var result = await _atenndancesService.GetAllAsync(a => a.CourseId == courseid,
+				a => a.Course!,
+				a => a.Student!,
+				a => a.Course!.Instructor!
+			);
 
             DateTime dayDate = DateTime.Parse(day);
 

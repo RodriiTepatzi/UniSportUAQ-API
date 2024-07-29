@@ -2,10 +2,11 @@
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
 using System.ComponentModel;
+using UniSportUAQ_API.Data.Base;
 
 namespace UniSportUAQ_API.Data.Models
 {
-	public class Course
+	public class Course : IEntityBase
 	{
 		[Key]
 		[Required]

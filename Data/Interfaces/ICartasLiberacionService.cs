@@ -1,25 +1,10 @@
-﻿using UniSportUAQ_API.Data.Models;
+﻿using UniSportUAQ_API.Data.Base;
+using UniSportUAQ_API.Data.Models;
 
 namespace UniSportUAQ_API.Data.Interfaces
 {
-    public interface ICartasLiberacionService
+    public interface ICartasLiberacionService : IEntityBaseRepository<CartaLiberacion>
     {
-        Task<CartaLiberacion?> GetCartaByIdAsync(string id);
-
-        Task<List<CartaLiberacion>> GetCartaByStudentIdAsync(string studentId);
-
-        Task<List<CartaLiberacion>> GetCartaByCourseIdAsync(string courseId);
-
-        Task<CartaLiberacion> CreateCartaAsync(CartaLiberacion cartaLiberacion);
-
         Task<string?> UploadLetterAsync(Stream stream, string fileName);
-
-
-
-
-
-
-
-
     }
 }

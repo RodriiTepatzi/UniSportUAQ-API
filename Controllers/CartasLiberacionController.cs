@@ -41,7 +41,7 @@ namespace UniSportUAQ_API.Controllers
 
             if (!Guid.TryParse(id, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
 
-            var result = await _cartasLiberacionService.GetCartaByIdAsync(id);
+            var result = await _cartasLiberacionService.GetByIdAsync(id, c => c.Course!, c => c.Student!);
 
             if (result is not null) return Ok(new DataResponse { Data = result.Dictionary, ErrorMessage = null });
 
@@ -57,13 +57,13 @@ namespace UniSportUAQ_API.Controllers
 
             if (!Guid.TryParse(courseId, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
 
-            var result = await _cartasLiberacionService.GetCartaByCourseIdAsync(courseId);
+            var result = await _cartasLiberacionService.GetAllAsync(c => c.CourseId == courseId, c => c.Course! , c => c.Student!);
 
             var data = new List<Dictionary<string, object>>();
 
             foreach (var item in result) data.Add(item.Dictionary);
 
-            if (result.Count > 0) return Ok(new DataResponse { Data = data, ErrorMessage = null });
+            if (result.Count() > 0) return Ok(new DataResponse { Data = data, ErrorMessage = null });
 
             return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
         }
@@ -75,13 +75,13 @@ namespace UniSportUAQ_API.Controllers
 
             if (!Guid.TryParse(studentid, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
 
-            var result = await _cartasLiberacionService.GetCartaByStudentIdAsync(studentid);
+            var result = await _cartasLiberacionService.GetAllAsync(c => c.StudentId == studentid, c => c.Course!, c => c.Student!);
 
             var Data = new List<Dictionary<string, object>>();
 
             foreach (var item in result) Data.Add(item.Dictionary);
 
-            if (result.Count > 0) return Ok(new DataResponse { Data = Data, ErrorMessage = null });
+            if (result.Count() > 0) return Ok(new DataResponse { Data = Data, ErrorMessage = null });
 
             return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 
@@ -106,9 +106,9 @@ namespace UniSportUAQ_API.Controllers
 
 
             //check existance and limit of liberation
-            var result = await _cartasLiberacionService.GetCartaByStudentIdAsync(schema.StudentId!);
+            var result = await _cartasLiberacionService.GetAllAsync(c => c.StudentId == schema.StudentId!, c => c.Course!, c => c.Student!);
 
-            if (result is not null && result.Count >= 6) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.LIBERATION_LIMIT});
+            if (result is not null && result.Count() >= 6) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.LIBERATION_LIMIT});
 
             foreach (CartaLiberacion carta in result!) {
 
@@ -158,7 +158,7 @@ namespace UniSportUAQ_API.Controllers
 
                 };
 
-                var cartaRegister = await _cartasLiberacionService.CreateCartaAsync(carta);
+                var cartaRegister = await _cartasLiberacionService.AddAsync(carta);
 
 
                 if(cartaRegister != null ) return Ok(new DataResponse { Data = cartaRegister.Dictionary, ErrorMessage = null });

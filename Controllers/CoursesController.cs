@@ -28,11 +28,11 @@ namespace UniSportUAQ_API.Controllers
         [HttpGet]
         [Route("id/{id}")]
         [Authorize]
-        public async Task<IActionResult> GetCourseById(string Id)
+        public async Task<IActionResult> GetCourseById(string id)
         {
-            if (!Guid.TryParse(Id, out _)) return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+            if (!Guid.TryParse(id, out _)) return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
 
-            var result = await _coursesService.GetCourseByIdAsync(Id);
+            var result = await _coursesService.GetByIdAsync(id);
 
             if (result is not null) return Ok(new DataResponse { Data = result.Dictionary, ErrorMessage = null });
 
@@ -44,13 +44,13 @@ namespace UniSportUAQ_API.Controllers
 		[Authorize]
 		public async Task<IActionResult> GetAllCourses()
 		{
-			var result = await _coursesService.GetAllCoursesAsync();
+			var result = await _coursesService.GetAllAsync();
 
 			var data = new List<Dictionary<string, object>>();
 
 			foreach (var item in result) data.Add(item.Dictionary);
 
-			if (result.Count > 0) return Ok(new DataResponse { Data = data, ErrorMessage = null });
+			if (result.Count() > 0) return Ok(new DataResponse { Data = data, ErrorMessage = null });
 
 			return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 		}
@@ -60,13 +60,13 @@ namespace UniSportUAQ_API.Controllers
 		[Authorize]
 		public async Task<IActionResult> GetAllInactiveCourses()
 		{
-			var result = await _coursesService.GetAllInactiveCoursesAsync();
+			var result = await _coursesService.GetAllAsync(c => c.IsActive == false, c => c.Instructor!);
 
 			var data = new List<Dictionary<string, object>>();
 
 			foreach (var item in result) data.Add(item.Dictionary);
 
-			if (result.Count > 0) return Ok(new DataResponse { Data = data, ErrorMessage = null });
+			if (result.Count() > 0) return Ok(new DataResponse { Data = data, ErrorMessage = null });
 
 			return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 		}
@@ -79,13 +79,13 @@ namespace UniSportUAQ_API.Controllers
 
             if (!Guid.TryParse(instructorid, out _)) return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
 
-            var result = await _coursesService.GetCoursesByIdInstructor(instructorid);
+            var result = await _coursesService.GetAllAsync(c => c.InstructorId == instructorid);
 
 			var data = new List<Dictionary<string, object>>();
 
             foreach (var item in result) data.Add(item.Dictionary);
 
-            if (result.Count > 0) return Ok(new DataResponse { Data = data, ErrorMessage = null });
+            if (result.Count() > 0) return Ok(new DataResponse { Data = data, ErrorMessage = null });
 
 			return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
         }
@@ -98,13 +98,13 @@ namespace UniSportUAQ_API.Controllers
 
 			if (!Guid.TryParse(instructorid, out _)) return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
 
-			var result = await _coursesService.GetActivesCoursesByIdInstructor(instructorid);
+			var result = await _coursesService.GetAllAsync(c => c.InstructorId == instructorid && c.IsActive == true);
 
 			var data = new List<Dictionary<string, object>>();
 
 			foreach (var item in result) data.Add(item.Dictionary);
 
-			if (result.Count > 0) return Ok(new DataResponse { Data = data, ErrorMessage = null });
+			if (result.Count() > 0) return Ok(new DataResponse { Data = data, ErrorMessage = null });
 
 			return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 		}
@@ -117,13 +117,13 @@ namespace UniSportUAQ_API.Controllers
 
 			if (!Guid.TryParse(instructorid, out _)) return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
 
-			var result = await _coursesService.GetInactivesCoursesByIdInstructor(instructorid);
+			var result = await _coursesService.GetAllAsync(c => c.InstructorId == instructorid && c.IsActive == false);
 
 			var data = new List<Dictionary<string, object>>();
 
 			foreach (var item in result) data.Add(item.Dictionary);
 
-			if (result.Count > 0) return Ok(new DataResponse { Data = data, ErrorMessage = null });
+			if (result.Count() > 0) return Ok(new DataResponse { Data = data, ErrorMessage = null });
 
 			return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 		}
@@ -134,18 +134,26 @@ namespace UniSportUAQ_API.Controllers
         [Authorize]
         public async Task<IActionResult> GetCoursesSearch(string searchTerm)
         {
-			if(searchTerm is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+			if(string.IsNullOrWhiteSpace(searchTerm)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
 
-            var result = await _coursesService.GetCoursesSearch(searchTerm);
+			var result = await _coursesService.GetAllAsync(i =>
+				((i.CourseName != null && i.CourseName.ToLower().Contains(searchTerm)) ||
+					(i.Description != null && i.Description.ToLower().Contains(searchTerm)) ||
+					(i.Day != null && i.Day.ToLower().Contains(searchTerm))
+				)
+				&&
+				i.IsActive == true
+			);
+
+			var distinctResult = result.Distinct();
 
 			var data = new List<Dictionary<string, object>>();
 
-			foreach (var item in result) data.Add(item.Dictionary);
+			foreach (var item in distinctResult) data.Add(item.Dictionary);
 
-			if (result.Count > 0) return Ok(new DataResponse { Data = data, ErrorMessage = null });
+			if (distinctResult.Count() > 0) return Ok(new DataResponse { Data = data, ErrorMessage = null });
 
-            return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND }); 
-
+            return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
         }
 
 
@@ -174,7 +182,7 @@ namespace UniSportUAQ_API.Controllers
 				CoursePictureUrl = courseSchema.CoursePictureUrl,
             };
 
-			var result = await _coursesService.UpdateCourseAsync(course);
+			var result = await _coursesService.UpdateAsync(course);
 
 			if (result is not null) return Ok(new DataResponse { Data = result.Dictionary, ErrorMessage = null });
 
@@ -200,9 +208,7 @@ namespace UniSportUAQ_API.Controllers
 			if(courseSchema.InstructorId is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
 			if(courseSchema.MaxUsers <= 0) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
 
-            var courses = await _coursesService.GetCoursesByIdInstructor(courseSchema.InstructorId);
-
-			
+            var courses = await _coursesService.GetAllAsync(c => c.InstructorId == courseSchema.InstructorId);
 			
 			if(courses is not null ) {
 
@@ -225,7 +231,7 @@ namespace UniSportUAQ_API.Controllers
 				MaxUsers = courseSchema.MaxUsers
 			};
 
-			var result = await _coursesService.CreateCourseAsync(NewCourse);
+			var result = await _coursesService.AddAsync(NewCourse);
 
 			if(result is not null) return Ok(new DataResponse { Data = result.Dictionary, ErrorMessage = null });
 
@@ -239,7 +245,7 @@ namespace UniSportUAQ_API.Controllers
 
 			if(!Guid.TryParse(course.Id, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST});
 
-			var result = await _coursesService.GetCourseByIdAsync(course.Id);
+			var result = await _coursesService.GetByIdAsync(course.Id);
 
 			if (result is not null) {
 
@@ -247,9 +253,16 @@ namespace UniSportUAQ_API.Controllers
 
                 if (endInscriptions == false) return BadRequest(new DataResponse { Data = false, ErrorMessage = ResponseMessages.END_INSCRIPTIONS_ERROR });
 
-                var endCourse = await _coursesService.EndCourseAsync(course.Id);
+                var endCourse = await _coursesService.GetByIdAsync(course.Id);
 
-                if (endCourse == false) return BadRequest(new DataResponse { Data = false, ErrorMessage = ResponseMessages.COURSE_ENDED });
+				if (endCourse != null)
+				{
+					endCourse.IsActive = false;
+
+					var endedResult = await _coursesService.UpdateAsync(endCourse);
+
+					if (endedResult != null) return BadRequest(new DataResponse { Data = false, ErrorMessage = ResponseMessages.COURSE_ENDED });
+				}
 
                 return Ok(new DataResponse { Data = true, ErrorMessage = null }); 
 			
@@ -269,13 +282,13 @@ namespace UniSportUAQ_API.Controllers
 			// First we have to check if the courseId and studentId, both exist on our database. Otherwise we shall return an error.
 
 			if (await _studentsService.GetStudentByIdAsync(studentId) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
-			if (await _coursesService.GetCourseByIdAsync(courseId) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+			if (await _coursesService.GetByIdAsync(courseId) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 
 			var checkIfInCourse = await _inscriptionsService.CheckInscriptionByCourseIdAndStudentIdAsync(courseId, studentId);
 
             if (checkIfInCourse) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.ALREADY_IN_COURSE });
 
-            var course = await _coursesService.GetCourseByIdAsync(courseId);
+            var course = await _coursesService.GetByIdAsync(courseId);
 
             if (course is not null)
             {
@@ -284,7 +297,7 @@ namespace UniSportUAQ_API.Controllers
 				course.CurrentUsers++;
                 // course.PendingUsers--; // TODO: check for this line in case to implement a way to reserve places in the course.
 
-                await _coursesService.UpdateCourseAsync(course);
+                await _coursesService.UpdateAsync(course);
             }
 
             var inscriptionResult = await _inscriptionsService.CreateInscriptionAsync(courseId, studentId);
@@ -300,7 +313,7 @@ namespace UniSportUAQ_API.Controllers
 			// First we have to check if the courseId and studentId, both exist on our database. Otherwise we shall return an error.
 
 			if (await _studentsService.GetStudentByIdAsync(studentId) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
-			if (await _coursesService.GetCourseByIdAsync(courseId) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+			if (await _coursesService.GetByIdAsync(courseId) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 
 			var checkIfInCourse = await _inscriptionsService.CheckInscriptionByCourseIdAndStudentIdAsync(courseId, studentId);
 
@@ -372,7 +385,7 @@ namespace UniSportUAQ_API.Controllers
 
 			if(!Guid.TryParse(courseId, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
 			
-			var course = await _coursesService.GetCourseByIdAsync(courseId);
+			var course = await _coursesService.GetByIdAsync(courseId);
 
 			if (course == null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 
@@ -419,7 +432,7 @@ namespace UniSportUAQ_API.Controllers
 
 			if (await _studentsService.GetStudentByIdAsync(studentId) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 
-			if (await _coursesService.GetCourseByIdAsync(courseId) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+			if (await _coursesService.GetByIdAsync(courseId) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 
 			var checkIfInCourse = await _inscriptionsService.CheckInscriptionByCourseIdAndStudentIdAsync(courseId, studentId);
 
@@ -430,14 +443,14 @@ namespace UniSportUAQ_API.Controllers
 
 			if (wasRemoved) 
 			{
-				var course = await _coursesService.GetCourseByIdAsync(courseId);
+				var course = await _coursesService.GetByIdAsync(courseId);
 
 				if (course is not null)
 				{
 					course.CurrentUsers--;
 					// course.PendingUsers--; // TODO: check for this line in case to implement a way to reserve places in the course.
 
-					await _coursesService.UpdateCourseAsync(course);
+					await _coursesService.UpdateAsync(course);
 				}
 
 				return Ok(new DataResponse { Data = true, ErrorMessage = null }); 

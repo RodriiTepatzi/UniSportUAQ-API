@@ -3,12 +3,13 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.Scripting.Interpreter;
 using UniSportUAQ_API.Data.Schemas;
+using UniSportUAQ_API.Data.Base;
 
 
 
 namespace UniSportUAQ_API.Data.Models
 {
-    public class CartaLiberacion
+    public class CartaLiberacion : IEntityBase
     {
         [Key]
         [Required]
