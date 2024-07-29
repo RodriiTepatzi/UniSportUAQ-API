@@ -1,9 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
+using UniSportUAQ_API.Data.Base;
 
 namespace UniSportUAQ_API.Data.Models
 {
-    public class CourseClass
+    public class CourseClass : IEntityBase
     {
         [Key]
         [Required]

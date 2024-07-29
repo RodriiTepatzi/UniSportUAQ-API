@@ -64,16 +64,16 @@ namespace UniSportUAQ_API.Data.Models
 
 
 		public Dictionary<string, object> Dictionary => new Dictionary<string, object> {
-			{ nameof(Id), Id },
+			{ nameof(Id), Id  ?? string.Empty},
 			{ nameof(CourseName), CourseName is not null ? CourseName : "" },
 			{ nameof(Description), Description is not null ? Description : ""},
 			{ nameof(Instructor), Instructor is not null ? Instructor.ToDictionary : "" },
 			{ nameof(VirtualOrHybrid), VirtualOrHybrid},
-			{ nameof(Location), Location},
-			{ nameof(Link), Link},
-			{ nameof(Day), Day },
-			{ nameof(StartHour), StartHour },
-			{ nameof(EndHour), EndHour },
+			{ nameof(Location), Location ?? string.Empty},
+			{ nameof(Link), Link ?? string.Empty},
+			{ nameof(Day), Day ?? string.Empty},
+			{ nameof(StartHour), StartHour ?? string.Empty},
+			{ nameof(EndHour), EndHour ?? string.Empty},
 			{ nameof(MaxUsers), MaxUsers },
 			{ nameof(CurrentUsers), CurrentUsers },
 			{ nameof(PendingUsers), PendingUsers },

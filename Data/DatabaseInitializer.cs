@@ -112,16 +112,7 @@ namespace UniSportUAQ_API.Data
 
                 await userManager.CreateAsync(student5, "AnaGei14$");
 
-
-
-
-
-
-
-
             }
-
-
         }
 
         public async static void FeedDatabase(IApplicationBuilder applicationBuilder)
@@ -146,8 +137,7 @@ namespace UniSportUAQ_API.Data
 
                     var courses = new List<Course>
                     {
-                        new Course
-                        {
+                        new() {
                             CourseName = "Curso de C#",
                             InstructorId = instructorFilled.Id,
                             Description = "Este curso proporciona a los participantes una sólida introducción al lenguaje de programación C#. Diseñado para principiantes",
@@ -158,7 +148,7 @@ namespace UniSportUAQ_API.Data
                             EndHour = "11:00",
                             IsActive = true
                         },
-                        new Course
+                        new()
                         {
                             CourseName = "Curso de Python",
                             InstructorId = instructorFilled.Id,
@@ -209,7 +199,7 @@ namespace UniSportUAQ_API.Data
                 {
 
 
-                    var studentUser = await userManager.FindByEmailAsync(student.Email);
+                    var studentUser = await userManager.FindByEmailAsync(student.Email!);
 
 
                     if (studentUser != null && courseCSharp != null)
@@ -266,7 +256,7 @@ namespace UniSportUAQ_API.Data
                 foreach (var student in studentsList)
                 {
 
-                    var studentUser = await userManager.FindByEmailAsync(student.Email);
+                    var studentUser = await userManager.FindByEmailAsync(student.Email!);
 
                     for (int i = 1; i < 10; i++)
                     {

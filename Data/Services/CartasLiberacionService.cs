@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore;
 using iTextSharp.text;
 using iTextSharp.text.pdf;
 using UniSportUAQ_API.Data.Models;
-using Microsoft.Scripting.Interpreter;
 using System.IO;
 using UniSportUAQ_API.Data.Interfaces;
 using UniSportUAQ_API.Data.Base;
@@ -14,10 +13,6 @@ namespace UniSportUAQ_API.Data.Services
 {
     public class CartasLiberacionService : EntityBaseRepository<CartaLiberacion>, ICartasLiberacionService
     {
-        private readonly AppDbContext _context;
-        private readonly IStudentsService _studentsService;
-        private readonly ICoursesService _coursesService;
-        private readonly UserManager<ApplicationUser> _userManager;
         private readonly string? _apiKey; 
         private readonly string? _bucket;
         private readonly string? _authPassword;
@@ -25,15 +20,8 @@ namespace UniSportUAQ_API.Data.Services
 
         public CartasLiberacionService(
             AppDbContext context, 
-            IStudentsService studentsService, 
-            ICoursesService coursesService, 
-            UserManager<ApplicationUser> userManager, 
             IConfiguration configuration) : base(context)
         {
-            _context = context;
-            _studentsService = studentsService;
-            _coursesService = coursesService;
-            _userManager = userManager;
             _apiKey = configuration["Firebase:ApiKey"];
             _bucket = configuration["Firebase:Bucket"];
             _authEmail = configuration["Firebase:AuthEmail"];
@@ -73,7 +61,7 @@ namespace UniSportUAQ_API.Data.Services
                 var link = await storageReference.GetDownloadUrlAsync();
                 return link; // Devuelve el enlace de descarga público
             }
-            catch (Exception ex)
+            catch
             {
                 
                 return null; // Devolver una cadena vacía o manejar el error de manera diferente

@@ -13,8 +13,10 @@ namespace UniSportUAQ_API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
     [Migration("20240328181620_initial")]
-    partial class initial
-    {
+#pragma warning disable CS8981 // El nombre de tipo solo contiene caracteres ASCII en minúsculas. Estos nombres pueden reservarse para el idioma.
+	partial class initial
+#pragma warning restore CS8981 // El nombre de tipo solo contiene caracteres ASCII en minúsculas. Estos nombres pueden reservarse para el idioma.
+	{
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {

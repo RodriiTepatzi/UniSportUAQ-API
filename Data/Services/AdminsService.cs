@@ -92,10 +92,10 @@ namespace UniSportUAQ_API.Data.Services
             var result = await _context.ApplicationUsers
                 .Where(s =>
                 (s.IsAdmin == true) &&
-                (s.Name.ToLower().Contains(searchTerm) ||
-                s.LastName.ToLower().Contains(searchTerm) ||
-                s.Expediente.ToLower().Contains(searchTerm) ||
-                s.Email.ToLower().Contains(searchTerm))
+                (	s.Name!.ToLower().Contains(searchTerm) ||
+					s.LastName!.ToLower().Contains(searchTerm) ||
+					s.Expediente!.ToLower().Contains(searchTerm) ||
+					s.Email!.ToLower().Contains(searchTerm))
                 )
                 .ToListAsync();
 

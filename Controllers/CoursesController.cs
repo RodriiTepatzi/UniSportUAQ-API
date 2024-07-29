@@ -1,6 +1,6 @@
-﻿using IronPython.Runtime.Operations;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileSystemGlobbing.Internal.PathSegments;
 using UniSportUAQ_API.Data.Consts;
 using UniSportUAQ_API.Data.Interfaces;
@@ -50,7 +50,7 @@ namespace UniSportUAQ_API.Controllers
 
 			foreach (var item in result) data.Add(item.Dictionary);
 
-			if (result.Count() > 0) return Ok(new DataResponse { Data = data, ErrorMessage = null });
+			if (result.Any()) return Ok(new DataResponse { Data = data, ErrorMessage = null });
 
 			return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 		}
@@ -66,7 +66,7 @@ namespace UniSportUAQ_API.Controllers
 
 			foreach (var item in result) data.Add(item.Dictionary);
 
-			if (result.Count() > 0) return Ok(new DataResponse { Data = data, ErrorMessage = null });
+			if (result.Any()) return Ok(new DataResponse { Data = data, ErrorMessage = null });
 
 			return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 		}
@@ -85,7 +85,7 @@ namespace UniSportUAQ_API.Controllers
 
             foreach (var item in result) data.Add(item.Dictionary);
 
-            if (result.Count() > 0) return Ok(new DataResponse { Data = data, ErrorMessage = null });
+            if (result.Any()) return Ok(new DataResponse { Data = data, ErrorMessage = null });
 
 			return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
         }
@@ -104,7 +104,7 @@ namespace UniSportUAQ_API.Controllers
 
 			foreach (var item in result) data.Add(item.Dictionary);
 
-			if (result.Count() > 0) return Ok(new DataResponse { Data = data, ErrorMessage = null });
+			if (result.Any()) return Ok(new DataResponse { Data = data, ErrorMessage = null });
 
 			return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 		}
@@ -123,7 +123,7 @@ namespace UniSportUAQ_API.Controllers
 
 			foreach (var item in result) data.Add(item.Dictionary);
 
-			if (result.Count() > 0) return Ok(new DataResponse { Data = data, ErrorMessage = null });
+			if (result.Any()) return Ok(new DataResponse { Data = data, ErrorMessage = null });
 
 			return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 		}
@@ -151,7 +151,7 @@ namespace UniSportUAQ_API.Controllers
 
 			foreach (var item in distinctResult) data.Add(item.Dictionary);
 
-			if (distinctResult.Count() > 0) return Ok(new DataResponse { Data = data, ErrorMessage = null });
+			if (distinctResult.Any()) return Ok(new DataResponse { Data = data, ErrorMessage = null });
 
             return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
         }
@@ -249,9 +249,20 @@ namespace UniSportUAQ_API.Controllers
 
 			if (result is not null) {
 
-                var endInscriptions = await _inscriptionsService.EndInscriptionsByCourseIdAsync(course.Id);
+				var inscriptions = await _inscriptionsService.GetAllAsync(i => i.CourseId == course.Id);
 
-                if (endInscriptions == false) return BadRequest(new DataResponse { Data = false, ErrorMessage = ResponseMessages.END_INSCRIPTIONS_ERROR });
+				if (inscriptions.Count() < 1) return BadRequest(new DataResponse { Data = false, ErrorMessage = ResponseMessages.END_INSCRIPTIONS_ERROR });
+
+				foreach (var inscription in inscriptions)
+				{
+
+					inscription.IsFinished = true;
+					
+					if (inscription.Accredit == true) inscription.Grade = 10;
+					if (inscription.Accredit == false) inscription.Grade = 5;
+
+					await _inscriptionsService.UpdateAsync(inscription);
+				}
 
                 var endCourse = await _coursesService.GetByIdAsync(course.Id);
 
@@ -284,9 +295,13 @@ namespace UniSportUAQ_API.Controllers
 			if (await _studentsService.GetStudentByIdAsync(studentId) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 			if (await _coursesService.GetByIdAsync(courseId) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 
-			var checkIfInCourse = await _inscriptionsService.CheckInscriptionByCourseIdAndStudentIdAsync(courseId, studentId);
+			var checkIfInCourse = await _inscriptionsService.GetAllAsync(i => i.CourseId == courseId && i.StudentId == studentId,
+				i => i.Student!,
+				i => i.Course!,
+				i => i.Course!.Instructor!
+			);
 
-            if (checkIfInCourse) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.ALREADY_IN_COURSE });
+			if (checkIfInCourse.Any()) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.ALREADY_IN_COURSE });
 
             var course = await _coursesService.GetByIdAsync(courseId);
 
@@ -300,9 +315,17 @@ namespace UniSportUAQ_API.Controllers
                 await _coursesService.UpdateAsync(course);
             }
 
-            var inscriptionResult = await _inscriptionsService.CreateInscriptionAsync(courseId, studentId);
+			var entity = new Inscription
+			{
+				DateInscription = DateTime.Now,
+				Accredit = false,
+				CourseId = courseId,
+				StudentId = studentId,
+			};
 
-            return Ok(new DataResponse { Data = inscriptionResult.ToDictionary(), ErrorMessage = null});
+			var inscriptionResult = await _inscriptionsService.AddAsync(entity);
+
+            return Ok(new DataResponse { Data = inscriptionResult!.ToDictionary(), ErrorMessage = null});
         }
 
 		[HttpGet]
@@ -315,9 +338,13 @@ namespace UniSportUAQ_API.Controllers
 			if (await _studentsService.GetStudentByIdAsync(studentId) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 			if (await _coursesService.GetByIdAsync(courseId) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 
-			var checkIfInCourse = await _inscriptionsService.CheckInscriptionByCourseIdAndStudentIdAsync(courseId, studentId);
+			var checkIfInCourse = await _inscriptionsService.GetAllAsync(i => i.CourseId == courseId && i.StudentId == studentId,
+				i => i.Student!,
+				i => i.Course!,
+				i => i.Course!.Instructor!
+			);
 
-			if (checkIfInCourse) return Ok(new DataResponse { Data = true, ErrorMessage = null });
+			if (checkIfInCourse.Any()) return Ok(new DataResponse { Data = true, ErrorMessage = null });
 
 			return Ok(new DataResponse { Data = false, ErrorMessage = null });
 		}
@@ -331,9 +358,15 @@ namespace UniSportUAQ_API.Controllers
 
 			if (await _studentsService.GetStudentByIdAsync(studentId) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 
-			var result = await _inscriptionsService.GetStudentCoursesCountAsync(studentId);
+			var result = await _inscriptionsService.GetAllAsync(i => i.StudentId == studentId,
+				i => i.Student!,
+				i => i.Course!,
+				i => i.Course!.Instructor!
+			);
 
-			return Ok(new DataResponse { Data = result, ErrorMessage = null });
+			var count = result.Count();
+
+			return Ok(new DataResponse { Data = count, ErrorMessage = null });
 		}
 
 		[HttpGet]
@@ -345,14 +378,17 @@ namespace UniSportUAQ_API.Controllers
 
 			if (await _studentsService.GetStudentByIdAsync(studentId) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 
-			var result = await _inscriptionsService.GetInscriptionsByStudentAsync(studentId);
-
+			var result = await _inscriptionsService.GetAllAsync(i => i.StudentId == studentId,
+				i => i.Student!,
+				i => i.Course!,
+				i => i.Course!.Instructor!
+			);
 
 			var data = new List<Dictionary<string, object>>();
 
 			foreach (var item in result) data.Add(item.ToDictionary());
 
-			if (result.Count > 0) return Ok(new DataResponse { Data = data, ErrorMessage = null });
+			if (result.Any()) return Ok(new DataResponse { Data = data, ErrorMessage = null });
 
 			return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 		}
@@ -366,13 +402,17 @@ namespace UniSportUAQ_API.Controllers
 
 			if (await _studentsService.GetStudentByIdAsync(studentId) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 
-			var result = await _inscriptionsService.GetFinishedInscriptionsByStudentAsync(studentId);
+			var result = await _inscriptionsService.GetAllAsync(i => i.StudentId == studentId && i.IsFinished == false,
+				i => i.Student!,
+				i => i.Course!,
+				i => i.Course!.Instructor!
+			);
 
 			var data = new List<Dictionary<string, object>>();
 
 			foreach (var item in result) data.Add(item.ToDictionary());
 
-			if (result.Count > 0) return Ok(new DataResponse { Data = data, ErrorMessage = null });
+			if (result.Any()) return Ok(new DataResponse { Data = data, ErrorMessage = null });
 
 			return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 		}
@@ -389,9 +429,13 @@ namespace UniSportUAQ_API.Controllers
 
 			if (course == null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 
-			var result = await _inscriptionsService.GetInscriptionsByCourseAsync(courseId);
+			var result = await _inscriptionsService.GetAllAsync(i => i.CourseId == courseId,
+				i => i.Student!,
+				i => i.Course!,
+				i => i.Course!.Instructor!
+			);
 
-			if (result is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.NONE_INSCRIPTION_COURSE });
+			if (!result.Any()) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.NONE_INSCRIPTION_COURSE });
 
 			var data = new List<Dictionary<string, object>>();
 
@@ -413,11 +457,27 @@ namespace UniSportUAQ_API.Controllers
             if (!Guid.TryParse(inscription.CourseId, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
             if (!Guid.TryParse(inscription.StudentId, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
 
-			var result = await _inscriptionsService.AcreditIsncriptionAsync(inscription.CourseId, inscription.StudentId);
+			var inscriptionResult = await _inscriptionsService.GetAllAsync(i => i.CourseId == inscription.CourseId && i.StudentId == inscription.StudentId,
+				i => i.Student!,
+				i => i.Course!,
+				i => i.Course!.Instructor!
+			);
 
-			if (result) return Ok(new DataResponse { Data = result, ErrorMessage = null });
+			var inscriptionEntity = inscriptionResult.FirstOrDefault();
 
-            return Ok(new DataResponse { Data = result, ErrorMessage = null });
+			if (inscriptionEntity != null)
+			{
+				inscriptionEntity.Accredit = true;
+
+				var result = await _inscriptionsService.UpdateAsync(inscriptionEntity);
+
+				if (result != null) return Ok(new DataResponse { Data = result, ErrorMessage = null });
+
+				return Ok(new DataResponse { Data = result, ErrorMessage = null });
+			}
+
+			return Ok(new DataResponse { Data = null, ErrorMessage = "We could not accredit this user due to an internal error." });
+
 		}
 
 
@@ -434,27 +494,32 @@ namespace UniSportUAQ_API.Controllers
 
 			if (await _coursesService.GetByIdAsync(courseId) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 
-			var checkIfInCourse = await _inscriptionsService.CheckInscriptionByCourseIdAndStudentIdAsync(courseId, studentId);
+			var checkIfInCourse = await _inscriptionsService.GetAllAsync(i => i.CourseId == courseId && i.StudentId == studentId);
 
-			if (!checkIfInCourse) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.NOT_FOUND_IN_COURSE });
+			if (!checkIfInCourse.Any()) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.NOT_FOUND_IN_COURSE });
 
 
-			var wasRemoved = await _inscriptionsService.RemoveInscriptionByCourseIdAndStudentIdAsync(courseId, studentId);
+			var query = await _inscriptionsService.GetAllAsync(i => i.CourseId == courseId && i.StudentId == studentId);
+			var entity = query.FirstOrDefault();
 
-			if (wasRemoved) 
+			if (entity != null)
 			{
-				var course = await _coursesService.GetByIdAsync(courseId);
+				var wasRemoved = await _inscriptionsService.DeleteAsync(entity.Id!);
 
-				if (course is not null)
+				if (wasRemoved)
 				{
-					course.CurrentUsers--;
-					// course.PendingUsers--; // TODO: check for this line in case to implement a way to reserve places in the course.
+					var course = await _coursesService.GetByIdAsync(courseId);
 
-					await _coursesService.UpdateAsync(course);
-				}
+					if (course is not null)
+					{
+						course.CurrentUsers--;
+						// course.PendingUsers--; // TODO: check for this line in case to implement a way to reserve places in the course.
 
-				return Ok(new DataResponse { Data = true, ErrorMessage = null }); 
-			}
+						await _coursesService.UpdateAsync(course);
+					}
+
+					return Ok(new DataResponse { Data = true, ErrorMessage = null });
+				} }
 
 			return BadRequest(new DataResponse { Data = false, ErrorMessage = ResponseMessages.ERROR_REMOVING_USER_FROM_COURSE });
 		}

@@ -1,10 +1,11 @@
 ﻿using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using UniSportUAQ_API.Data.Base;
 
 namespace UniSportUAQ_API.Data.Models
 {
-    public class Inscription
+    public class Inscription : IEntityBase
     {
         [Required]
         [Key]
@@ -25,8 +26,8 @@ namespace UniSportUAQ_API.Data.Models
         public bool Accredit { get; set; }
 
         [Required]
-		    [DefaultValue(false)]
-		    public bool IsFinished { get; set; }
+		[DefaultValue(false)]
+		public bool IsFinished { get; set; }
 
         [ForeignKey("StudentId")]
         public ApplicationUser? Student { get; set; }
@@ -47,10 +48,10 @@ namespace UniSportUAQ_API.Data.Models
 
 		public Dictionary<string, object> ToDictionaryWithNoStudent() => new Dictionary<string, object>
 		{
-			{"Id", Id },
+			{"Id", Id ?? string.Empty },
 			{"DateInscription", DateInscription },
 			{"Accredit", Accredit },
-			{"Course", Course is not null ? Course.Dictionary : null  }
+			{ "Course", Course?.Dictionary! }
 		};
 	}
 }

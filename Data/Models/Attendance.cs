@@ -34,7 +34,7 @@ namespace UniSportUAQ_API.Data.Models
         public Dictionary<string, object> Dictionary => new Dictionary<string, object>{
 
 
-                    { nameof(Id), Id },
+                    { nameof(Id), Id ?? string.Empty },
                     { nameof(Student), Student is not null ? Student!.ToDictionary : "" },
                     { nameof(Course), Course is not null ? Course!.Dictionary : "" },
                     { nameof(Date),Date },

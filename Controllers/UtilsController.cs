@@ -22,9 +22,9 @@ namespace UniSportUAQ_API.Controllers
         [Route("serverdate")]
         [Authorize]
         
-        public async Task<IActionResult> GetServerDate() {
+        public IActionResult GetServerDate() {
 
-            var data = await _utilsService.GetServerDateAsync();
+            var data = _utilsService.GetServerDateAsync();
 
             return Ok(new DataResponse { Data = data.ToString("s"), ErrorMessage = null });
         

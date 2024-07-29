@@ -97,10 +97,16 @@ namespace UniSportUAQ_API.Controllers
 
             //check if student and course exist
             if (await _studentsService.GetStudentByIdAsync(schema.StudentId!) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = "student:"+ResponseMessages.OBJECT_NOT_FOUND });
-            if (await _coursesService.GetCourseByIdAsync(schema.CourseId!) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = "course:" + ResponseMessages.OBJECT_NOT_FOUND });
+            if (await _coursesService.GetByIdAsync(schema.CourseId!) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = "course:" + ResponseMessages.OBJECT_NOT_FOUND });
 
-            //check if student is inscribed
-            if (!await _inscriptionsService.CheckInscriptionByCourseIdAndStudentIdAsync(schema.CourseId!, schema.StudentId!)) return BadRequest(new DataResponse { Data = null, ErrorMessage = "Inscription:" + ResponseMessages.NOT_FOUND_IN_COURSE});
+			//check if student is inscribed
+			var isInscribed = await _inscriptionsService.GetAllAsync(i => i.CourseId == schema.CourseId! && i.StudentId == schema.StudentId!,
+				i => i.Student!,
+				i => i.Course!
+			);
+
+
+			if (isInscribed.Any()) return BadRequest(new DataResponse { Data = null, ErrorMessage = "Inscription:" + ResponseMessages.NOT_FOUND_IN_COURSE});
             
             //check if carta exist
 
@@ -119,61 +125,68 @@ namespace UniSportUAQ_API.Controllers
 
             //get student course and instructor
 
-            var  course = await _coursesService.GetCourseByIdAsync(schema.CourseId!);
+            var  course = await _coursesService.GetByIdAsync(schema.CourseId!);
 
             var student = await _studentsService.GetStudentByIdAsync(schema.StudentId!);
 
             var instructor = await _instructorsService.GetInstructorByIdAsync(schema.InstructorId!);
 
-            var inscriptions = await _inscriptionsService.GetInscriptionByStudentIdAndCourseIdAsync(schema.StudentId!, schema.CourseId!);
+            var inscriptions = await _inscriptionsService.GetAllAsync(i => i.StudentId == schema.StudentId! && i.CourseId == schema.CourseId!,
+				i => i.Student!,
+				i => i.Course!
+			);
 
-            //check if concluded and aprobed course by inscription
+			var inscript = inscriptions.FirstOrDefault();
 
-            if (inscriptions!.IsFinished is false) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.STUDENT_NOT_ACCREDITED });
-            if (inscriptions!.Accredit is false) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.STUDENT_NOT_ACCREDITED });
+			//check if concluded and aprobed course by inscription
 
-            //Generate byteArray
-            byte[] streamBytes = GeneratePDf(student!, instructor!, course!);
+			if (inscript != null)
+			{
+				if (inscript!.IsFinished is false) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.STUDENT_NOT_ACCREDITED });
+				if (inscript!.Accredit is false) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.STUDENT_NOT_ACCREDITED });
 
-            try { 
+				//Generate byteArray
+				byte[] streamBytes = GeneratePDf(student!, instructor!, course!);
 
-                //convert to memory stream
-                MemoryStream stream = new MemoryStream(streamBytes);
+				try
+				{
 
-                //generate fileaname
-                string filename = student!.Expediente + "_" + course!.CourseName + ".pdf";
+					//convert to memory stream
+					MemoryStream stream = new MemoryStream(streamBytes);
 
-                //firebase upload and get url
-                string? url = await _cartasLiberacionService.UploadLetterAsync(stream, filename);
+					//generate fileaname
+					string filename = student!.Expediente + "_" + course!.CourseName + ".pdf";
 
-
-                //create bew object carta
-                var carta = new CartaLiberacion
-                {
-
-                    Id = Guid.NewGuid().ToString(),
-                    CourseId = schema.CourseId!,
-                    StudentId = schema.StudentId!,
-                    Url = url,
-
-                };
-
-                var cartaRegister = await _cartasLiberacionService.AddAsync(carta);
+					//firebase upload and get url
+					string? url = await _cartasLiberacionService.UploadLetterAsync(stream, filename);
 
 
-                if(cartaRegister != null ) return Ok(new DataResponse { Data = cartaRegister.Dictionary, ErrorMessage = null });
+					//create bew object carta
+					var carta = new CartaLiberacion
+					{
 
-                return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.INTERNAL_ERROR});
+						Id = Guid.NewGuid().ToString(),
+						CourseId = schema.CourseId!,
+						StudentId = schema.StudentId!,
+						Url = url,
 
-            }
-            catch (Exception ex)
-            {
-                return  BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.STREAM_ERROR });
-            }
+					};
+
+					var cartaRegister = await _cartasLiberacionService.AddAsync(carta);
 
 
+					if (cartaRegister != null) return Ok(new DataResponse { Data = cartaRegister.Dictionary, ErrorMessage = null });
 
-        }
+					return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.INTERNAL_ERROR });
+
+				}
+				catch
+				{
+					return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.STREAM_ERROR });
+				}
+			}
+			return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.STREAM_ERROR });
+		}
 
 
 
@@ -217,7 +230,7 @@ namespace UniSportUAQ_API.Controllers
                     logo.ScalePercent(35f);
                     logoCell.AddElement(logo);
                 }
-                catch (Exception ex)
+                catch
                 {
                     logoCell.AddElement(new Phrase("Logo Here", bodyFont)); // Fallback si la imagen no se encuentra
                 }

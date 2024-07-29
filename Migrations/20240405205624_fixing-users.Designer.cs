@@ -13,8 +13,10 @@ namespace UniSportUAQ_API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
     [Migration("20240405205624_fixing-users")]
-    partial class fixingusers
-    {
+#pragma warning disable CS8981 // El nombre de tipo solo contiene caracteres ASCII en minúsculas. Estos nombres pueden reservarse para el idioma.
+	partial class fixingusers
+#pragma warning restore CS8981 // El nombre de tipo solo contiene caracteres ASCII en minúsculas. Estos nombres pueden reservarse para el idioma.
+	{
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {

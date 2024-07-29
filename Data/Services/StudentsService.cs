@@ -110,7 +110,7 @@ namespace UniSportUAQ_API.Data.Services
 			searchTerm.ToLower();
 
 			var result = await _context.ApplicationUsers
-				.Where(s => (s.Name.ToLower().Contains(searchTerm) ||
+				.Where(s => (s!.Name!.ToLower().Contains(searchTerm) ||
 				s.LastName!.ToLower().Contains(searchTerm)||
 				s.Expediente!.ToLower().Contains(searchTerm) ||
 				s.Email!.ToLower().Contains(searchTerm)) 

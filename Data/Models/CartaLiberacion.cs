@@ -1,7 +1,6 @@
 ﻿
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
-using Microsoft.Scripting.Interpreter;
 using UniSportUAQ_API.Data.Schemas;
 using UniSportUAQ_API.Data.Base;
 
@@ -31,14 +30,14 @@ namespace UniSportUAQ_API.Data.Models
         [ForeignKey("CourseId")]
         public Course? Course { get; set; }
 
-        public Dictionary<string, object> Dictionary => new Dictionary<string, object> {
+		public Dictionary<string, object> Dictionary => new Dictionary<string, object>
+		{
+			{ nameof(Id), Id ?? string.Empty },
+			{ nameof(StudentId), StudentId ?? string.Empty },
+			{ nameof(CourseId), CourseId ?? string.Empty },
+			{ nameof(Url), Url ?? string.Empty }
+		};
 
-            { nameof(Id), Id },
-            { nameof(StudentId), StudentId},
-            { nameof(CourseId), CourseId},
-            { nameof(Url), Url },
-
-        };
-    }
+	}
 }
 

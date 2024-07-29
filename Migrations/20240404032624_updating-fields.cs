@@ -4,9 +4,11 @@
 
 namespace UniSportUAQ_API.Migrations
 {
-    /// <inheritdoc />
-    public partial class updatingfields : Migration
-    {
+	/// <inheritdoc />
+#pragma warning disable CS8981 // El nombre de tipo solo contiene caracteres ASCII en minúsculas. Estos nombres pueden reservarse para el idioma.
+	public partial class updatingfields : Migration
+#pragma warning restore CS8981 // El nombre de tipo solo contiene caracteres ASCII en minúsculas. Estos nombres pueden reservarse para el idioma.
+	{
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {

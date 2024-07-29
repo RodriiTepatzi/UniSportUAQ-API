@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Owin.Security.Provider;
 using System.Collections;
 using System.Text.RegularExpressions;
 using UniSportUAQ_API.Data.Consts;

@@ -2,7 +2,7 @@
 
 namespace UniSportUAQ_API.Data.Services
 {
-    public class UtilsService:IUtilsService
+    public class UtilsService: IUtilsService
     {
 
 
@@ -10,7 +10,7 @@ namespace UniSportUAQ_API.Data.Services
         
         }
 
-        public async Task<DateTime> GetServerDateAsync()
+        public DateTime GetServerDateAsync()
         {
             TimeZoneInfo utcMinusSixZone = TimeZoneInfo.CreateCustomTimeZone("UTC-06", TimeSpan.FromHours(-6), "UTC-06", "UTC-06");
             DateTime utcTime = DateTime.UtcNow;

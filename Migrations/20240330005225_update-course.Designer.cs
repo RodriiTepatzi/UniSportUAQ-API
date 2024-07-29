@@ -13,8 +13,10 @@ namespace UniSportUAQ_API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
     [Migration("20240330005225_update-course")]
-    partial class updatecourse
-    {
+#pragma warning disable CS8981 // El nombre de tipo solo contiene caracteres ASCII en minúsculas. Estos nombres pueden reservarse para el idioma.
+	partial class updatecourse
+#pragma warning restore CS8981 // El nombre de tipo solo contiene caracteres ASCII en minúsculas. Estos nombres pueden reservarse para el idioma.
+	{
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {

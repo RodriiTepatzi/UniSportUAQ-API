@@ -1,5 +1,4 @@
-﻿using IronPython.Runtime.Operations;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Globalization;
 using UniSportUAQ_API.Data.Consts;
@@ -66,7 +65,7 @@ namespace UniSportUAQ_API.Controllers
 
             foreach (var item in result) data.Add(item.Dictionary);
 
-            if (result.Count() > 0) return Ok(new DataResponse { Data = data, ErrorMessage = null });
+            if (result.Any()) return Ok(new DataResponse { Data = data, ErrorMessage = null });
 
             return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
         }
@@ -88,7 +87,7 @@ namespace UniSportUAQ_API.Controllers
 
             foreach (var item in result) Data.Add(item.Dictionary);
 
-            if (result.Count() > 0) return Ok(new DataResponse { Data = Data, ErrorMessage = null });
+            if (result.Any()) return Ok(new DataResponse { Data = Data, ErrorMessage = null });
 
             return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 
@@ -260,12 +259,12 @@ namespace UniSportUAQ_API.Controllers
             if (!Guid.TryParse(attendanceSchema.CourseId, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
 
             if (await _studentsService.GetStudentByIdAsync(attendanceSchema.StudentId) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
-            if (await _coursesService.GetCourseByIdAsync(attendanceSchema.CourseId) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+            if (await _coursesService.GetByIdAsync(attendanceSchema.CourseId) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 
             //get the course
-            var course = await _coursesService.GetCourseByIdAsync(attendanceSchema.CourseId);
+            var course = await _coursesService.GetByIdAsync(attendanceSchema.CourseId);
 
-            var dateServ =  await _utilsService.GetServerDateAsync();
+            var dateServ =  _utilsService.GetServerDateAsync();
 
             attendanceSchema.Date = dateServ.Date;
 
@@ -280,9 +279,9 @@ namespace UniSportUAQ_API.Controllers
             foreach (string dayElment in courseDay!)
             {
 
-                dayElment.ToLower();
+                var day = dayElment.ToLower();
 
-                if (dayElment == newDateDayOfWeek) CorrectDay = true;
+                if (day == newDateDayOfWeek) CorrectDay = true;
 
             }
 
