@@ -3,11 +3,14 @@ using Microsoft.EntityFrameworkCore;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using UniSportUAQ_API.Data.Base;
 
 namespace UniSportUAQ_API.Data.Models
 {
-	public class ApplicationUser : IdentityUser
-	{
+#pragma warning disable CS8767 // La nulabilidad de los tipos de referencia del tipo de parámetro no coincide con el miembro implementado de forma implícita (posiblemente debido a los atributos de nulabilidad).
+    public class ApplicationUser : IdentityUser, IEntityBase
+#pragma warning restore CS8767 // La nulabilidad de los tipos de referencia del tipo de parámetro no coincide con el miembro implementado de forma implícita (posiblemente debido a los atributos de nulabilidad).
+    {
         public string? Expediente { get; set; }
 		public string? PictureUrl { get; set; }
 		public string? Name { get; set; }

@@ -1,16 +1,17 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using UniSportUAQ_API.Data.Base;
 using UniSportUAQ_API.Data.Interfaces;
 using UniSportUAQ_API.Data.Models;
 using UniSportUAQ_API.Data.Schemas;
 
 namespace UniSportUAQ_API.Data.Services
 {
-    public class StudentsService : IStudentsService
-	{
+    public class StudentsService : EntityBaseRepository <ApplicationUser>, IStudentsService
+    {
 		private readonly AppDbContext _context;
 		private readonly UserManager<ApplicationUser> _userManager;
-        public StudentsService(AppDbContext context, UserManager<ApplicationUser> userManager)
+        public StudentsService(AppDbContext context, UserManager<ApplicationUser> userManager) : base(context)
         {
 			_context = context;
 			_userManager = userManager;

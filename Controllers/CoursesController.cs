@@ -44,7 +44,7 @@ namespace UniSportUAQ_API.Controllers
 		[Authorize]
 		public async Task<IActionResult> GetAllCourses()
 		{
-			var result = await _coursesService.GetAllAsync();
+			var result = await _coursesService.GetAllAsync(c => c.IsActive == true, c => c.Instructor!);
 
 			var data = new List<Dictionary<string, object>>();
 

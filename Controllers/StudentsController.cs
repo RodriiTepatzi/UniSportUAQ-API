@@ -15,13 +15,17 @@ namespace UniSportUAQ_API.Controllers
 	public class StudentsController : Controller
 	{
 		private readonly IStudentsService _studentsService;
-        public StudentsController(IStudentsService studentsService)
+		private readonly ICoursesService _coursesService;
+		private readonly IInscriptionsService _inscriptionsService;
+        public StudentsController(IStudentsService studentsService, ICoursesService coursesService, IInscriptionsService inscriptionsService)
         {
-			_studentsService = studentsService;   
+            _studentsService = studentsService;
+            _coursesService = coursesService;
+            _inscriptionsService = inscriptionsService;
         }
 
 
-		[HttpPost]
+        [HttpPost]
 		[Route("create")]
 		[AllowAnonymous]
 		public async Task<IActionResult> CreateStudent([FromBody] StudentSchema student)
@@ -149,5 +153,34 @@ namespace UniSportUAQ_API.Controllers
 
 		}
 
-	}
+        [HttpGet]
+        [Route("search/course/{courseId}/{searchTerm}")]
+        [Authorize]
+        public async Task<IActionResult> GetStudentsSeacrhAsync(string searchTerm, string courseId)
+        {
+
+            if (searchTerm is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+			
+			var resultCourse = await _coursesService.GetByIdAsync(courseId);
+
+			if (resultCourse == null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND});
+
+			var studentsInCourse = await _inscriptionsService.GetAllAsync(i => i.CourseId == courseId, i => i.Student!);
+
+            var result = studentsInCourse.Where(i => i.Student.Email.ToUpper().Contains(searchTerm.ToUpper()) ||
+			i.Student.FullName.ToUpper().Contains(searchTerm.ToUpper()) ||
+			i.Student.Expediente.ToUpper().Contains(searchTerm.ToUpper()) ||
+            i.Student.UserName.ToUpper().Contains(searchTerm.ToUpper()));
+
+            var data = new List<Dictionary<string, object>>();
+
+            foreach (var item in result) data.Add(item.Student.ToDictionary);
+
+            if (result.Any()) return Ok(new DataResponse { Data = data, ErrorMessage = null });
+
+            return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+
+        }
+
+    }
 }
