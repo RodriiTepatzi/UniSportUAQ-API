@@ -98,7 +98,7 @@ namespace UniSportUAQ_API.Controllers
 
 			if (!Guid.TryParse(instructorid, out _)) return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
 
-			var result = await _coursesService.GetAllAsync(c => c.InstructorId == instructorid && c.IsActive == true);
+			var result = await _coursesService.GetAllAsync(c => c.InstructorId == instructorid && c.IsActive == true, c => c.Instructor!);
 
 			var data = new List<Dictionary<string, object>>();
 
@@ -117,7 +117,7 @@ namespace UniSportUAQ_API.Controllers
 
 			if (!Guid.TryParse(instructorid, out _)) return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
 
-			var result = await _coursesService.GetAllAsync(c => c.InstructorId == instructorid && c.IsActive == false);
+			var result = await _coursesService.GetAllAsync(c => c.InstructorId == instructorid && c.IsActive == false, c => c.Instructor!);
 
 			var data = new List<Dictionary<string, object>>();
 
@@ -142,8 +142,8 @@ namespace UniSportUAQ_API.Controllers
 					(i.Day != null && i.Day.ToLower().Contains(searchTerm))
 				)
 				&&
-				i.IsActive == true
-			);
+				i.IsActive == true, c => c.Instructor!
+            );
 
 			var distinctResult = result.Distinct();
 
