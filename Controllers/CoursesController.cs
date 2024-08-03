@@ -32,7 +32,7 @@ namespace UniSportUAQ_API.Controllers
         {
             if (!Guid.TryParse(id, out _)) return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
 
-            var result = await _coursesService.GetByIdAsync(id);
+            var result = await _coursesService.GetByIdAsync(id, c => c.Instructor!);
 
             if (result is not null) return Ok(new DataResponse { Data = result.Dictionary, ErrorMessage = null });
 
@@ -79,7 +79,7 @@ namespace UniSportUAQ_API.Controllers
 
             if (!Guid.TryParse(instructorid, out _)) return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
 
-            var result = await _coursesService.GetAllAsync(c => c.InstructorId == instructorid);
+            var result = await _coursesService.GetAllAsync(c => c.InstructorId == instructorid, c => c.Instructor!);
 
 			var data = new List<Dictionary<string, object>>();
 
