@@ -1,16 +1,11 @@
-﻿using UniSportUAQ_API.Data.Models;
+﻿using UniSportUAQ_API.Data.Base;
+using UniSportUAQ_API.Data.Models;
 using UniSportUAQ_API.Data.Schemas;
 
 namespace UniSportUAQ_API.Data.Interfaces
 {
-    public interface IInstructorsService
+    public interface IInstructorsService : IEntityBaseRepository<ApplicationUser>
     {
-        Task<ApplicationUser> CreateInstructorAsync(InstructorSchema instructor);
-        Task<ApplicationUser?> GetInstructorByIdAsync(string id);
-        Task<ApplicationUser?> GetInstructorByExpAsync(string exp);
-        Task<ApplicationUser?> GetInstructorByEmailAsync(string email);
-        Task<List<ApplicationUser>> GetAllInRangeAsync(int start, int end);
-
-        Task<List<ApplicationUser>> GetInstructorSeacrhAsync(string searchTerm);
+        
     }
 }
