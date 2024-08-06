@@ -1,10 +1,14 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
+using System.Text.RegularExpressions;
 using UniSportUAQ_API.Data.Consts;
 using UniSportUAQ_API.Data.Interfaces;
 using UniSportUAQ_API.Data.Models;
 using UniSportUAQ_API.Data.Schemas;
+using UniSportUAQ_API.Data.Services;
 
 namespace UniSportUAQ_API.Controllers
 {
@@ -13,12 +17,15 @@ namespace UniSportUAQ_API.Controllers
 	public class InstructorsController : Controller
 	{
 		private readonly IInstructorsService _instructorsService;
+        private readonly UserManager<ApplicationUser> _userManager;
 		private readonly IStudentsService _studentsService;
 
-        public InstructorsController(IInstructorsService instructorsService, IStudentsService studentsService)
+
+        public InstructorsController(IInstructorsService instructorsService, UserManager<ApplicationUser> userManager, IStudentsService studentsService)
         {
 			_instructorsService = instructorsService;
-			_studentsService = studentsService;
+            _userManager = userManager;
+            _studentsService = studentsService;
         }
 
 		[HttpGet]
@@ -26,9 +33,13 @@ namespace UniSportUAQ_API.Controllers
 		[Authorize]
 		public async Task<IActionResult> GetInstructorById(string id)
 		{
-			var result = await _instructorsService.GetInstructorByIdAsync(id);
+			if(!Guid.TryParse(id, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
 
-			if (result is not null) return Ok(new DataResponse { Data = result.ToDictionary, ErrorMessage = null });
+            var result = await _instructorsService.GetByIdAsync(id);
+
+			if(result!.IsInstructor == false) return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+
+            if (result is not null) return Ok(new DataResponse { Data = result.ToDictionary, ErrorMessage = null });
 
 			return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND});
 		}
@@ -38,23 +49,33 @@ namespace UniSportUAQ_API.Controllers
 		[Authorize]
 		public async Task<IActionResult> GetInstructorByExp(string exp)
 		{
-			var result = await _instructorsService.GetInstructorByExpAsync(exp);
+            if (!Regex.IsMatch(exp, @"^\d+$")) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
 
-			if (result is not null) return Ok(new DataResponse { Data = result.ToDictionary, ErrorMessage = null });
+            var result = await _instructorsService.GetAllAsync(i => i.Expediente == exp && i.IsInstructor == true);
 
-			return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
-		}
+            if (result is null) return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+
+            var instructor = result.FirstOrDefault();
+
+            return Ok(new DataResponse { Data = instructor!.ToDictionary, ErrorMessage = null });
+        }
 
         [HttpGet]
         [Route("email/{email}")]
 		[Authorize]
 		public async Task<IActionResult> GetInstructorByEmail(string email)
         {
-            var result = await _instructorsService.GetInstructorByEmailAsync(email);
+            var emailAttribute = new EmailAddressAttribute();
 
-			if (result is not null) return Ok(new DataResponse { Data = result.ToDictionary, ErrorMessage = null });
+            if (!emailAttribute.IsValid(email)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
 
-			return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+            var result = await _instructorsService.GetAllAsync(i => i.Email == email && i.IsStudent == true);
+
+			if (result is  null) return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+
+			var instructor = result.FirstOrDefault();
+
+            return Ok(new DataResponse { Data = instructor.ToDictionary, ErrorMessage = null });
 		}
 
 		[HttpGet]
@@ -62,61 +83,74 @@ namespace UniSportUAQ_API.Controllers
 		[Authorize]
 		public async Task<IActionResult> GetInstructorsByRange(int start, int end)
 		{
-			var result = await _instructorsService.GetAllInRangeAsync(start, end);
+            if (start < 0 || end < start) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
 
-			var dictionaries = new List<Dictionary<string, object>>();
+			var result = await _instructorsService.GetAllAsync(i => i.IsInstructor == true);
 
-			if (result.Count > 0)
-			{
-                foreach (var item in result) dictionaries.Add(item.ToDictionary);
+			if (result is null) return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 
-				return Ok(new DataResponse { Data = dictionaries, ErrorMessage = null });
-			}
+            var InstrInRange = result.Skip(start).Take(end - start + 1).ToList();
 
-			return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
-		}
+            var data = new List<Dictionary<string, object>>();
+
+            foreach (var item in InstrInRange) data.Add(item.ToDictionary);
+
+            return Ok(new DataResponse { Data = data, ErrorMessage = null });
+        }
 
 		[HttpGet]
 		[Route("search/{searchTerm}")]
 		[Authorize]
 		public async Task<IActionResult> GetInstructorSeacrhAsync(string searchTerm)
         {
-            if (searchTerm is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+            if (string.IsNullOrWhiteSpace(searchTerm)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
 
-            var result = await _instructorsService.GetInstructorSeacrhAsync(searchTerm);
+            var search = searchTerm.ToLower();
+
+            var result = await _instructorsService.GetAllAsync(i => i.IsInstructor == true &&
+            ((i.Expediente != null && i.Expediente.ToLower().Contains(search)) ||
+            (i.Name != null && i.Name.ToLower().Contains(search)) ||
+            (i.LastName != null && i.LastName.ToLower().Contains(search)) ||
+            (i.Email != null && i.Email.ToLower().Contains(search)) ||
+            (i.PhoneNumber != null && i.PhoneNumber.Contains(search))
+            ));
+
+            if (result == null) return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+
+            var instructor = result.ToList();
 
             var data = new List<Dictionary<string, object>>();
 
-            foreach (var item in result) data.Add(item.ToDictionary);
+            foreach (var item in instructor) data.Add(item.ToDictionary);
 
-            if (result.Count > 0) return Ok(new DataResponse { Data = data, ErrorMessage = null });
+            if (instructor.Count > 0) return Ok(new DataResponse { Data = data, ErrorMessage = null });
 
-            return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+            return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 
         }
 
-        [HttpPost]
-		[Route("promote")]
+        [HttpPut]
+		[Route("promote/id/{id}")]
 		[AllowAnonymous]
-		public async Task<IActionResult> CreateInstructor([FromBody] InstructorSchema instructor)
+		public async Task<IActionResult> CreateInstructor(string id)
 		{
+            if (!Guid.TryParse(id, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
 
-			if (instructor.Id is null) return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+            var NewInstructor = await _studentsService.GetStudentByIdAsync(id);
 
-			var studentResult = await _studentsService.GetStudentByIdAsync(instructor.Id);
+            if (NewInstructor!.IsInstructor == true) return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.ERROR_PROMOTING });
 
-			if(studentResult is null) return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.ERROR_PROMOTING });
+            if (NewInstructor is null) return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+
+            NewInstructor.IsInstructor = true;
+
+            var registerInstructor = _instructorsService.UpdateAsync(NewInstructor);
+
+            if (registerInstructor is null) return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.ERROR_PROMOTING });
+
+            return Ok(new DataResponse { Data = NewInstructor.ToDictionary, ErrorMessage = null });
 
 
-
-			var idEntity = await _instructorsService.GetInstructorByIdAsync(instructor.Id);
-
-			if (idEntity is not null) return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.ENTITY_EXISTS });
-			
-
-			var result = await _instructorsService.CreateInstructorAsync(instructor);
-
-			return Ok(new DataResponse { Data = result.ToDictionary, ErrorMessage = null });
-		}
-	}
+        }
+    }
 }

@@ -76,7 +76,7 @@ namespace UniSportUAQ_API.Controllers
 
             var admin = result.FirstOrDefault();
             
-            return Ok(new DataResponse { Data = admin.ToDictionary, ErrorMessage = null });
+            return Ok(new DataResponse { Data = admin!.ToDictionary, ErrorMessage = null });
         }
 
 		[HttpGet]

@@ -129,7 +129,7 @@ namespace UniSportUAQ_API.Controllers
 
             var student = await _studentsService.GetStudentByIdAsync(schema.StudentId!);
 
-            var instructor = await _instructorsService.GetInstructorByIdAsync(schema.InstructorId!);
+            var instructor = await _instructorsService.GetByIdAsync(schema.InstructorId!);
 
             var inscriptions = await _inscriptionsService.GetAllAsync(i => i.StudentId == schema.StudentId! && i.CourseId == schema.CourseId!,
 				i => i.Student!,
