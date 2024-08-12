@@ -75,7 +75,7 @@ namespace UniSportUAQ_API.Controllers
 
 			var instructor = result.FirstOrDefault();
 
-            return Ok(new DataResponse { Data = instructor.ToDictionary, ErrorMessage = null });
+            return Ok(new DataResponse { Data = instructor!.ToDictionary, ErrorMessage = null });
 		}
 
 		[HttpGet]
@@ -136,7 +136,7 @@ namespace UniSportUAQ_API.Controllers
 		{
             if (!Guid.TryParse(id, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
 
-            var NewInstructor = await _studentsService.GetStudentByIdAsync(id);
+            var NewInstructor = await _studentsService.GetByIdAsync(id);
 
             if (NewInstructor!.IsInstructor == true) return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.ERROR_PROMOTING });
 

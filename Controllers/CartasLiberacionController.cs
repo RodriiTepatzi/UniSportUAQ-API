@@ -96,7 +96,7 @@ namespace UniSportUAQ_API.Controllers
             
 
             //check if student and course exist
-            if (await _studentsService.GetStudentByIdAsync(schema.StudentId!) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = "student:"+ResponseMessages.OBJECT_NOT_FOUND });
+            if (await _studentsService.GetByIdAsync(schema.StudentId!) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = "student:"+ResponseMessages.OBJECT_NOT_FOUND });
             if (await _coursesService.GetByIdAsync(schema.CourseId!) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = "course:" + ResponseMessages.OBJECT_NOT_FOUND });
 
 			//check if student is inscribed
@@ -127,7 +127,7 @@ namespace UniSportUAQ_API.Controllers
 
             var  course = await _coursesService.GetByIdAsync(schema.CourseId!);
 
-            var student = await _studentsService.GetStudentByIdAsync(schema.StudentId!);
+            var student = await _studentsService.GetByIdAsync(schema.StudentId!);
 
             var instructor = await _instructorsService.GetByIdAsync(schema.InstructorId!);
 
