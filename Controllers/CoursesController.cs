@@ -108,7 +108,7 @@ namespace UniSportUAQ_API.Controllers
 
 			return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 		}
-
+		
 		[HttpGet]
 		[Route("instructorid/{instructorid}/inactive")]
 		[Authorize]
