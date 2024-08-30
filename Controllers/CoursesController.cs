@@ -108,7 +108,7 @@ namespace UniSportUAQ_API.Controllers
 
 			return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 		}
-
+		
 		[HttpGet]
 		[Route("instructorid/{instructorid}/inactive")]
 		[Authorize]
@@ -292,7 +292,7 @@ namespace UniSportUAQ_API.Controllers
         {
 			// First we have to check if the courseId and studentId, both exist on our database. Otherwise we shall return an error.
 
-			if (await _studentsService.GetStudentByIdAsync(studentId) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+			if (await _studentsService.GetByIdAsync(studentId) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 			if (await _coursesService.GetByIdAsync(courseId) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 
 			var checkIfInCourse = await _inscriptionsService.GetAllAsync(i => i.CourseId == courseId && i.StudentId == studentId,
@@ -335,7 +335,7 @@ namespace UniSportUAQ_API.Controllers
 		{
 			// First we have to check if the courseId and studentId, both exist on our database. Otherwise we shall return an error.
 
-			if (await _studentsService.GetStudentByIdAsync(studentId) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+			if (await _studentsService.GetByIdAsync(studentId) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 			if (await _coursesService.GetByIdAsync(courseId) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 
 			var checkIfInCourse = await _inscriptionsService.GetAllAsync(i => i.CourseId == courseId && i.StudentId == studentId,
@@ -356,7 +356,7 @@ namespace UniSportUAQ_API.Controllers
 		{
 			// First we have to check if the courseId and studentId, both exist on our database. Otherwise we shall return an error.
 
-			if (await _studentsService.GetStudentByIdAsync(studentId) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+			if (await _studentsService.GetByIdAsync(studentId) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 
 			var result = await _inscriptionsService.GetAllAsync(i => i.StudentId == studentId,
 				i => i.Student!,
@@ -376,7 +376,7 @@ namespace UniSportUAQ_API.Controllers
 		{
 			// First we have to check if the courseId and studentId, both exist on our database. Otherwise we shall return an error.
 
-			if (await _studentsService.GetStudentByIdAsync(studentId) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+			if (await _studentsService.GetByIdAsync(studentId) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 
 			var result = await _inscriptionsService.GetAllAsync(i => i.StudentId == studentId,
 				i => i.Student!,
@@ -400,7 +400,7 @@ namespace UniSportUAQ_API.Controllers
 		{
 			// First we have to check if the courseId and studentId, both exist on our database. Otherwise we shall return an error.
 
-			if (await _studentsService.GetStudentByIdAsync(studentId) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+			if (await _studentsService.GetByIdAsync(studentId) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 
 			var result = await _inscriptionsService.GetAllAsync(i => i.StudentId == studentId && i.IsFinished == false,
 				i => i.Student!,
@@ -490,7 +490,7 @@ namespace UniSportUAQ_API.Controllers
 		{
 			// First we have to check if the courseId and studentId, both exist on our database. Otherwise we shall return an error.
 
-			if (await _studentsService.GetStudentByIdAsync(studentId) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+			if (await _studentsService.GetByIdAsync(studentId) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 
 			if (await _coursesService.GetByIdAsync(courseId) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 
