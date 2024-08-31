@@ -34,5 +34,8 @@ namespace UniSportUAQ_API.Data
 		public DbSet<Attendance> Attendances { get; set; }
 
 		public DbSet<CartaLiberacion> CartasLiberacion { get; set; }
+
+        public DbSet<TimePeriod> TimePeriod { get; set; }
+
     }
 }

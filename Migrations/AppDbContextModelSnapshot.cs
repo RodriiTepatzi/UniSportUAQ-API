@@ -303,6 +303,31 @@ namespace UniSportUAQ_API.Migrations
                     b.ToTable("Inscriptions");
                 });
 
+            modelBuilder.Entity("UniSportUAQ_API.Data.Models.TimePeriod", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("DateEnd")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("DateStart")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Period")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("TimePeriod");
+                });
+
             modelBuilder.Entity("UniSportUAQ_API.Data.Models.Attendance", b =>
                 {
                     b.HasOne("UniSportUAQ_API.Data.Models.Course", "Course")
