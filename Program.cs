@@ -73,8 +73,9 @@ namespace UniSportUAQ_API
             builder.Services.AddTransient<IAttendancesService, AttendancesService>();
             builder.Services.AddTransient<ICartasLiberacionService, CartasLiberacionService>();
             builder.Services.AddTransient<IUtilsService, UtilsService>();
+            builder.Services.AddTransient<ITimePeriodsService, TimePeriodsService>();
 
-			builder.Services.AddControllers();
+            builder.Services.AddControllers();
             builder.Services.AddHttpContextAccessor();
             builder.Services.AddSwaggerGen();
 
