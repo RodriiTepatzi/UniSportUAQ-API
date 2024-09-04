@@ -153,7 +153,7 @@ namespace UniSportUAQ_API.Controllers
 
             var student = students.FirstOrDefault();
 
-            return Ok(new DataResponse { Data = student!.ToDictionary, ErrorMessage = null });
+            return Ok(new DataResponse { Data = student!.Email, ErrorMessage = null });
         }
 
 
