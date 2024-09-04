@@ -17,11 +17,15 @@ namespace UniSportUAQ_API.Data.Models
 		[StringLength(50)]
 		public string? CourseName { get; set; }
 
+
         [Required]
         public string? Description { get; set; }
 
         [Required]
 		public string? InstructorId { get; set; }
+
+		[Required]
+		public string? SubjectId { get; set; }
 
 		[Required]
 		[StringLength(20)]
@@ -51,14 +55,12 @@ namespace UniSportUAQ_API.Data.Models
 
 		[DefaultValue(0)]
 		public int CurrentUsers { get; set; }
-        [DefaultValue(0)]
-        public int PendingUsers { get; set; }
-
-		[Required]
-		public string? CoursePictureUrl { get; set; }
 
 		[ForeignKey("InstructorId")]
 		public ApplicationUser? Instructor { get; set; }
+
+		[ForeignKey("SubjectId")]
+		public Subject? Subject { get; set; }
 
 		public bool IsActive { get; set; }
 
@@ -68,6 +70,7 @@ namespace UniSportUAQ_API.Data.Models
 			{ nameof(CourseName), CourseName is not null ? CourseName : "" },
 			{ nameof(Description), Description is not null ? Description : ""},
 			{ nameof(Instructor), Instructor is not null ? Instructor.ToDictionary : "" },
+			{ nameof(Subject), SubjectId is not null ? Subject!.ToDictionary(): ""},
 			{ nameof(VirtualOrHybrid), VirtualOrHybrid},
 			{ nameof(Location), Location ?? string.Empty},
 			{ nameof(Link), Link ?? string.Empty},
@@ -76,8 +79,6 @@ namespace UniSportUAQ_API.Data.Models
 			{ nameof(EndHour), EndHour ?? string.Empty},
 			{ nameof(MaxUsers), MaxUsers },
 			{ nameof(CurrentUsers), CurrentUsers },
-			{ nameof(PendingUsers), PendingUsers },
-			{ nameof(CoursePictureUrl), CoursePictureUrl is not null ? CoursePictureUrl : ""},
 			{ nameof(IsActive), IsActive},
 		};
 	}
