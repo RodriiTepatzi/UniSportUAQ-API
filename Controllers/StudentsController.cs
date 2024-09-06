@@ -135,7 +135,7 @@ namespace UniSportUAQ_API.Controllers
 
             var result = await _studentsService.GetAllAsync(i => i.Expediente == exp && i.IsStudent == true);
 
-            if (result is null) return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+            if (result.Count() < 1) return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 
             var student = result.FirstOrDefault();
 
@@ -153,7 +153,7 @@ namespace UniSportUAQ_API.Controllers
 
             var student = students.FirstOrDefault();
 
-            return Ok(new DataResponse { Data = student!.ToDictionary, ErrorMessage = null });
+            return Ok(new DataResponse { Data = student!.Email, ErrorMessage = null });
         }
 
 

@@ -208,6 +208,7 @@ namespace UniSportUAQ_API.Controllers
 			if(courseSchema.InstructorId is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
 			if(courseSchema.MaxUsers <= 0) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
 
+
             var courses = await _coursesService.GetAllAsync(c => c.InstructorId == courseSchema.InstructorId);
 			
 			if(courses is not null ) {
@@ -295,7 +296,14 @@ namespace UniSportUAQ_API.Controllers
 			if (await _studentsService.GetByIdAsync(studentId) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 			if (await _coursesService.GetByIdAsync(courseId) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 
-			var checkIfInCourse = await _inscriptionsService.GetAllAsync(i => i.CourseId == courseId && i.StudentId == studentId,
+			
+            var existingInscription = await _inscriptionsService.GetAllAsync(i => i.StudentId == studentId);
+            if (existingInscription.Any())
+                return BadRequest(new DataResponse { Data = null, ErrorMessage = "El estudiante" });
+
+
+			//
+            var checkIfInCourse = await _inscriptionsService.GetAllAsync(i => i.CourseId == courseId && i.StudentId == studentId,
 				i => i.Student!,
 				i => i.Course!,
 				i => i.Course!.Instructor!

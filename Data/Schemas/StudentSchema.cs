@@ -11,5 +11,6 @@
 		public string? Password { get; set; }
 		public int Semester { get; set; }
 		public int Group { get; set; }
+
 	}
 }
