@@ -29,10 +29,12 @@ namespace UniSportUAQ_API.Data
 
 		public DbSet<Inscription> Inscriptions { get; set; }
 
-		public DbSet<CourseClass> CourseClasses { get; set; }
+		public DbSet<Subject> CourseClasses { get; set; }
 
 		public DbSet<Attendance> Attendances { get; set; }
 
 		public DbSet<CartaLiberacion> CartasLiberacion { get; set; }
+
+		public DbSet<Subject> Subjects { get; set; }
     }
 }

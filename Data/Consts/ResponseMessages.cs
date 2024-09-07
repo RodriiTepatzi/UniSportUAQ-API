@@ -23,6 +23,7 @@
 		public const string STREAM_ERROR = "Can not convert stream into bytes[]";
 		public const string STUDENT_NOT_ACCREDITED = "Can not generate Carta liberacion this student is not accredited in this course or course has not ended";
 		public const string CARTA_EXIST = "Can not generate a new carta because this already exist";
+		public const string USER_INACTIVE = "This user is inactive";
 
 
     }

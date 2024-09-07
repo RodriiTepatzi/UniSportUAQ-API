@@ -14,7 +14,7 @@ using System.Linq;
 
 namespace UniSportUAQ_API.Controllers
 {
-    [ApiController]
+    [ApiController] 
     [Route("api/users/admins")]
     public class AdminsController : Controller
     {
