@@ -6,7 +6,7 @@
 		public const string UNAUTHORIZED = "You do not have access to this endpoint.";
 		public const string BAD_REQUEST = "The data you provided was not properly provided. Please check our documentation.";
 		public const string INTERNAL_ERROR = "Internal error. Please contact and provide us some details about how this was generated.";
-		public const string ENTITY_EXISTS = "An entity with this email, id or expediente already exists. Please verify the data to avoid duplicates.";
+		public const string ENTITY_EXISTS = "An entity with this name, email, id or expediente already exists. Please verify the data to avoid duplicates.";
         public const string ATTENDANCE_ENTITY_EXISTS = "An attendance has been taken already for this day. Please verify the data to avoid duplicates";
         public const string STUDENT_ID_NEEDED = "Please provide at least the student id for this endpoint. It is required to complete the process.";
         public const string ALREADY_IN_COURSE = "This user is already in this course.";
@@ -24,6 +24,7 @@
 		public const string STUDENT_NOT_ACCREDITED = "Can not generate Carta liberacion this student is not accredited in this course or course has not ended";
 		public const string CARTA_EXIST = "Can not generate a new carta because this already exist";
 		public const string USER_INACTIVE = "This user is inactive";
+		public const string PERIOD_CROSSED = "can not generate a period with wrong dates or negative duration";
 
 
     }

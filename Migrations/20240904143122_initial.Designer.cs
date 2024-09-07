@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using UniSportUAQ_API.Data;
 
@@ -11,9 +12,11 @@ using UniSportUAQ_API.Data;
 namespace UniSportUAQ_API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240904143122_initial")]
+    partial class initial
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -228,10 +231,6 @@ namespace UniSportUAQ_API.Migrations
                         .HasMaxLength(6)
                         .HasColumnType("nvarchar(6)");
 
-                    b.Property<string>("SubjectId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<bool>("VirtualOrHybrid")
                         .HasMaxLength(20)
                         .HasColumnType("bit");
@@ -239,8 +238,6 @@ namespace UniSportUAQ_API.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("InstructorId");
-
-                    b.HasIndex("SubjectId");
 
                     b.ToTable("Courses");
                 });
@@ -309,14 +306,12 @@ namespace UniSportUAQ_API.Migrations
                     b.ToTable("Inscriptions");
                 });
 
-            modelBuilder.Entity("UniSportUAQ_API.Data.Models.Subject", b =>
             modelBuilder.Entity("UniSportUAQ_API.Data.Models.TimePeriod", b =>
                 {
                     b.Property<string>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("CoursePictureUrl")
                     b.Property<DateTime>("DateEnd")
                         .HasColumnType("datetime2");
 
@@ -327,20 +322,12 @@ namespace UniSportUAQ_API.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("InstructorId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("Name")
                     b.Property<string>("Type")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("InstructorId");
-
-                    b.ToTable("Subject");
                     b.ToTable("TimePeriods");
                 });
 
@@ -390,7 +377,6 @@ namespace UniSportUAQ_API.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("UniSportUAQ_API.Data.Models.Subject", "SubjectFk")
                     b.Navigation("Instructor");
                 });
 
@@ -398,14 +384,10 @@ namespace UniSportUAQ_API.Migrations
                 {
                     b.HasOne("UniSportUAQ_API.Data.Models.Course", "Course")
                         .WithMany()
-                        .HasForeignKey("SubjectId")
                         .HasForeignKey("CourseId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Instructor");
-
-                    b.Navigation("SubjectFk");
                     b.Navigation("Course");
                 });
 
@@ -426,17 +408,6 @@ namespace UniSportUAQ_API.Migrations
                     b.Navigation("Course");
 
                     b.Navigation("Student");
-                });
-
-            modelBuilder.Entity("UniSportUAQ_API.Data.Models.Subject", b =>
-                {
-                    b.HasOne("UniSportUAQ_API.Data.Models.ApplicationUser", "Instructor")
-                        .WithMany()
-                        .HasForeignKey("InstructorId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Instructor");
                 });
 #pragma warning restore 612, 618
         }
