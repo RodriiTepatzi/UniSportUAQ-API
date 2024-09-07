@@ -22,9 +22,10 @@ namespace UniSportUAQ_API.Data.Base
 
 				return result.Entity;
 			}
-			catch
+			catch(Exception ex)
 			{
-				return null;
+                
+                return null;
 			}
 		}
 

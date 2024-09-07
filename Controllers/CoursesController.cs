@@ -197,7 +197,7 @@ namespace UniSportUAQ_API.Controllers
 		[Authorize]
 		public async Task<IActionResult> AddToCourse([FromBody] CourseSchema courseSchema)
 		{
-			if(courseSchema.CourseName is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+			if(courseSchema.CourseName is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = "course name: "+ResponseMessages.BAD_REQUEST });
 			if(courseSchema.Day is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
 
             if(!DateTime.TryParse(courseSchema.StartHour, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
@@ -219,22 +219,29 @@ namespace UniSportUAQ_API.Controllers
             }
 
 
-            var NewCourse = new Course
+			var NewCourse = new Course
 			{
-				CourseName = courseSchema.CourseName,
+				Id = Guid.NewGuid().ToString(),
+                SubjectId = courseSchema.SubjectId,
+                CourseName = courseSchema.CourseName,
+                InstructorId = courseSchema.InstructorId,
 				Day = courseSchema.Day,
 				StartHour = courseSchema.StartHour,
-				EndHour = courseSchema.EndHour,
-				InstructorId = courseSchema.InstructorId,
-				IsActive = true,
-				MaxUsers = courseSchema.MaxUsers
+                EndHour = courseSchema.EndHour,
+                MaxUsers = courseSchema.MaxUsers,
+                CurrentUsers = 0,
+				Description = courseSchema.Description,
+                IsActive = true,
+				Location = courseSchema.location,
+				
+				
 			};
 
 			var result = await _coursesService.AddAsync(NewCourse);
 
-			if(result is not null) return Ok(new DataResponse { Data = result.Dictionary, ErrorMessage = null });
+			if(result != null) return Ok(new DataResponse { Data = result.Dictionary, ErrorMessage = null });
 
-			return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.INTERNAL_ERROR});
+			return BadRequest(new DataResponse { Data = NewCourse.Dictionary, ErrorMessage = ResponseMessages.INTERNAL_ERROR});
 		}
 
 		[HttpPut]

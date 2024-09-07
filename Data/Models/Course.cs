@@ -18,22 +18,23 @@ namespace UniSportUAQ_API.Data.Models
 		public string? CourseName { get; set; }
 
 
-        [Required]
-        public string? Description { get; set; }
+		[Required]
+		public string? Description { get; set; }
 
-        [Required]
+		[Required]
 		public string? InstructorId { get; set; }
 
 		[Required]
 		public string? SubjectId { get; set; }
 
 		[Required]
-		[StringLength(20)]
+		[DefaultValue(false)]
 		public bool VirtualOrHybrid { get; set; }
 
-		[StringLength(50)]
+
 		[Required]
-		public string? Location { get; set; }
+		[StringLength(50)]
+        public string? Location { get; set; }
 
         [AllowNull]
         public string? Link { get; set; }	
@@ -56,31 +57,36 @@ namespace UniSportUAQ_API.Data.Models
 		[DefaultValue(0)]
 		public int CurrentUsers { get; set; }
 
-		[ForeignKey("InstructorId")]
-		public ApplicationUser? Instructor { get; set; }
-
-		[ForeignKey("SubjectId")]
-		public Subject? Subject { get; set; }
-
+		[DefaultValue(true)]
 		public bool IsActive { get; set; }
 
+        [ForeignKey("InstructorId")]
+        public ApplicationUser? Instructor { get; set; }
 
-		public Dictionary<string, object> Dictionary => new Dictionary<string, object> {
-			{ nameof(Id), Id  ?? string.Empty},
-			{ nameof(CourseName), CourseName is not null ? CourseName : "" },
-			{ nameof(Description), Description is not null ? Description : ""},
-			{ nameof(Instructor), Instructor is not null ? Instructor.ToDictionary : "" },
-			{ nameof(Subject), SubjectId is not null ? Subject!.ToDictionary(): ""},
-			{ nameof(VirtualOrHybrid), VirtualOrHybrid},
-			{ nameof(Location), Location ?? string.Empty},
-			{ nameof(Link), Link ?? string.Empty},
-			{ nameof(Day), Day ?? string.Empty},
-			{ nameof(StartHour), StartHour ?? string.Empty},
-			{ nameof(EndHour), EndHour ?? string.Empty},
-			{ nameof(MaxUsers), MaxUsers },
-			{ nameof(CurrentUsers), CurrentUsers },
-			{ nameof(IsActive), IsActive},
-		};
-	}
+        [ForeignKey("SubjectId")]
+        public Subject? Subject { get; set; }
+
+        [NotMapped]
+		public string? CoursePictureUrl { get; set; }
+
+
+
+        public Dictionary<string, object> Dictionary => new Dictionary<string, object> {
+		{ nameof(Id), Id ?? "n/a" },
+		{ nameof(CourseName), CourseName ?? "n/a" },
+		{ nameof(Description), Description ?? "n/a" },
+		{ nameof(InstructorId), InstructorId != null ? InstructorId : "n/a" },
+		{ nameof(SubjectId), SubjectId != null ? SubjectId: "n/a" },
+		{ nameof(VirtualOrHybrid), VirtualOrHybrid },
+		{ nameof(Location), Location ?? string.Empty },
+		{ nameof(Link), Link ?? string.Empty },
+		{ nameof(Day), Day ?? string.Empty },
+		{ nameof(StartHour), StartHour ?? string.Empty },
+		{ nameof(EndHour), EndHour ?? string.Empty },
+		{ nameof(MaxUsers), MaxUsers },
+		{ nameof(CurrentUsers), CurrentUsers },
+		{ nameof(IsActive), IsActive },
+};
+    }
 }
 
