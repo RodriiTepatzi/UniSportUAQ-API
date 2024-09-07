@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using UniSportUAQ_API.Data;
 
@@ -11,9 +12,11 @@ using UniSportUAQ_API.Data;
 namespace UniSportUAQ_API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240906174744_updatesubject")]
+    partial class updatesubject
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -181,10 +184,6 @@ namespace UniSportUAQ_API.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<string>("CoursePictureUrl")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<int>("CurrentUsers")
                         .HasColumnType("int");
 
@@ -220,9 +219,6 @@ namespace UniSportUAQ_API.Migrations
                     b.Property<int>("MaxUsers")
                         .HasColumnType("int");
 
-                    b.Property<int>("PendingUsers")
-                        .HasColumnType("int");
-
                     b.Property<string>("StartHour")
                         .IsRequired()
                         .HasMaxLength(6)
@@ -243,35 +239,6 @@ namespace UniSportUAQ_API.Migrations
                     b.HasIndex("SubjectId");
 
                     b.ToTable("Courses");
-                });
-
-            modelBuilder.Entity("UniSportUAQ_API.Data.Models.CourseClass", b =>
-                {
-                    b.Property<string>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("CourseId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("Day")
-                        .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
-
-                    b.Property<string>("Hour")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("Quota")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CourseId");
-
-                    b.ToTable("CourseClasses");
                 });
 
             modelBuilder.Entity("UniSportUAQ_API.Data.Models.Inscription", b =>
@@ -310,20 +277,12 @@ namespace UniSportUAQ_API.Migrations
                 });
 
             modelBuilder.Entity("UniSportUAQ_API.Data.Models.Subject", b =>
-            modelBuilder.Entity("UniSportUAQ_API.Data.Models.TimePeriod", b =>
                 {
                     b.Property<string>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("CoursePictureUrl")
-                    b.Property<DateTime>("DateEnd")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("DateStart")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Period")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -332,7 +291,6 @@ namespace UniSportUAQ_API.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Name")
-                    b.Property<string>("Type")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -341,7 +299,6 @@ namespace UniSportUAQ_API.Migrations
                     b.HasIndex("InstructorId");
 
                     b.ToTable("Subject");
-                    b.ToTable("TimePeriods");
                 });
 
             modelBuilder.Entity("UniSportUAQ_API.Data.Models.Attendance", b =>
@@ -391,22 +348,14 @@ namespace UniSportUAQ_API.Migrations
                         .IsRequired();
 
                     b.HasOne("UniSportUAQ_API.Data.Models.Subject", "SubjectFk")
-                    b.Navigation("Instructor");
-                });
-
-            modelBuilder.Entity("UniSportUAQ_API.Data.Models.CourseClass", b =>
-                {
-                    b.HasOne("UniSportUAQ_API.Data.Models.Course", "Course")
                         .WithMany()
                         .HasForeignKey("SubjectId")
-                        .HasForeignKey("CourseId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Instructor");
 
                     b.Navigation("SubjectFk");
-                    b.Navigation("Course");
                 });
 
             modelBuilder.Entity("UniSportUAQ_API.Data.Models.Inscription", b =>

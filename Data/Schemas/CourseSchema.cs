@@ -10,7 +10,11 @@
 		public string? StartHour { get; set; }
         public string? EndHour { get; set; }
 		public string? Description { get; set; }
-		public string? CoursePictureUrl { get; set; }
+        public string? SubjectId { get; set; }
 		public int MaxUsers { get; set; }
+
+        public string? location { get; set; }
+
+
     }
 }

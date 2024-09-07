@@ -179,7 +179,6 @@ namespace UniSportUAQ_API.Controllers
 				EndHour = courseSchema.EndHour,
 				MaxUsers = courseSchema.MaxUsers,
 				Description = courseSchema.Description,
-				CoursePictureUrl = courseSchema.CoursePictureUrl,
             };
 
 			var result = await _coursesService.UpdateAsync(course);
@@ -198,7 +197,7 @@ namespace UniSportUAQ_API.Controllers
 		[Authorize]
 		public async Task<IActionResult> AddToCourse([FromBody] CourseSchema courseSchema)
 		{
-			if(courseSchema.CourseName is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+			if(courseSchema.CourseName is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = "course name: "+ResponseMessages.BAD_REQUEST });
 			if(courseSchema.Day is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
 
             if(!DateTime.TryParse(courseSchema.StartHour, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
@@ -221,22 +220,29 @@ namespace UniSportUAQ_API.Controllers
             }
 
 
-            var NewCourse = new Course
+			var NewCourse = new Course
 			{
-				CourseName = courseSchema.CourseName,
+				Id = Guid.NewGuid().ToString(),
+                SubjectId = courseSchema.SubjectId,
+                CourseName = courseSchema.CourseName,
+                InstructorId = courseSchema.InstructorId,
 				Day = courseSchema.Day,
 				StartHour = courseSchema.StartHour,
-				EndHour = courseSchema.EndHour,
-				InstructorId = courseSchema.InstructorId,
-				IsActive = true,
-				MaxUsers = courseSchema.MaxUsers
+                EndHour = courseSchema.EndHour,
+                MaxUsers = courseSchema.MaxUsers,
+                CurrentUsers = 0,
+				Description = courseSchema.Description,
+                IsActive = true,
+				Location = courseSchema.location,
+				
+				
 			};
 
 			var result = await _coursesService.AddAsync(NewCourse);
 
-			if(result is not null) return Ok(new DataResponse { Data = result.Dictionary, ErrorMessage = null });
+			if(result != null) return Ok(new DataResponse { Data = result.Dictionary, ErrorMessage = null });
 
-			return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.INTERNAL_ERROR});
+			return BadRequest(new DataResponse { Data = NewCourse.Dictionary, ErrorMessage = ResponseMessages.INTERNAL_ERROR});
 		}
 
 		[HttpPut]
@@ -313,17 +319,9 @@ namespace UniSportUAQ_API.Controllers
 
             var course = await _coursesService.GetByIdAsync(courseId);
 
-            if (course is not null)
-            {
-				if ((course.CurrentUsers + 1 + course.PendingUsers) > course.MaxUsers) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.EXCEEDED_MAX_USERS });
-				
-				course.CurrentUsers++;
-                // course.PendingUsers--; // TODO: check for this line in case to implement a way to reserve places in the course.
+			if (course == null) return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 
-                await _coursesService.UpdateAsync(course);
-            }
-
-			var entity = new Inscription
+            var entity = new Inscription
 			{
 				DateInscription = DateTime.Now,
 				Accredit = false,
@@ -331,7 +329,15 @@ namespace UniSportUAQ_API.Controllers
 				StudentId = studentId,
 			};
 
-			var inscriptionResult = await _inscriptionsService.AddAsync(entity);
+			if (course.CurrentUsers >= course.MaxUsers) return Ok(new DataResponse { Data = null, ErrorMessage = "not added: " + ResponseMessages.EXCEEDED_MAX_USERS });
+
+            var inscriptionResult = await _inscriptionsService.AddAsync(entity);
+
+            if (inscriptionResult == null) return Ok(new DataResponse { Data = null, ErrorMessage = "not added: "+ResponseMessages.OBJECT_NOT_FOUND });
+
+			course.CurrentUsers++;
+
+            await _coursesService.UpdateAsync(course);
 
             return Ok(new DataResponse { Data = inscriptionResult!.ToDictionary(), ErrorMessage = null});
         }
