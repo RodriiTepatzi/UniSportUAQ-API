@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace UniSportUAQ_API.Migrations
 {
     /// <inheritdoc />
-    public partial class updatesubject : Migration
+    public partial class initialbd : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -50,6 +50,21 @@ namespace UniSportUAQ_API.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "TimePeriods",
+                columns: table => new
+                {
+                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Period = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Type = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    DateStart = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    DateEnd = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TimePeriods", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Subject",
                 columns: table => new
                 {
@@ -78,7 +93,7 @@ namespace UniSportUAQ_API.Migrations
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     InstructorId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     SubjectId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    VirtualOrHybrid = table.Column<bool>(type: "bit", maxLength: 20, nullable: false),
+                    VirtualOrHybrid = table.Column<bool>(type: "bit", nullable: false),
                     Location = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     Link = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Day = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
@@ -244,6 +259,9 @@ namespace UniSportUAQ_API.Migrations
 
             migrationBuilder.DropTable(
                 name: "Inscriptions");
+
+            migrationBuilder.DropTable(
+                name: "TimePeriods");
 
             migrationBuilder.DropTable(
                 name: "Courses");
