@@ -24,6 +24,11 @@ namespace UniSportUAQ_API.Data.Models
         public ApplicationUser? Instructor { get; set; }
 
 
+
+		// Relationships
+		public IEnumerable<Course>? Courses { get; set; }
+
+
         public Dictionary<string, object> ToDictionary() => new Dictionary<string, object>
         {
             { nameof(Id), Id is not null ? Id:"" },
