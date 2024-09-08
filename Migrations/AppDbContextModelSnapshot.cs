@@ -90,6 +90,12 @@ namespace UniSportUAQ_API.Migrations
                     b.Property<string>("PictureUrl")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("RefreshToken")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("RefreshTokenExpiryTime")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime>("RegisteredDateTime")
                         .HasColumnType("datetime2");
 
@@ -180,6 +186,9 @@ namespace UniSportUAQ_API.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("CoursePictureUrl")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("CurrentUsers")
                         .HasColumnType("int");
@@ -325,9 +334,9 @@ namespace UniSportUAQ_API.Migrations
             modelBuilder.Entity("UniSportUAQ_API.Data.Models.Attendance", b =>
                 {
                     b.HasOne("UniSportUAQ_API.Data.Models.Course", "Course")
-                        .WithMany()
+                        .WithMany("Attendances")
                         .HasForeignKey("CourseId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("UniSportUAQ_API.Data.Models.ApplicationUser", "Student")
@@ -344,9 +353,9 @@ namespace UniSportUAQ_API.Migrations
             modelBuilder.Entity("UniSportUAQ_API.Data.Models.CartaLiberacion", b =>
                 {
                     b.HasOne("UniSportUAQ_API.Data.Models.Course", "Course")
-                        .WithMany()
+                        .WithMany("CartaLiberacions")
                         .HasForeignKey("CourseId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("UniSportUAQ_API.Data.Models.ApplicationUser", "Student")
@@ -369,9 +378,9 @@ namespace UniSportUAQ_API.Migrations
                         .IsRequired();
 
                     b.HasOne("UniSportUAQ_API.Data.Models.Subject", "Subject")
-                        .WithMany()
+                        .WithMany("Courses")
                         .HasForeignKey("SubjectId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Instructor");
@@ -382,9 +391,9 @@ namespace UniSportUAQ_API.Migrations
             modelBuilder.Entity("UniSportUAQ_API.Data.Models.Inscription", b =>
                 {
                     b.HasOne("UniSportUAQ_API.Data.Models.Course", "Course")
-                        .WithMany()
+                        .WithMany("Inscriptions")
                         .HasForeignKey("CourseId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("UniSportUAQ_API.Data.Models.ApplicationUser", "Student")
@@ -407,6 +416,20 @@ namespace UniSportUAQ_API.Migrations
                         .IsRequired();
 
                     b.Navigation("Instructor");
+                });
+
+            modelBuilder.Entity("UniSportUAQ_API.Data.Models.Course", b =>
+                {
+                    b.Navigation("Attendances");
+
+                    b.Navigation("CartaLiberacions");
+
+                    b.Navigation("Inscriptions");
+                });
+
+            modelBuilder.Entity("UniSportUAQ_API.Data.Models.Subject", b =>
+                {
+                    b.Navigation("Courses");
                 });
 #pragma warning restore 612, 618
         }

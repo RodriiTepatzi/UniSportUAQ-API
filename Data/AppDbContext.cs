@@ -18,10 +18,42 @@ namespace UniSportUAQ_API.Data
             optionsBuilder.EnableSensitiveDataLogging();
         }
 
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
+		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
-			base.OnModelCreating(modelBuilder);   
-        }
+			modelBuilder.Entity<Course>()
+				.HasOne(c => c.Subject)
+				.WithMany(s => s.Courses)
+				.HasForeignKey(c => c.SubjectId)
+				.OnDelete(DeleteBehavior.NoAction);
+
+			modelBuilder.Entity<CartaLiberacion>()
+				.HasOne(c => c.Course)
+				.WithMany(s => s.CartaLiberacions)
+				.HasForeignKey(c => c.CourseId)
+				.OnDelete(DeleteBehavior.NoAction);
+
+			modelBuilder.Entity<Attendance>()
+				.HasOne(c => c.Course)
+				.WithMany(s => s.Attendances)
+				.HasForeignKey(c => c.CourseId)
+				.OnDelete(DeleteBehavior.NoAction);
+
+
+			modelBuilder.Entity<Inscription>()
+				.HasOne(c => c.Course)
+				.WithMany(s => s.Inscriptions)
+				.HasForeignKey(c => c.CourseId)
+				.OnDelete(DeleteBehavior.NoAction);
+
+
+
+			base.OnModelCreating(modelBuilder);
+
+
+
+
+
+		}
 
 		public DbSet<ApplicationUser> ApplicationUsers { get; set; }
 

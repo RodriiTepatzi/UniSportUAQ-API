@@ -65,13 +65,18 @@ namespace UniSportUAQ_API.Data.Models
 
         [ForeignKey("SubjectId")]
         public Subject? Subject { get; set; }
-
-        [NotMapped]
 		public string? CoursePictureUrl { get; set; }
 
+		
+		
+		// Relationships
+		public IEnumerable<Attendance>? Attendances { get; set; }
+		public IEnumerable<CartaLiberacion>? CartaLiberacions { get; set; }
+		public IEnumerable<Inscription>? Inscriptions { get; set; }
 
 
-        public Dictionary<string, object> Dictionary => new Dictionary<string, object> {
+
+		public Dictionary<string, object> Dictionary => new Dictionary<string, object> {
 		{ nameof(Id), Id ?? "n/a" },
 		{ nameof(CourseName), CourseName ?? "n/a" },
 		{ nameof(Description), Description ?? "n/a" },

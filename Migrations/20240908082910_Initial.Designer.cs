@@ -12,8 +12,8 @@ using UniSportUAQ_API.Data;
 namespace UniSportUAQ_API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20240907184600_initialbd")]
-    partial class initialbd
+    [Migration("20240908082910_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -92,6 +92,12 @@ namespace UniSportUAQ_API.Migrations
 
                     b.Property<string>("PictureUrl")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RefreshToken")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("RefreshTokenExpiryTime")
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTime>("RegisteredDateTime")
                         .HasColumnType("datetime2");
@@ -183,6 +189,9 @@ namespace UniSportUAQ_API.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("CoursePictureUrl")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("CurrentUsers")
                         .HasColumnType("int");
@@ -328,7 +337,7 @@ namespace UniSportUAQ_API.Migrations
             modelBuilder.Entity("UniSportUAQ_API.Data.Models.Attendance", b =>
                 {
                     b.HasOne("UniSportUAQ_API.Data.Models.Course", "Course")
-                        .WithMany()
+                        .WithMany("Attendances")
                         .HasForeignKey("CourseId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
@@ -336,7 +345,7 @@ namespace UniSportUAQ_API.Migrations
                     b.HasOne("UniSportUAQ_API.Data.Models.ApplicationUser", "Student")
                         .WithMany()
                         .HasForeignKey("StudentId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Course");
@@ -347,7 +356,7 @@ namespace UniSportUAQ_API.Migrations
             modelBuilder.Entity("UniSportUAQ_API.Data.Models.CartaLiberacion", b =>
                 {
                     b.HasOne("UniSportUAQ_API.Data.Models.Course", "Course")
-                        .WithMany()
+                        .WithMany("CartaLiberacions")
                         .HasForeignKey("CourseId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
@@ -355,7 +364,7 @@ namespace UniSportUAQ_API.Migrations
                     b.HasOne("UniSportUAQ_API.Data.Models.ApplicationUser", "Student")
                         .WithMany()
                         .HasForeignKey("StudentId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Course");
@@ -368,11 +377,11 @@ namespace UniSportUAQ_API.Migrations
                     b.HasOne("UniSportUAQ_API.Data.Models.ApplicationUser", "Instructor")
                         .WithMany()
                         .HasForeignKey("InstructorId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("UniSportUAQ_API.Data.Models.Subject", "Subject")
-                        .WithMany()
+                        .WithMany("Courses")
                         .HasForeignKey("SubjectId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
@@ -385,7 +394,7 @@ namespace UniSportUAQ_API.Migrations
             modelBuilder.Entity("UniSportUAQ_API.Data.Models.Inscription", b =>
                 {
                     b.HasOne("UniSportUAQ_API.Data.Models.Course", "Course")
-                        .WithMany()
+                        .WithMany("Inscriptions")
                         .HasForeignKey("CourseId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
@@ -393,7 +402,7 @@ namespace UniSportUAQ_API.Migrations
                     b.HasOne("UniSportUAQ_API.Data.Models.ApplicationUser", "Student")
                         .WithMany()
                         .HasForeignKey("StudentId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Course");
@@ -406,10 +415,24 @@ namespace UniSportUAQ_API.Migrations
                     b.HasOne("UniSportUAQ_API.Data.Models.ApplicationUser", "Instructor")
                         .WithMany()
                         .HasForeignKey("InstructorId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Instructor");
+                });
+
+            modelBuilder.Entity("UniSportUAQ_API.Data.Models.Course", b =>
+                {
+                    b.Navigation("Attendances");
+
+                    b.Navigation("CartaLiberacions");
+
+                    b.Navigation("Inscriptions");
+                });
+
+            modelBuilder.Entity("UniSportUAQ_API.Data.Models.Subject", b =>
+                {
+                    b.Navigation("Courses");
                 });
 #pragma warning restore 612, 618
         }
