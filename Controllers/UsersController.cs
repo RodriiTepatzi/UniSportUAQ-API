@@ -15,7 +15,7 @@ using UniSportUAQ_API.Data.Services;
 
 namespace UniSportUAQ_API.Controllers
 {
-    [Route("api/users")]
+    [Route("api/v1/users")]
     [ApiController]
     public class UsersController : Controller
     {
