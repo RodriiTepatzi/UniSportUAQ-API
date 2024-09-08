@@ -13,7 +13,7 @@ using UniSportUAQ_API.Data.Services;
 namespace UniSportUAQ_API.Controllers
 {
     [ApiController]
-	[Route("api/users/instructors")]
+	[Route("api/v1/users/instructors")]
 	public class InstructorsController : Controller
 	{
 		private readonly IInstructorsService _instructorsService;
