@@ -11,7 +11,7 @@ namespace UniSportUAQ_API.Controllers
 {
 
     [ApiController]
-    [Route("api/courses")]
+    [Route("api/v1/courses")]
     public class CoursesController: Controller
     {
         private readonly ICoursesService _coursesService;
