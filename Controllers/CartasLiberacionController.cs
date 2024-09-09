@@ -12,7 +12,7 @@ using UniSportUAQ_API.Data.Interfaces;
 namespace UniSportUAQ_API.Controllers
 {
     [ApiController]
-    [Route("api/cartasLiberacion")]
+    [Route("api/v1/cartasLiberacion")]
     public class CartasLiberacionController: Controller
     {
 

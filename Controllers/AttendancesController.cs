@@ -9,7 +9,7 @@ using UniSportUAQ_API.Data.Schemas;
 namespace UniSportUAQ_API.Controllers
 {
     [ApiController]
-    [Route("api/attendances")]
+    [Route("api/v1/attendances")]
     public class AttendancesController : Controller
     {
 
