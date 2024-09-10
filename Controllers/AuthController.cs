@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -8,6 +9,7 @@ using System.Text;
 using UniSportUAQ_API.Data.Base;
 using UniSportUAQ_API.Data.Consts;
 using UniSportUAQ_API.Data.Models;
+using UniSportUAQ_API.Data.Schemas;
 using static UniSportUAQ_API.Data.Models.Authentication;
 
 namespace UniSportUAQ_API.Controllers
@@ -146,6 +148,144 @@ namespace UniSportUAQ_API.Controllers
 				}
 			});
 		}
+
+		[HttpPut("update")]
+		[Authorize] // Ensures the user is authenticated
+		public async Task<IActionResult> UpdateCurrentUser([FromBody] UserSchema model)
+		{
+			// Retrieve the user ID from the JWT token claims
+			var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+			if (userId == null)
+			{
+				return Unauthorized(new BaseResponse<string>
+				{
+					Error = ResponseErrors.AuthInvalidToken
+				});
+			}
+
+			// Find the user in the database
+			var user = await _userManager.FindByIdAsync(userId);
+			if (user == null)
+			{
+				return NotFound(new BaseResponse<string>
+				{
+					Error = ResponseErrors.AuthUserNotFound
+				});
+			}
+
+			// Update user fields based on the received model
+			user.Name = model.Name;
+			user.LastName = model.LastName;
+			user.PhoneNumber = model.PhoneNumber;
+			user.PictureUrl = model.PictureUrl;
+			user.Semester = model.Semester;
+			user.Group = model.Group;
+			user.Expediente = model.Expediente;
+			user.UserName = model.Expediente; // Make sure UserName is unique
+			user.IsAdmin = model.IsAdmin;
+			user.IsStudent = model.IsStudent;
+			user.Email = model.Email;
+
+			// Save changes to the database
+			var result = await _userManager.UpdateAsync(user);
+			if (!result.Succeeded)
+			{
+				return BadRequest(new BaseResponse<string>
+				{
+					Error = ResponseErrors.AuthErrorUpdatingUser
+				});
+			}
+
+			return Ok(new BaseResponse<string>
+			{
+				Data = "User information updated successfully"
+			});
+		}
+
+		// Endpoint for getting the current user info
+		[HttpGet("current")]
+		[Authorize] // Ensures the user is authenticated
+		public async Task<IActionResult> GetCurrentUser()
+		{
+			// Retrieve the user ID from the JWT token claims
+			var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+			if (userId == null)
+			{
+				return Unauthorized(new BaseResponse<ApplicationUser>
+				{
+					Error = ResponseErrors.AuthInvalidToken
+				});
+			}
+
+			// Find the user in the database
+			var user = await _userManager.FindByIdAsync(userId);
+			if (user == null)
+			{
+				return NotFound(new BaseResponse<ApplicationUser>
+				{
+					Error = ResponseErrors.AuthUserNotFound
+				});
+			}
+
+			// Return user details as a dictionary
+			return Ok(new BaseResponse<Dictionary<string, object>>
+			{
+				Data = user.ToDictionary
+			});
+		}
+
+		// Endpoint for changing the password
+		[HttpPut("change-password")]
+		[Authorize]
+		public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordModel model)
+		{
+			// Retrieve the user ID from the JWT token claims
+			var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+			if (userId == null)
+			{
+				return Unauthorized(new BaseResponse<string>
+				{
+					Error = ResponseErrors.AuthInvalidToken
+				});
+			}
+
+			// Find the user in the database
+			var user = await _userManager.FindByIdAsync(userId);
+			if (user == null)
+			{
+				return NotFound(new BaseResponse<string>
+				{
+					Error = ResponseErrors.AuthUserNotFound
+				});
+			}
+
+			// Verify the current password
+			var passwordCheck = await _userManager.CheckPasswordAsync(user, model.CurrentPassword);
+			if (!passwordCheck)
+			{
+				return BadRequest(new BaseResponse<string>
+				{
+					Error = ResponseErrors.AuthInvalidCurrentPassword
+				});
+			}
+
+			// Change the password
+			var result = await _userManager.ChangePasswordAsync(user, model.CurrentPassword, model.NewPassword);
+			if (!result.Succeeded)
+			{
+				return BadRequest(new BaseResponse<string>
+				{
+					Error = ResponseErrors.AuthErrorChangingPassword
+				});
+			}
+
+			return Ok(new BaseResponse<string>
+			{
+				Data = "Password changed successfully"
+			});
+		}
+
+
 
 		private string GenerateJwtToken(IdentityUser user)
 		{

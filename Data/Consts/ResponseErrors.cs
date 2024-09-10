@@ -12,6 +12,10 @@ namespace UniSportUAQ_API.Data.Consts
 		public static ErrorBase AuthUserExpedienteAlreadyExists = new ErrorBase { Code = "AU006", Description = "User identification number already registered" };
 		public static ErrorBase AuthInvalidToken = new ErrorBase { Code = "AU007", Description = "Invalid token" };
 		public static ErrorBase AuthInvalidRefreshToken = new ErrorBase { Code = "AU008", Description = "Invalid refresh token" };
+		public static ErrorBase AuthUserNotFound = new ErrorBase { Code = "AU009", Description = "User not found" };
+		public static ErrorBase AuthErrorUpdatingUser = new ErrorBase { Code = "AU010", Description = "Error updating user" };
+		public static ErrorBase AuthInvalidCurrentPassword = new ErrorBase { Code = "AU011", Description = "Invalid current password" };
+		public static ErrorBase AuthErrorChangingPassword = new ErrorBase { Code = "AU012", Description = "Error changing password" };
 
 
 	}
