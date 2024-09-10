@@ -585,7 +585,7 @@ namespace UniSportUAQ_API.Controllers
 
             var NewInstructor = await _usersService.GetByIdAsync(id);
 
-            if (NewInstructor!.IsInstructor == true) return Ok(new BaseResponse<UserDTO> { Data = null, Error = ResponseErrors.AuthErrorPromoting});
+            if (NewInstructor!.IsInstructor == true) return Ok(new BaseResponse<UserDTO> { Data = null, Error = ResponseErrors.SysErrorPromoting });
 
             if (NewInstructor is null) return NotFound(new BaseResponse<ApplicationUser> { Data = null, Error = ResponseErrors.EntityNotExist });
 
@@ -593,7 +593,7 @@ namespace UniSportUAQ_API.Controllers
 
             var registerInstructor = _usersService.UpdateAsync(NewInstructor);
 
-            if (registerInstructor is null) return Ok(new BaseResponse<UserDTO> { Data = null, Error = ResponseErrors.AuthErrorPromoting });
+            if (registerInstructor is null) return Ok(new BaseResponse<UserDTO> { Data = null, Error = ResponseErrors.SysErrorPromoting });
 
             return Ok(new DataResponse { Data = NewInstructor.ToDictionary, ErrorMessage = null });
 
