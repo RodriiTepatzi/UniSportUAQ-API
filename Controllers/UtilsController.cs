@@ -8,7 +8,7 @@ namespace UniSportUAQ_API.Controllers
 {
 
     [ApiController]
-    [Route("api/utils")]
+    [Route("api/v1/utils")]
     public class UtilsController: Controller
     {
         private readonly IUtilsService _utilsService;
