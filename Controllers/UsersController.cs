@@ -57,7 +57,7 @@ namespace UniSportUAQ_API.Controllers
             var result = await _usersService.GetAllAsync(i =>
             (((i.Expediente != null && i.Expediente.ToLower() == student.Expediente.ToLower()) ||
             (i.Email != null && i.Email.ToLower() == student.Email.ToLower()) ||
-            (i.PhoneNumber != null && i.PhoneNumber == student.PhoneNumber.ToLower()) ) &&
+            (i.PhoneNumber != null && i.PhoneNumber == student.PhoneNumber.ToLower())) &&
             (i.IsStudent == true)
             ));
 
@@ -99,13 +99,13 @@ namespace UniSportUAQ_API.Controllers
 
             var result = await _usersService.GetAllAsync(i => i.Email == email && i.IsStudent == true);
 
-            if (result.Count() < 1) return BadRequest(new BaseResponse<UserDTO> { Data = null, Error = ResponseErrors.EntityNotExist});
+            if (result.Count() < 1) return BadRequest(new BaseResponse<UserDTO> { Data = null, Error = ResponseErrors.EntityNotExist });
 
             var student = result.FirstOrDefault();
 
-            if(student == null) return NotFound(new BaseResponse<UserDTO> { Data = null, Error = ResponseErrors.EntityNotExist });
+            if (student == null) return NotFound(new BaseResponse<UserDTO> { Data = null, Error = ResponseErrors.EntityNotExist });
 
-            var response = new UserDTO { 
+            var response = new UserDTO {
 
                 Id = student.Id,
                 Expediente = student.Expediente,
@@ -171,7 +171,7 @@ namespace UniSportUAQ_API.Controllers
 
             var student = result.FirstOrDefault();
 
-            if (student == null) return  NotFound(new BaseResponse<UserDTO> { Data = null, Error = ResponseErrors.EntityNotExist });
+            if (student == null) return NotFound(new BaseResponse<UserDTO> { Data = null, Error = ResponseErrors.EntityNotExist });
 
             var response = new UserDTO
             {
@@ -220,7 +220,7 @@ namespace UniSportUAQ_API.Controllers
 
             var StudentsInRange = result.Skip(start).Take(end - start + 1).ToList();
 
-            if (StudentsInRange.Count()< 1) return NotFound(new BaseResponse<List<UserDTO>> { Data = null, Error = ResponseErrors.EntityNotExist });
+            if (StudentsInRange.Count() < 1) return NotFound(new BaseResponse<List<UserDTO>> { Data = null, Error = ResponseErrors.EntityNotExist });
 
             var data = new List<UserDTO>();
 
@@ -243,7 +243,7 @@ namespace UniSportUAQ_API.Controllers
                 data.Add(stdnt);
             }
 
-            return Ok(new BaseResponse<List<UserDTO>> { Data = data }); 
+            return Ok(new BaseResponse<List<UserDTO>> { Data = data });
         }
 
         [HttpGet]
@@ -252,7 +252,7 @@ namespace UniSportUAQ_API.Controllers
         public async Task<IActionResult> GetStudentsSeacrhAsync(string searchTerm)
         {
 
-            if (string.IsNullOrWhiteSpace(searchTerm)) return BadRequest(new BaseResponse<List<UserDTO>> { Data = null, Error = ResponseErrors.FilterInvalidSearchTerm});
+            if (string.IsNullOrWhiteSpace(searchTerm)) return BadRequest(new BaseResponse<List<UserDTO>> { Data = null, Error = ResponseErrors.FilterInvalidSearchTerm });
 
             var search = searchTerm.ToLower();
             var result = new List<ApplicationUser>();
@@ -268,7 +268,7 @@ namespace UniSportUAQ_API.Controllers
                 ));
                 result = users.ToList();
             }
-            catch{
+            catch {
 
                 return StatusCode(500, new BaseResponse<List<UserDTO>> { Data = null, Error = ResponseErrors.ServerDataBaseError });
 
@@ -312,11 +312,11 @@ namespace UniSportUAQ_API.Controllers
         [Authorize]
         public async Task<IActionResult> GetStudentsSearchAsync(string courseId, string searchTerm)
         {
-            if (string.IsNullOrWhiteSpace(searchTerm)) return BadRequest(new BaseResponse<List<UserDTO>> { Error = ResponseErrors.FilterInvalidSearchTerm});
+            if (string.IsNullOrWhiteSpace(searchTerm)) return BadRequest(new BaseResponse<List<UserDTO>> { Error = ResponseErrors.FilterInvalidSearchTerm });
 
             var resultCourse = await _coursesService.GetByIdAsync(courseId);
 
-            if (resultCourse == null) return NotFound(new BaseResponse<List<UserDTO>> { Data = null, Error = ResponseErrors.EntityNotExist});
+            if (resultCourse == null) return NotFound(new BaseResponse<List<UserDTO>> { Data = null, Error = ResponseErrors.EntityNotExist });
 
             var studentsInCourse = await _inscriptionsService.GetAllAsync(i => i.CourseId == courseId && i.Student != null, i => i.Student!);
 
@@ -325,7 +325,7 @@ namespace UniSportUAQ_API.Controllers
             var searchLower = searchTerm.ToLower();
             var result = new List<Inscription>();
 
-            try { 
+            try {
 
                 var users = studentsInCourse.Where(i =>
                     i.Student!.Email!.ToLower().Contains(searchLower) ||
@@ -336,20 +336,20 @@ namespace UniSportUAQ_API.Controllers
 
                 result = users.ToList();
             }
-            catch  {
+            catch {
 
                 return StatusCode(500, new BaseResponse<List<UserDTO>> { Data = null, Error = ResponseErrors.ServerDataBaseError });
 
             }
 
-            if (result.Count() < 1 ) return NotFound(new BaseResponse<List<UserDTO>> { Data = null, Error = ResponseErrors.EntityNotExist });
+            if (result.Count() < 1) return NotFound(new BaseResponse<List<UserDTO>> { Data = null, Error = ResponseErrors.EntityNotExist });
 
 
             var data = new List<UserDTO>();
 
             foreach (var item in result)
             {
-                if(item.Student != null) { 
+                if (item.Student != null) {
 
                     var stdnt = new UserDTO
                     {
@@ -366,10 +366,10 @@ namespace UniSportUAQ_API.Controllers
                     };
                     data.Add(stdnt);
                 }
-                
+
             }
 
-            if (data.Count()> 0) return Ok(new BaseResponse<List<UserDTO>> { Data = data });
+            if (data.Count() > 0) return Ok(new BaseResponse<List<UserDTO>> { Data = data });
 
             return NotFound(new BaseResponse<List<UserDTO>> { Data = null, Error = ResponseErrors.EntityNotExist });
         }
@@ -387,19 +387,20 @@ namespace UniSportUAQ_API.Controllers
 
             if (result == null) return NotFound(new BaseResponse<UserDTO> { Data = null, Error = ResponseErrors.EntityNotExist });
 
-            if (result!.IsInstructor == false) return NotFound(new BaseResponse<UserDTO> { Data = null, Error = ResponseErrors.UserNotAnInstructor});
+            if (result!.IsInstructor == false) return NotFound(new BaseResponse<UserDTO> { Data = null, Error = ResponseErrors.UserNotAnInstructor });
 
 
-            var response = new UserDTO { 
+            var response = new UserDTO {
 
                 Id = result.Id,
                 Expediente = result.Expediente,
+                PictureUrl = result.PictureUrl,
                 Name = result.Name,
                 LastName = result.LastName,
                 IsAdmin = result.IsAdmin,
                 IsStudent = result.IsStudent,
                 IsInstructor = result.IsInstructor,
-                
+
             };
 
             return Ok(new BaseResponse<UserDTO> { Data = response });
@@ -411,7 +412,7 @@ namespace UniSportUAQ_API.Controllers
         [Authorize]
         public async Task<IActionResult> GetInstructorByExp(string exp)
         {
-            if (!Regex.IsMatch(exp, @"^\d+$")) return BadRequest(new BaseResponse<UserDTO> { Data = null, Error = ResponseErrors.AttributeExpedienteInvalidlFormat});
+            if (!Regex.IsMatch(exp, @"^\d+$")) return BadRequest(new BaseResponse<UserDTO> { Data = null, Error = ResponseErrors.AttributeExpedienteInvalidlFormat });
 
             var result = await _usersService.GetAllAsync(i => i.Expediente == exp && i.IsInstructor == true);
 
@@ -421,7 +422,7 @@ namespace UniSportUAQ_API.Controllers
 
             if (instructor == null) return NotFound(new BaseResponse<UserDTO> { Data = null, Error = ResponseErrors.EntityNotExist });
 
-            var response = new UserDTO { 
+            var response = new UserDTO {
 
                 Id = instructor.Id,
                 Expediente = instructor.Expediente,
@@ -444,7 +445,7 @@ namespace UniSportUAQ_API.Controllers
         {
             var emailAttribute = new EmailAddressAttribute();
 
-            if (!emailAttribute.IsValid(email)) return BadRequest(new BaseResponse<UserDTO> { Data = null, Error = ResponseErrors.AttributeEmaiInvalidlFormat});
+            if (!emailAttribute.IsValid(email)) return BadRequest(new BaseResponse<UserDTO> { Data = null, Error = ResponseErrors.AttributeEmaiInvalidlFormat });
 
             var result = await _usersService.GetAllAsync(i => i.Email == email && i.IsStudent == true);
 
@@ -480,7 +481,7 @@ namespace UniSportUAQ_API.Controllers
 
             var result = await _usersService.GetAllAsync(i => i.IsInstructor == true);
 
-            if (result.Count() < 1) return NotFound(new BaseResponse<ApplicationUser> { Data = null, Error = ResponseErrors.EntityNotExist });
+            if (result.Count() < 1) return NotFound(new BaseResponse<List<UserDTO>> { Data = null, Error = ResponseErrors.EntityNotExist });
 
             var InstrInRange = result.Skip(start).Take(end - start + 1).ToList();
 
@@ -517,29 +518,61 @@ namespace UniSportUAQ_API.Controllers
         [Authorize]
         public async Task<IActionResult> GetInstructorSeacrhAsync(string searchTerm)
         {
-            if (string.IsNullOrWhiteSpace(searchTerm)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+            if (string.IsNullOrWhiteSpace(searchTerm)) return BadRequest(new BaseResponse<List<UserDTO>> { Data = null, Error = ResponseErrors.FilterInvalidSearchTerm });
 
             var search = searchTerm.ToLower();
 
-            var result = await _usersService.GetAllAsync(i => i.IsInstructor == true &&
-            ((i.Expediente != null && i.Expediente.ToLower().Contains(search)) ||
-            (i.Name != null && i.Name.ToLower().Contains(search)) ||
-            (i.LastName != null && i.LastName.ToLower().Contains(search)) ||
-            (i.Email != null && i.Email.ToLower().Contains(search)) ||
-            (i.PhoneNumber != null && i.PhoneNumber.Contains(search))
-            ));
+            var result = new List<ApplicationUser>();
+
+            try
+            {
+
+                var users = await _usersService.GetAllAsync(i => i.IsInstructor == true &&
+                ((i.Expediente != null && i.Expediente.ToLower().Contains(search)) ||
+                (i.Name != null && i.Name.ToLower().Contains(search)) ||
+                (i.LastName != null && i.LastName.ToLower().Contains(search)) ||
+                (i.Email != null && i.Email.ToLower().Contains(search)) ||
+                (i.PhoneNumber != null && i.PhoneNumber.Contains(search))
+                ));
+                result = users.ToList();
+            }
+            catch
+            {
+
+                return StatusCode(500, new BaseResponse<List<UserDTO>> { Data = null, Error = ResponseErrors.ServerDataBaseError });
+
+
+            }
 
             if (result.Count() < 1) return NotFound(new BaseResponse<ApplicationUser> { Data = null, Error = ResponseErrors.EntityNotExist });
 
             var instructor = result.ToList();
 
-            var data = new List<Dictionary<string, object>>();
+            if (instructor.Count() < 1) NotFound(new BaseResponse<List<UserDTO>> { Data = null, Error = ResponseErrors.EntityNotExist });
 
-            foreach (var item in instructor) data.Add(item.ToDictionary);
+            var data = new List<UserDTO>();
 
-            if (instructor.Count()> 0) return Ok(new DataResponse { Data = data, ErrorMessage = null });
+            foreach (var item in instructor)
+            {
+                var instr = new UserDTO
+                {
 
-            return NotFound(new BaseResponse<ApplicationUser> { Data = null, Error = ResponseErrors.EntityNotExist });
+                    Id = item.Id,
+                    Expediente = item.Expediente,
+                    PictureUrl = item.PictureUrl,
+                    Name = item.Name,
+                    LastName = item.LastName,
+                    IsAdmin = item.IsAdmin,
+                    IsInstructor = item.IsInstructor,
+                    IsStudent = item.IsStudent,
+
+                };
+
+                data.Add(instr);
+
+            }
+
+            return Ok(new BaseResponse<List<UserDTO>> { Data = data });
 
         }
 
@@ -548,11 +581,11 @@ namespace UniSportUAQ_API.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> CreateInstructor(string id)
         {
-            if (!Guid.TryParse(id, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+            if (!Guid.TryParse(id, out _)) return BadRequest(new BaseResponse<UserDTO> { Data = null, Error = ResponseErrors.AttributeIdInvalidlFormat });
 
             var NewInstructor = await _usersService.GetByIdAsync(id);
 
-            if (NewInstructor!.IsInstructor == true) return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.ERROR_PROMOTING });
+            if (NewInstructor!.IsInstructor == true) return Ok(new BaseResponse<UserDTO> { Data = null, Error = ResponseErrors.AuthErrorPromoting});
 
             if (NewInstructor is null) return NotFound(new BaseResponse<ApplicationUser> { Data = null, Error = ResponseErrors.EntityNotExist });
 
@@ -560,7 +593,7 @@ namespace UniSportUAQ_API.Controllers
 
             var registerInstructor = _usersService.UpdateAsync(NewInstructor);
 
-            if (registerInstructor is null) return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.ERROR_PROMOTING });
+            if (registerInstructor is null) return Ok(new BaseResponse<UserDTO> { Data = null, Error = ResponseErrors.AuthErrorPromoting });
 
             return Ok(new DataResponse { Data = NewInstructor.ToDictionary, ErrorMessage = null });
 
@@ -573,15 +606,29 @@ namespace UniSportUAQ_API.Controllers
         [Authorize]
         public async Task<IActionResult> GetAdminById(string id)
         {
-            if (!Guid.TryParse(id, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+            if (!Guid.TryParse(id, out _)) return BadRequest(new BaseResponse<UserDTO> { Data = null, Error = ResponseErrors.AttributeIdInvalidlFormat });
 
             var result = await _usersService.GetByIdAsync(id);
 
-            if (result == null) return NotFound(new BaseResponse<ApplicationUser> { Data = null, Error = ResponseErrors.EntityNotExist });
+            if (result == null) return NotFound(new BaseResponse<UserDTO> { Data = null, Error = ResponseErrors.EntityNotExist });
 
-            if (result!.IsAdmin == false) return NotFound(new BaseResponse<ApplicationUser> { Data = null, Error = ResponseErrors.EntityNotExist });
+            if (result!.IsAdmin == false) return NotFound(new BaseResponse<UserDTO> { Data = null, Error = ResponseErrors.UserNotAnAdmin });
 
-            return Ok(new DataResponse { Data = result.ToDictionary, ErrorMessage = null });
+            var response = new UserDTO
+            {
+
+                Id = result.Id,
+                Expediente = result.Expediente,
+                PictureUrl = result.PictureUrl,
+                Name = result.Name,
+                LastName = result.LastName,
+                IsAdmin = result.IsAdmin,
+                IsStudent = result.IsStudent,
+                IsInstructor = result.IsInstructor,
+
+            };
+
+            return Ok(new BaseResponse<UserDTO> { Data = response });
 
 
         }
@@ -593,15 +640,31 @@ namespace UniSportUAQ_API.Controllers
         {
             var emailAttribute = new EmailAddressAttribute();
 
-            if (!emailAttribute.IsValid(email)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+            if (!emailAttribute.IsValid(email)) return BadRequest(new BaseResponse<UserDTO> { Data = null, Error = ResponseErrors.AttributeEmaiInvalidlFormat });
 
             var result = await _usersService.GetAllAsync(i => i.Email == email && i.IsAdmin == true);
 
-            if (result.Count() < 1) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+            if (result.Count() < 1) return BadRequest(new BaseResponse<UserDTO> { Data = null, Error = ResponseErrors.EntityNotExist });
 
             var admin = result.FirstOrDefault();
 
-            return Ok(new DataResponse { Data = admin!.ToDictionary, ErrorMessage = null });
+            if (admin == null) return NotFound(new BaseResponse<UserDTO> { Data = null, Error = ResponseErrors.EntityNotExist });
+
+            var response = new UserDTO
+            {
+
+                Id = admin.Id,
+                Expediente = admin.Expediente,
+                PictureUrl = admin.PictureUrl,
+                Name = admin.Name,
+                LastName = admin.LastName,
+                IsAdmin = admin.IsAdmin,
+                IsStudent = admin.IsStudent,
+                IsInstructor = admin.IsInstructor,
+
+            };
+
+            return Ok(new BaseResponse<UserDTO> { Data = response, Error = null });
         }
 
         [HttpGet]
@@ -609,15 +672,31 @@ namespace UniSportUAQ_API.Controllers
         [Authorize]
         public async Task<IActionResult> GetAdminByExp(string exp)
         {
-            if (!Regex.IsMatch(exp, @"^\d+$")) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+            if (!Regex.IsMatch(exp, @"^\d+$")) return BadRequest(new BaseResponse<UserDTO> { Data = null, Error = ResponseErrors.AttributeExpedienteInvalidlFormat });
 
             var result = await _usersService.GetAllAsync(i => i.Expediente == exp && i.IsAdmin == true);
 
-            if (result.Count() < 1) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+            if (result.Count() < 1) NotFound(new BaseResponse<UserDTO> { Data = null, Error = ResponseErrors.EntityNotExist });
 
             var admin = result.FirstOrDefault();
 
-            return Ok(new DataResponse { Data = admin!.ToDictionary, ErrorMessage = null });
+            if (admin == null) return NotFound(new BaseResponse<UserDTO> { Data = null, Error = ResponseErrors.EntityNotExist });
+
+            var response = new UserDTO
+            {
+
+                Id = admin.Id,
+                Expediente = admin.Expediente,
+                PictureUrl = admin.PictureUrl,
+                Name = admin.Name,
+                LastName = admin.LastName,
+                IsAdmin = admin.IsAdmin,
+                IsStudent = admin.IsStudent,
+                IsInstructor = admin.IsInstructor,
+
+            };
+
+            return Ok(new BaseResponse<UserDTO> { Data = response });
         }
 
         [HttpGet]
@@ -625,19 +704,39 @@ namespace UniSportUAQ_API.Controllers
         [Authorize]
         public async Task<IActionResult> GetAdminsByRange(int start, int end)
         {
-            if (start < 0 || end < start) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+            if (start < 0 || end < start) return BadRequest(new BaseResponse<List<UserDTO>> { Data = null, Error = ResponseErrors.FilterStartEndContradiction });
 
             var result = await _usersService.GetAllAsync(i => i.IsAdmin == true);
 
-            if (result.Count() < 1) return NotFound(new BaseResponse<ApplicationUser> { Data = null, Error = ResponseErrors.EntityNotExist });
+            if (result.Count() < 1) return NotFound(new BaseResponse<List<UserDTO>> { Data = null, Error = ResponseErrors.EntityNotExist });
 
             var adminsInRange = result.Skip(start).Take(end - start + 1).ToList();
 
-            var data = new List<Dictionary<string, object>>();
+            if (adminsInRange.Count() < 1) return NotFound(new BaseResponse<List<UserDTO>> { Data = null, Error = ResponseErrors.EntityNotExist });
 
-            foreach (var item in adminsInRange) data.Add(item.ToDictionary);
+            var data = new List<UserDTO>();
 
-            return Ok(new DataResponse { Data = data, ErrorMessage = null });
+            foreach (var item in adminsInRange)
+            {
+
+                var admns = new UserDTO
+                {
+
+                    Id = item.Id,
+                    Expediente = item.Expediente,
+                    PictureUrl = item.PictureUrl,
+                    Name = item.Name,
+                    LastName = item.LastName,
+                    IsAdmin = item.IsAdmin,
+                    IsInstructor = item.IsInstructor,
+                    IsStudent = item.IsStudent,
+
+                };
+
+                data.Add(admns);
+            }
+
+            return Ok(new BaseResponse<List<UserDTO>> { Data = data });
         }
 
         [HttpGet]
@@ -645,30 +744,60 @@ namespace UniSportUAQ_API.Controllers
         [Authorize]
         public async Task<IActionResult> GetAdminSeacrhAsync(string searchTerm)
         {
-            if (string.IsNullOrWhiteSpace(searchTerm)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+            if (string.IsNullOrWhiteSpace(searchTerm)) return BadRequest(new BaseResponse<List<UserDTO>> { Data = null, Error = ResponseErrors.FilterInvalidSearchTerm });
 
             var search = searchTerm.ToLower();
+            var result = new List<ApplicationUser>();
 
-            var result = await _usersService.GetAllAsync(i => i.IsAdmin == true &&
-            ((i.Expediente != null && i.Expediente.ToLower().Contains(search)) ||
-            (i.Name != null && i.Name.ToLower().Contains(search)) ||
-            (i.LastName != null && i.LastName.ToLower().Contains(search)) ||
-            (i.Email != null && i.Email.ToLower().Contains(search)) ||
-            (i.PhoneNumber != null && i.PhoneNumber.Contains(search))
-            ));
+            try
+            {
+                var users = await _usersService.GetAllAsync(i => i.IsAdmin == true &&
+                ((i.Expediente!.ToLower().Contains(search)) ||
+                (i.Name!.ToLower().Contains(search)) ||
+                (i.LastName!.ToLower().Contains(search)) ||
+                (i.Email!.ToLower().Contains(search)) ||
+                (i.PhoneNumber!.Contains(search))
+                ));
+                result = users.ToList();
+            }
+            catch
+            {
+                return StatusCode(500, new BaseResponse<List<UserDTO>> { Data = null, Error = ResponseErrors.ServerDataBaseError });
+            }
 
-            if (result.Count() < 1) return NotFound(new BaseResponse<ApplicationUser> { Data = null, Error = ResponseErrors.EntityNotExist });
+            if (result.Count() < 1) return NotFound(new BaseResponse<List<UserDTO>> { Data = null, Error = ResponseErrors.EntityNotExist });
 
             var admins = result.ToList();
 
-            var data = new List<Dictionary<string, object>>();
+            if (admins.Count() < 1) NotFound(new BaseResponse<List<UserDTO>> { Data = null, Error = ResponseErrors.EntityNotExist });
 
-            foreach (var item in admins) data.Add(item.ToDictionary);
+            var data = new List<UserDTO>();
 
-            if (admins.Count()> 0) return Ok(new DataResponse { Data = data, ErrorMessage = null });
+            foreach (var item in admins)
+            {
 
-            return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+                var admns = new UserDTO
+                {
+
+                    Id = item.Id,
+                    Expediente = item.Expediente,
+                    PictureUrl = item.PictureUrl,
+                    Name = item.Name,
+                    LastName = item.LastName,
+                    IsAdmin = item.IsAdmin,
+                    IsInstructor = item.IsInstructor,
+                    IsStudent = item.IsStudent,
+
+                };
+
+                data.Add(admns);
+            }
+
+            return Ok(new BaseResponse<List<UserDTO>> { Data = data });
+
         }
+
+
 
         [HttpPost]
         [Route("admins/create")]
@@ -717,64 +846,124 @@ namespace UniSportUAQ_API.Controllers
 
             return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.INTERNAL_ERROR });
 
-            
+
 
         }
 
         //**********************************GENERIC**********************************//
         [HttpGet]
-		[Route("all")]
-		[Authorize]
+        [Route("all")]
+        [Authorize]
         public async Task<IActionResult> GetAllUsers()
         {
             var result = await _usersService.GetAllAsync();
 
-			if (result.Count() < 1) return NotFound(new BaseResponse<ApplicationUser> { Data = null, Error = ResponseErrors.EntityNotExist });
+            if (result.Count() < 1) return NotFound(new BaseResponse<ApplicationUser> { Data = null, Error = ResponseErrors.EntityNotExist });
 
-			var data = new List<Dictionary<string, object>>();
+            var data = new List<UserDTO>();
 
-			foreach (var item in result) data.Add(item.ToDictionary);
+            foreach (var item in result)
+            {
 
-			return Ok(new DataResponse { Data = data, ErrorMessage = null});
+                var gnrc = new UserDTO
+                {
+
+                    Id = item.Id,
+                    Expediente = item.Expediente,
+                    PictureUrl = item.PictureUrl,
+                    Name = item.Name,
+                    LastName = item.LastName,
+                    IsAdmin = item.IsAdmin,
+                    IsInstructor = item.IsInstructor,
+                    IsStudent = item.IsStudent,
+
+                };
+
+                data.Add(gnrc);
+            }
+
+            return Ok(new BaseResponse<List<UserDTO>> { Data = data });
+
         }
 
-		[HttpGet]
-		[Route("email/{email}")]
-		[Authorize]
-		public async Task<IActionResult> GetUserByEmail(string email)
-		{
+        [HttpGet]
+        [Route("email/{email}")]
+        [Authorize]
+        public async Task<IActionResult> GetUserByEmail(string email)
+        {
+            var emailAttribute = new EmailAddressAttribute();
+
+            if (!emailAttribute.IsValid(email)) return BadRequest(new BaseResponse<UserDTO> { Data = null, Error = ResponseErrors.AttributeEmaiInvalidlFormat });
+
             var result = await _usersService.GetAllAsync(i => i.Email == email);
 
-			if (result.Count() < 1) return NotFound(new BaseResponse<ApplicationUser> { Data = null, Error = ResponseErrors.EntityNotExist });
+            if (result.Count() < 1) return BadRequest(new BaseResponse<UserDTO> { Data = null, Error = ResponseErrors.EntityNotExist });
 
             var user = result.FirstOrDefault();
 
-			return Ok(new DataResponse { Data = user.ToDictionary, ErrorMessage = null});
-		}
+            if (user == null) return NotFound(new BaseResponse<UserDTO> { Data = null, Error = ResponseErrors.EntityNotExist });
 
-		[HttpGet]
+            var response = new UserDTO
+            {
+
+                Id = user.Id,
+                Expediente = user.Expediente,
+                PictureUrl = user.PictureUrl,
+                Name = user.Name,
+                LastName = user.LastName,
+                IsAdmin = user.IsAdmin,
+                IsStudent = user.IsStudent,
+                IsInstructor = user.IsInstructor,
+
+            };
+
+            return Ok(new BaseResponse<UserDTO> { Data = response, Error = null });
+
+        }
+        
+
+        [HttpGet]
 		[Route("all/range/{start}/{end}")]
 		[Authorize]
 		public async Task<IActionResult> GetAllUsersInRange(int start, int end)
 		{
 
-
-            if (start < 0 || end < start) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+            if (start < 0 || end < start) return BadRequest(new BaseResponse<List<UserDTO>> { Data = null, Error = ResponseErrors.FilterStartEndContradiction });
 
             var result = await _usersService.GetAllAsync();
 
-            if (result.Count() < 1) return NotFound(new BaseResponse<ApplicationUser> { Data = null, Error = ResponseErrors.EntityNotExist });
+            if (result.Count() < 1) return NotFound(new BaseResponse<List<UserDTO>> { Data = null, Error = ResponseErrors.EntityNotExist });
 
             var usersInRange = result.Skip(start).Take(end - start + 1).ToList();
 
-            var data = new List<Dictionary<string, object>>();
+            if (usersInRange.Count() < 1) return NotFound(new BaseResponse<List<UserDTO>> { Data = null, Error = ResponseErrors.EntityNotExist });
 
-			foreach (var item in result) data.Add(item.ToDictionary);
+            var data = new List<UserDTO>();
 
-			return Ok(new DataResponse { Data = data, ErrorMessage = null });
-		}
+            foreach (var item in usersInRange)
+            {
 
-		[HttpPut]
+                var gnrc = new UserDTO
+                {
+
+                    Id = item.Id,
+                    Expediente = item.Expediente,
+                    PictureUrl = item.PictureUrl,
+                    Name = item.Name,
+                    LastName = item.LastName,
+                    IsAdmin = item.IsAdmin,
+                    IsInstructor = item.IsInstructor,
+                    IsStudent = item.IsStudent,
+
+                };
+
+                data.Add(gnrc);
+            }
+
+            return Ok(new BaseResponse<List<UserDTO>> { Data = data });
+        }
+
+        [HttpPut]
 		[Route("update")]
 		[Authorize]
 

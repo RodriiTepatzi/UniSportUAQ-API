@@ -12,6 +12,7 @@ namespace UniSportUAQ_API.Data.Consts
 		public static ErrorBase AuthUserExpedienteAlreadyExists = new ErrorBase { Code = "AU006", Description = "User identification number already registered" };
 		public static ErrorBase AuthInvalidToken = new ErrorBase { Code = "AU007", Description = "Invalid token" };
 		public static ErrorBase AuthInvalidRefreshToken = new ErrorBase { Code = "AU008", Description = "Invalid refresh token" };
+        public static ErrorBase AuthErrorPromoting = new ErrorBase { Code = "AU009", Description = "Only promote a student to either Instructor/Admin." };
         //User
         public static ErrorBase UserNotAnStudent = new ErrorBase { Code = "USR001", Description = "User founded but is not an student" };
         public static ErrorBase UserNotAnInstructor = new ErrorBase { Code = "USR002", Description = "User founded but is not an instructor" };
