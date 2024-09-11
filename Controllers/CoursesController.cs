@@ -2,10 +2,12 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileSystemGlobbing.Internal.PathSegments;
+using UniSportUAQ_API.Data.Base;
 using UniSportUAQ_API.Data.Consts;
 using UniSportUAQ_API.Data.Interfaces;
 using UniSportUAQ_API.Data.Models;
 using UniSportUAQ_API.Data.Schemas;
+using UniSportUAQ_API.Data.DTO;
 
 namespace UniSportUAQ_API.Controllers
 {
@@ -25,18 +27,43 @@ namespace UniSportUAQ_API.Controllers
 			_studentsService = studentsService;
         }
 
-        [HttpGet]
-        [Route("id/{id}")]
-        [Authorize]
-        public async Task<IActionResult> GetCourseById(string id)
-        {
-            if (!Guid.TryParse(id, out _)) return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+		[HttpGet]
+		[Route("id/{id}")]
+		[Authorize]
+		public async Task<IActionResult> GetCourseById(string id)
+		{
+			if (!Guid.TryParse(id, out _)) return BadRequest(new BaseResponse<CourseDTO> { Error = ResponseErrors.AttributeIdInvalidlFormat });
 
-            var result = await _coursesService.GetByIdAsync(id, c => c.Instructor!);
+			var result = await _coursesService.GetByIdAsync(id, c => c.Instructor!);
 
-            if (result is not null) return Ok(new DataResponse { Data = result.Dictionary, ErrorMessage = null });
+			if (result != null) {
 
-            return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND});
+				var response = new CourseDTO
+				{
+
+					Id = result.Id,
+					CourseName = result.CourseName,
+					InstructorName = result.Instructor!.FullName,
+					InstructorPicture = result.Instructor!.PictureUrl,
+					InstructorId = result.InstructorId,
+					Day = result.Day,
+					MaxUsers = result.MaxUsers,
+					CurrentUsers = result.CurrentUsers,
+					StartHour = result.StartHour,
+					EndHour = result.EndHour,
+					Description = result.Description,
+					Link = result.Link,
+					Location = result.Location,
+					IsVirtual = result.VirtualOrHybrid,
+					CoursePictureUrl = result.CoursePictureUrl,
+
+				};
+
+				return Ok(new BaseResponse<CourseDTO> { Data = response});
+			}
+
+            return BadRequest(new BaseResponse<Course> { Error = ResponseErrors.AuthInvalidData });
+
         }
 
 		[HttpGet]
@@ -46,13 +73,41 @@ namespace UniSportUAQ_API.Controllers
 		{
 			var result = await _coursesService.GetAllAsync(c => c.IsActive == true, c => c.Instructor!);
 
-			var data = new List<Dictionary<string, object>>();
+			if (result.Count() < 1) return BadRequest(new BaseResponse<Course> { Error = ResponseErrors.AuthUserEmailAlreadyExists });
 
-			foreach (var item in result) data.Add(item.Dictionary);
 
-			if (result.Any()) return Ok(new DataResponse { Data = data, ErrorMessage = null });
+            var data = new List<CourseDTO>();
 
-			return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+
+			foreach (var item in result) { 
+
+				var course = new CourseDTO {
+
+                    Id = item.Id,
+                    CourseName = item.CourseName,
+                    InstructorName = item.Instructor!.FullName,
+                    InstructorPicture = item.Instructor!.PictureUrl,
+                    InstructorId = item.InstructorId,
+                    Day = item.Day,
+                    MaxUsers = item.MaxUsers,
+                    CurrentUsers = item.CurrentUsers,
+                    StartHour = item.StartHour,
+                    EndHour = item.EndHour,
+                    Description = item.Description,
+                    Link = item.Link,
+                    Location = item.Location,
+                    IsVirtual = item.VirtualOrHybrid,
+                    CoursePictureUrl = item.CoursePictureUrl,
+
+                };
+
+				data.Add(course); 
+
+			}
+
+			if (result.Any()) return Ok(new BaseResponse<List<CourseDTO>> { Data = data });
+
+			return NotFound(new BaseResponse<List<CourseDTO>> { Data = null });
 		}
 
 		[HttpGet]
@@ -62,13 +117,41 @@ namespace UniSportUAQ_API.Controllers
 		{
 			var result = await _coursesService.GetAllAsync(c => c.IsActive == false, c => c.Instructor!);
 
-			var data = new List<Dictionary<string, object>>();
+			if (result.Count() < 1) return NotFound(new BaseResponse<List<CourseDTO>> { Data = null, Error = ResponseErrors.EntityNotExist});
 
-			foreach (var item in result) data.Add(item.Dictionary);
+            var data = new List<CourseDTO>();
 
-			if (result.Any()) return Ok(new DataResponse { Data = data, ErrorMessage = null });
+			foreach (var item in result) 
+			{
 
-			return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+                var course = new CourseDTO
+                {
+
+                    Id = item.Id,
+                    CourseName = item.CourseName,
+                    InstructorName = item.Instructor!.FullName,
+                    InstructorPicture = item.Instructor!.PictureUrl,
+                    InstructorId = item.InstructorId,
+                    Day = item.Day,
+                    MaxUsers = item.MaxUsers,
+                    CurrentUsers = item.CurrentUsers,
+                    StartHour = item.StartHour,
+                    EndHour = item.EndHour,
+                    Description = item.Description,
+                    Link = item.Link,
+                    Location = item.Location,
+                    IsVirtual = item.VirtualOrHybrid,
+                    CoursePictureUrl = item.CoursePictureUrl,
+
+                };
+
+                data.Add(course);
+
+            }
+
+			return Ok(new BaseResponse<List<CourseDTO>> { Data = data });
+
+			
 		}
 
 		[HttpGet]
@@ -77,17 +160,43 @@ namespace UniSportUAQ_API.Controllers
         public async Task<IActionResult> GetCoursesByInstructorId(string instructorid) 
         {
 
-            if (!Guid.TryParse(instructorid, out _)) return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+            if (!Guid.TryParse(instructorid, out _)) return BadRequest(new BaseResponse<List<CourseDTO>> { Error= ResponseErrors.AttributeIdInvalidlFormat });
 
             var result = await _coursesService.GetAllAsync(c => c.InstructorId == instructorid, c => c.Instructor!);
 
-			var data = new List<Dictionary<string, object>>();
+			if(!result.Any()) return NotFound(new BaseResponse<List<CourseDTO>> { Error = ResponseErrors.EntityNotExist });
 
-            foreach (var item in result) data.Add(item.Dictionary);
+            var data = new List<CourseDTO>();
 
-            if (result.Any()) return Ok(new DataResponse { Data = data, ErrorMessage = null });
+			foreach (var item in result)
+			{
 
-			return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+                var course = new CourseDTO
+                {
+
+                    Id = item.Id,
+                    CourseName = item.CourseName,
+                    InstructorName = item.Instructor!.FullName,
+                    InstructorPicture = item.Instructor!.PictureUrl,
+                    InstructorId = item.InstructorId,
+                    Day = item.Day,
+                    MaxUsers = item.MaxUsers,
+                    CurrentUsers = item.CurrentUsers,
+                    StartHour = item.StartHour,
+                    EndHour = item.EndHour,
+                    Description = item.Description,
+                    Link = item.Link,
+                    Location = item.Location,
+                    IsVirtual = item.VirtualOrHybrid,
+                    CoursePictureUrl = item.CoursePictureUrl,
+
+                };
+
+                data.Add(course);
+
+            }
+
+            return Ok(new BaseResponse<List<CourseDTO>> { Data = data});
         }
 
 		[HttpGet]
@@ -96,17 +205,45 @@ namespace UniSportUAQ_API.Controllers
 		public async Task<IActionResult> GetActiveCoursesByInstructorId(string instructorid)
 		{
 
-			if (!Guid.TryParse(instructorid, out _)) return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+			if (!Guid.TryParse(instructorid, out _)) return BadRequest(new BaseResponse<List<CourseDTO>> { Error = ResponseErrors.AttributeIdInvalidlFormat });
 
-			var result = await _coursesService.GetAllAsync(c => c.InstructorId == instructorid && c.IsActive == true, c => c.Instructor!);
+            var result = await _coursesService.GetAllAsync(c => c.InstructorId == instructorid && c.IsActive == true, c => c.Instructor!);
 
-			var data = new List<Dictionary<string, object>>();
+			if(!result.Any()) return NotFound(new BaseResponse<List<CourseDTO>> { Error = ResponseErrors.EntityNotExist });
 
-			foreach (var item in result) data.Add(item.Dictionary);
+            var data = new List<CourseDTO>();
 
-			if (result.Any()) return Ok(new DataResponse { Data = data, ErrorMessage = null });
+            foreach (var item in result)
+            {
 
-			return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+                var course = new CourseDTO
+                {
+
+                    Id = item.Id,
+                    CourseName = item.CourseName,
+                    InstructorName = item.Instructor!.FullName,
+                    InstructorPicture = item.Instructor!.PictureUrl,
+                    InstructorId = item.InstructorId,
+                    Day = item.Day,
+                    MaxUsers = item.MaxUsers,
+                    CurrentUsers = item.CurrentUsers,
+                    StartHour = item.StartHour,
+                    EndHour = item.EndHour,
+                    Description = item.Description,
+                    Link = item.Link,
+                    Location = item.Location,
+                    IsVirtual = item.VirtualOrHybrid,
+                    CoursePictureUrl = item.CoursePictureUrl,
+
+                };
+
+                data.Add(course);
+
+            }
+
+            return Ok(new BaseResponse<List<CourseDTO>> { Data = data});
+
+			
 		}
 
 		[HttpGet]
@@ -115,17 +252,41 @@ namespace UniSportUAQ_API.Controllers
 		public async Task<IActionResult> GetInactiveCoursesByInstructorId(string instructorid)
 		{
 
-			if (!Guid.TryParse(instructorid, out _)) return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+			if (!Guid.TryParse(instructorid, out _)) return BadRequest(new BaseResponse<List<CourseDTO>> { Error = ResponseErrors.AttributeIdInvalidlFormat });
 
-			var result = await _coursesService.GetAllAsync(c => c.InstructorId == instructorid && c.IsActive == false, c => c.Instructor!);
+            var result = await _coursesService.GetAllAsync(c => c.InstructorId == instructorid && c.IsActive == false, c => c.Instructor!);
 
-			var data = new List<Dictionary<string, object>>();
+			var data = new List<CourseDTO>();
 
-			foreach (var item in result) data.Add(item.Dictionary);
+			foreach (var item in result)
+            {
+                var course = new CourseDTO
+                {
 
-			if (result.Any()) return Ok(new DataResponse { Data = data, ErrorMessage = null });
+                    Id = item.Id,
+                    CourseName = item.CourseName,
+                    InstructorName = item.Instructor!.FullName,
+                    InstructorPicture = item.Instructor!.PictureUrl,
+                    InstructorId = item.InstructorId,
+                    Day = item.Day,
+                    MaxUsers = item.MaxUsers,
+                    CurrentUsers = item.CurrentUsers,
+                    StartHour = item.StartHour,
+                    EndHour = item.EndHour,
+                    Description = item.Description,
+                    Link = item.Link,
+                    Location = item.Location,
+                    IsVirtual = item.VirtualOrHybrid,
+                    CoursePictureUrl = item.CoursePictureUrl,
 
-			return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+                };
+
+                data.Add(course);
+            }
+
+			if (result.Any()) return Ok(new BaseResponse<List<CourseDTO>> { Data = data });
+
+            return NotFound(new BaseResponse<List<CourseDTO>> { Error = ResponseErrors.EntityNotExist});
 		}
 
 
@@ -134,7 +295,7 @@ namespace UniSportUAQ_API.Controllers
         [Authorize]
         public async Task<IActionResult> GetCoursesSearch(string searchTerm)
         {
-			if(string.IsNullOrWhiteSpace(searchTerm)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+			if(string.IsNullOrWhiteSpace(searchTerm)) return BadRequest(new BaseResponse<List<CourseDTO>> { Data = null, Error = ResponseErrors.FilterInvalidSearchTerm});
 
 			var result = await _coursesService.GetAllAsync(i =>
 				((i.CourseName != null && i.CourseName.ToLower().Contains(searchTerm)) ||
@@ -147,13 +308,37 @@ namespace UniSportUAQ_API.Controllers
 
 			var distinctResult = result.Distinct();
 
-			var data = new List<Dictionary<string, object>>();
+			var data = new List<CourseDTO>();
 
-			foreach (var item in distinctResult) data.Add(item.Dictionary);
+			foreach (var item in distinctResult) {
 
-			if (distinctResult.Any()) return Ok(new DataResponse { Data = data, ErrorMessage = null });
+                var course = new CourseDTO
+                {
 
-            return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+                    Id = item.Id,
+                    CourseName = item.CourseName,
+                    InstructorName = item.Instructor!.FullName,
+                    InstructorPicture = item.Instructor!.PictureUrl,
+                    InstructorId = item.InstructorId,
+                    Day = item.Day,
+                    MaxUsers = item.MaxUsers,
+                    CurrentUsers = item.CurrentUsers,
+                    StartHour = item.StartHour,
+                    EndHour = item.EndHour,
+                    Description = item.Description,
+                    Link = item.Link,
+                    Location = item.Location,
+                    IsVirtual = item.VirtualOrHybrid,
+                    CoursePictureUrl = item.CoursePictureUrl,
+
+                };
+
+                data.Add(course);
+            }
+
+			if (distinctResult.Any()) return Ok(new BaseResponse<List<CourseDTO>> { Data = data });
+
+            return NotFound(new BaseResponse<List<CourseDTO>> { Error = ResponseErrors.EntityNotExist});
         }
 
 
@@ -162,13 +347,13 @@ namespace UniSportUAQ_API.Controllers
 		[Authorize]
 		public async Task<IActionResult> UpdateCourse([FromBody] CourseSchema courseSchema)
 		{
-            if (courseSchema.CourseName is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
-            if (courseSchema.Day is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
-            if (courseSchema.StartHour is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
-            if (courseSchema.EndHour is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
-            if (courseSchema.Day is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
-            if (courseSchema.InstructorId is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
-            if (courseSchema.MaxUsers <= 0) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+            if (courseSchema.CourseName is null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
+            if (courseSchema.Day is null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
+            if (courseSchema.StartHour is null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
+            if (courseSchema.EndHour is null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
+            if (courseSchema.Day is null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
+            if (courseSchema.InstructorId is null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
+            if (courseSchema.MaxUsers <= 0) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
 
             var course = new Course
 			{
@@ -183,9 +368,9 @@ namespace UniSportUAQ_API.Controllers
 
 			var result = await _coursesService.UpdateAsync(course);
 
-			if (result is not null) return Ok(new DataResponse { Data = result.Dictionary, ErrorMessage = null });
+			if (result is not null) return Ok(new BaseResponse<bool> { Data = true});
 
-			return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.INTERNAL_ERROR });
+			return BadRequest(new BaseResponse<bool> { Data = false, Error = ResponseErrors.ServerDataBaseErrorUpdating});
 		}
 
 
@@ -197,15 +382,15 @@ namespace UniSportUAQ_API.Controllers
 		[Authorize]
 		public async Task<IActionResult> AddToCourse([FromBody] CourseSchema courseSchema)
 		{
-			if(courseSchema.CourseName is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = "course name: "+ResponseMessages.BAD_REQUEST });
-			if(courseSchema.Day is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+			if(courseSchema.CourseName is null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
+            if (courseSchema.Day is null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
 
-            if(!DateTime.TryParse(courseSchema.StartHour, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
-            if(!DateTime.TryParse(courseSchema.EndHour, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+            if(!DateTime.TryParse(courseSchema.StartHour, out _)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
+            if(!DateTime.TryParse(courseSchema.EndHour, out _)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
 
-            if(courseSchema.Day is null) return BadRequest (new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
-			if(courseSchema.InstructorId is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
-			if(courseSchema.MaxUsers <= 0) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+            if(courseSchema.Day is null)  return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
+            if (courseSchema.InstructorId is null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
+			if(courseSchema.MaxUsers <= 0) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
 
 
             var courses = await _coursesService.GetAllAsync(c => c.InstructorId == courseSchema.InstructorId);
@@ -214,7 +399,7 @@ namespace UniSportUAQ_API.Controllers
 
                 foreach (var course in courses)
                 {
-                    if (IsScheduleConflict(course, courseSchema)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.INSTRUCTOR_HINDERED });
+                    if (IsScheduleConflict(course, courseSchema)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.CourseInstructorHindered });
                     
                 }
             }
@@ -240,27 +425,38 @@ namespace UniSportUAQ_API.Controllers
 
 			var result = await _coursesService.AddAsync(NewCourse);
 
-			if(result != null) return Ok(new DataResponse { Data = result.Dictionary, ErrorMessage = null });
+			if(result != null) return Ok(new BaseResponse<bool> { Data = true });
 
-			return BadRequest(new DataResponse { Data = NewCourse.Dictionary, ErrorMessage = ResponseMessages.INTERNAL_ERROR});
-		}
+			return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.ServerDataBaseErrorUpdating });
+        }
 
 		[HttpPut]
 		[Route("endcourse")]
 		[Authorize]
 		public async Task<IActionResult> EndCourse([FromBody] CourseSchema course) {
 
-			if(!Guid.TryParse(course.Id, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST});
-
-			var result = await _coursesService.GetByIdAsync(course.Id);
+			if(!Guid.TryParse(course.Id, out _)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeIdInvalidlFormat });
+            var result = await _coursesService.GetByIdAsync(course.Id);
 
 			if (result is not null) {
 
 				var inscriptions = await _inscriptionsService.GetAllAsync(i => i.CourseId == course.Id);
 
-				if (inscriptions.Count() < 1) return BadRequest(new DataResponse { Data = false, ErrorMessage = ResponseMessages.END_INSCRIPTIONS_ERROR });
+				if (inscriptions.Count() < 1) return NotFound(new BaseResponse<bool> { Error = ResponseErrors.EntityNotExist });
 
-				foreach (var inscription in inscriptions)
+
+                var endCourse = await _coursesService.GetByIdAsync(course.Id);
+
+                if (endCourse != null)
+                {
+                    endCourse.IsActive = false;
+
+                    var endedResult = await _coursesService.UpdateAsync(endCourse);
+
+                    if (endedResult != null) return BadRequest(new BaseResponse<bool> { Data = false, Error = ResponseErrors.CourseCanNotEnd});
+                }
+
+                foreach (var inscription in inscriptions)
 				{
 
 					inscription.IsFinished = true;
@@ -268,54 +464,49 @@ namespace UniSportUAQ_API.Controllers
 					if (inscription.Accredit == true) inscription.Grade = 10;
 					if (inscription.Accredit == false) inscription.Grade = 5;
 
-					await _inscriptionsService.UpdateAsync(inscription);
-				}
+					var endedInscription =await _inscriptionsService.UpdateAsync(inscription);
 
-                var endCourse = await _coursesService.GetByIdAsync(course.Id);
+					if(endedInscription == null) return BadRequest(new BaseResponse<bool> { Data = false, Error = ResponseErrors.InscriptionNotEnded });
+                }
 
-				if (endCourse != null)
-				{
-					endCourse.IsActive = false;
+                
 
-					var endedResult = await _coursesService.UpdateAsync(endCourse);
-
-					if (endedResult != null) return BadRequest(new DataResponse { Data = false, ErrorMessage = ResponseMessages.COURSE_ENDED });
-				}
-
-                return Ok(new DataResponse { Data = true, ErrorMessage = null }); 
+                return Ok(new BaseResponse<bool> { Data = true}); 
 			
 			}
 
-            return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+            return NotFound(new BaseResponse<bool> { Error = ResponseErrors.EntityNotExist});
         }
-		
 
-       
 
-		[HttpPost]
+        /*******************************inscriptions*******************************/
+
+        [HttpPost]
         [Route("inscription/{courseId}/{studentId}")]
         [Authorize]
         public async Task<IActionResult> AddToCourse(string courseId, string studentId)
         {
 			// First we have to check if the courseId and studentId, both exist on our database. Otherwise we shall return an error.
 
-			if (await _studentsService.GetByIdAsync(studentId) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
-			if (await _coursesService.GetByIdAsync(courseId) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+			if (await _studentsService.GetByIdAsync(studentId) is null) return NotFound(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.EntityNotExist});
+			if (await _coursesService.GetByIdAsync(courseId) is null) return NotFound(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.EntityNotExist});
 
 			
             var existingInscription = await _inscriptionsService.GetAllAsync(i => i.StudentId == studentId);
-            if (existingInscription.Any())
-                return BadRequest(new DataResponse { Data = null, ErrorMessage = "El estudiante" });
+
+			foreach (var item in existingInscription) { 
+
+				if(item.Course!.IsActive) return BadRequest(new BaseResponse<bool> { Data = false, Error = ResponseErrors.InscriptionStudentAlredyInscripted });
+
+            }
+
+            //if (existingInscription.Any()) return BadRequest(new BaseResponse<bool> { Data = false, Error= ResponseErrors.InscriptionAlreadyExist });
 
 
 			//
-            var checkIfInCourse = await _inscriptionsService.GetAllAsync(i => i.CourseId == courseId && i.StudentId == studentId,
-				i => i.Student!,
-				i => i.Course!,
-				i => i.Course!.Instructor!
-			);
+            var checkIfInCourse = await _inscriptionsService.GetAllAsync(i => i.CourseId == courseId && i.StudentId == studentId);
 
-			if (checkIfInCourse.Any()) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.ALREADY_IN_COURSE });
+			if (checkIfInCourse.Any()) return BadRequest(new BaseResponse<bool> { Data = false, Error = ResponseErrors.InscriptionAlreadyExist});
 
             var course = await _coursesService.GetByIdAsync(courseId);
 
@@ -329,18 +520,20 @@ namespace UniSportUAQ_API.Controllers
 				StudentId = studentId,
 			};
 
-			if (course.CurrentUsers >= course.MaxUsers) return Ok(new DataResponse { Data = null, ErrorMessage = "not added: " + ResponseMessages.EXCEEDED_MAX_USERS });
+			if (course.CurrentUsers >= course.MaxUsers) return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.CourseExceedMaxUsers });
 
             var inscriptionResult = await _inscriptionsService.AddAsync(entity);
 
-            if (inscriptionResult == null) return Ok(new DataResponse { Data = null, ErrorMessage = "not added: "+ResponseMessages.OBJECT_NOT_FOUND });
+            if (inscriptionResult == null) return NotFound(new BaseResponse<bool> { Data = false, Error = ResponseErrors.ServerDataBaseErrorUpdating });
 
 			course.CurrentUsers++;
 
             await _coursesService.UpdateAsync(course);
 
-            return Ok(new DataResponse { Data = inscriptionResult!.ToDictionary(), ErrorMessage = null});
+            return Ok(new BaseResponse<bool> { Data = true });
         }
+
+        
 
 		[HttpGet]
 		[Route("inscription/check/{courseId}/{studentId}")]
@@ -349,18 +542,14 @@ namespace UniSportUAQ_API.Controllers
 		{
 			// First we have to check if the courseId and studentId, both exist on our database. Otherwise we shall return an error.
 
-			if (await _studentsService.GetByIdAsync(studentId) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
-			if (await _coursesService.GetByIdAsync(courseId) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+			if (await _studentsService.GetByIdAsync(studentId) is null) return NotFound(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.EntityNotExist});
+			if (await _coursesService.GetByIdAsync(courseId) is null) return NotFound(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.EntityNotExist});
 
-			var checkIfInCourse = await _inscriptionsService.GetAllAsync(i => i.CourseId == courseId && i.StudentId == studentId,
-				i => i.Student!,
-				i => i.Course!,
-				i => i.Course!.Instructor!
-			);
+			var checkIfInCourse = await _inscriptionsService.GetAllAsync(i => i.CourseId == courseId && i.StudentId == studentId);
 
-			if (checkIfInCourse.Any()) return Ok(new DataResponse { Data = true, ErrorMessage = null });
+			if (checkIfInCourse.Any()) return Ok(new BaseResponse<bool> { Data = true });
 
-			return Ok(new DataResponse { Data = false, ErrorMessage = null });
+			return NotFound(new BaseResponse<bool> { Data = false, Error = ResponseErrors.EntityNotExist });
 		}
 
 		[HttpGet]
@@ -370,13 +559,9 @@ namespace UniSportUAQ_API.Controllers
 		{
 			// First we have to check if the courseId and studentId, both exist on our database. Otherwise we shall return an error.
 
-			if (await _studentsService.GetByIdAsync(studentId) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+			if (await _studentsService.GetByIdAsync(studentId) is null) return NotFound(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.EntityNotExist});
 
-			var result = await _inscriptionsService.GetAllAsync(i => i.StudentId == studentId,
-				i => i.Student!,
-				i => i.Course!,
-				i => i.Course!.Instructor!
-			);
+			var result = await _inscriptionsService.GetAllAsync(i => i.StudentId == studentId);
 
 			var count = result.Count();
 
@@ -390,7 +575,7 @@ namespace UniSportUAQ_API.Controllers
 		{
 			// First we have to check if the courseId and studentId, both exist on our database. Otherwise we shall return an error.
 
-			if (await _studentsService.GetByIdAsync(studentId) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+			if (await _studentsService.GetByIdAsync(studentId) is null) return NotFound(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.EntityNotExist});
 
 			var result = await _inscriptionsService.GetAllAsync(i => i.StudentId == studentId,
 				i => i.Student!,
@@ -398,13 +583,25 @@ namespace UniSportUAQ_API.Controllers
 				i => i.Course!.Instructor!
 			);
 
-			var data = new List<Dictionary<string, object>>();
+			var data = new List<InscriptionDTO>();
 
-			foreach (var item in result) data.Add(item.ToDictionary());
+			foreach (var item in result) {
 
-			if (result.Any()) return Ok(new DataResponse { Data = data, ErrorMessage = null });
+				var inscription = new InscriptionDTO
+				{
+					Id = item.Id,
+					CourseId = item.CourseId,
+					CourseName = item.Course!.CourseName,
+					CourseDescription = item.Course!.Description
 
-			return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+				};
+
+				data.Add(inscription); 
+			}
+
+            if (result.Any()) return Ok(new BaseResponse<List<InscriptionDTO>> { Data = data });
+
+            return NotFound(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.EntityNotExist});
 		}
 
 		[HttpGet]
@@ -414,7 +611,7 @@ namespace UniSportUAQ_API.Controllers
 		{
 			// First we have to check if the courseId and studentId, both exist on our database. Otherwise we shall return an error.
 
-			if (await _studentsService.GetByIdAsync(studentId) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+			if (await _studentsService.GetByIdAsync(studentId) is null) return NotFound(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.EntityNotExist});
 
 			var result = await _inscriptionsService.GetAllAsync(i => i.StudentId == studentId && i.IsFinished == false,
 				i => i.Student!,
@@ -422,13 +619,29 @@ namespace UniSportUAQ_API.Controllers
 				i => i.Course!.Instructor!
 			);
 
-			var data = new List<Dictionary<string, object>>();
+            var data = new List<InscriptionDTO>();
 
-			foreach (var item in result) data.Add(item.ToDictionary());
+            foreach (var item in result)
+            {
 
-			if (result.Any()) return Ok(new DataResponse { Data = data, ErrorMessage = null });
+                var inscription = new InscriptionDTO
+                {
+                    Id = item.Id,
+                    CourseId = item.CourseId,
+                    CourseName = item.Course!.CourseName,
+                    CourseDescription = item.Course!.Description,
+					Accredit = item.Accredit
 
-			return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+                };
+
+                data.Add(inscription);
+            }
+
+			if (result.Any()) return Ok(new BaseResponse<List<InscriptionDTO>> { Data = data});
+
+				
+
+			return NotFound(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.EntityNotExist});
 		}
 
 		[HttpGet]
@@ -437,11 +650,11 @@ namespace UniSportUAQ_API.Controllers
 
 		public async Task<IActionResult> GetInscriptionsByCourseAsync(string courseId) { 
 
-			if(!Guid.TryParse(courseId, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
-			
-			var course = await _coursesService.GetByIdAsync(courseId);
+			if(!Guid.TryParse(courseId, out _)) return BadRequest(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.AttributeIdInvalidlFormat });
 
-			if (course == null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+            var course = await _coursesService.GetByIdAsync(courseId);
+
+			if (course == null) return NotFound(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.EntityNotExist});
 
 			var result = await _inscriptionsService.GetAllAsync(i => i.CourseId == courseId,
 				i => i.Student!,
@@ -449,13 +662,27 @@ namespace UniSportUAQ_API.Controllers
 				i => i.Course!.Instructor!
 			);
 
-			if (!result.Any()) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.NONE_INSCRIPTION_COURSE });
+			if (!result.Any()) return NotFound(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.CourseNoneInscription });
 
-			var data = new List<Dictionary<string, object>>();
+            var data = new List<InscriptionDTO>();
 
-			foreach (var item in result) data.Add(item.ToDictionary());
+            foreach (var item in result)
+            {
 
-            return Ok(new DataResponse { Data = data, ErrorMessage = null });
+                var inscription = new InscriptionDTO
+                {
+                    Id = item.Id,
+                    CourseId = item.CourseId,
+                    CourseName = item.Course!.CourseName,
+                    CourseDescription = item.Course!.Description,
+					Accredit = item.Accredit
+
+                };
+
+                data.Add(inscription);
+            }
+
+            return Ok(new BaseResponse<List<InscriptionDTO>> { Data = data });
 
 
         }
@@ -467,11 +694,12 @@ namespace UniSportUAQ_API.Controllers
 
 		public async Task<IActionResult> AcreditCourse([FromBody] Inscription inscription) {
 
-			if (!Guid.TryParse(inscription.Id, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
-            if (!Guid.TryParse(inscription.CourseId, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
-            if (!Guid.TryParse(inscription.StudentId, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+			if (!Guid.TryParse(inscription.Id, out _)) return BadRequest(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.AttributeIdInvalidlFormat });
+            if (!Guid.TryParse(inscription.CourseId, out _)) return BadRequest(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.AttributeIdInvalidlFormat });
+            if (!Guid.TryParse(inscription.StudentId, out _)) return BadRequest(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.AttributeIdInvalidlFormat });
 
-			var inscriptionResult = await _inscriptionsService.GetAllAsync(i => i.CourseId == inscription.CourseId && i.StudentId == inscription.StudentId,
+
+            var inscriptionResult = await _inscriptionsService.GetAllAsync(i => i.CourseId == inscription.CourseId && i.StudentId == inscription.StudentId,
 				i => i.Student!,
 				i => i.Course!,
 				i => i.Course!.Instructor!
@@ -485,12 +713,14 @@ namespace UniSportUAQ_API.Controllers
 
 				var result = await _inscriptionsService.UpdateAsync(inscriptionEntity);
 
-				if (result != null) return Ok(new DataResponse { Data = result, ErrorMessage = null });
+				if (result == null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.ServerDataBaseError });
 
-				return Ok(new DataResponse { Data = result, ErrorMessage = null });
+        
+				return Ok(new BaseResponse<bool> { Data = true });
+
 			}
 
-			return Ok(new DataResponse { Data = null, ErrorMessage = "We could not accredit this user due to an internal error." });
+			return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.InscriptionNotAecredit});
 
 		}
 
@@ -504,13 +734,13 @@ namespace UniSportUAQ_API.Controllers
 		{
 			// First we have to check if the courseId and studentId, both exist on our database. Otherwise we shall return an error.
 
-			if (await _studentsService.GetByIdAsync(studentId) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+			if (await _studentsService.GetByIdAsync(studentId) is null) return NotFound(new BaseResponse<bool> { Error = ResponseErrors.EntityNotExist});
 
-			if (await _coursesService.GetByIdAsync(courseId) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+			if (await _coursesService.GetByIdAsync(courseId) is null) return NotFound(new BaseResponse<bool> { Error = ResponseErrors.EntityNotExist});
 
 			var checkIfInCourse = await _inscriptionsService.GetAllAsync(i => i.CourseId == courseId && i.StudentId == studentId);
 
-			if (!checkIfInCourse.Any()) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.NOT_FOUND_IN_COURSE });
+			if (!checkIfInCourse.Any()) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.CourseNotFoundInscription});
 
 
 			var query = await _inscriptionsService.GetAllAsync(i => i.CourseId == courseId && i.StudentId == studentId);
@@ -532,10 +762,10 @@ namespace UniSportUAQ_API.Controllers
 						await _coursesService.UpdateAsync(course);
 					}
 
-					return Ok(new DataResponse { Data = true, ErrorMessage = null });
+					return Ok(new BaseResponse<bool> { Data = true });
 				} }
 
-			return BadRequest(new DataResponse { Data = false, ErrorMessage = ResponseMessages.ERROR_REMOVING_USER_FROM_COURSE });
+			return BadRequest(new BaseResponse<bool> {  Error = ResponseErrors.CourseErrorRemoving });
 		}
 
 
