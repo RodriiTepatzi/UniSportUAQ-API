@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Diagnostics.CodeAnalysis;
 using UniSportUAQ_API.Data.Base;
 
 namespace UniSportUAQ_API.Data.Models
@@ -38,7 +39,7 @@ namespace UniSportUAQ_API.Data.Models
 		public string? StudyPlan { get; set; }
 		public DateTime RegisteredDateTime { get; set; }
 
-        //foreing key
+		
         public UserPreferences? UserPreferences { get; set; }
 
 

@@ -37,10 +37,7 @@ namespace UniSportUAQ_API.Data.Consts
 		public static ErrorBase ServerDataBaseError = new ErrorBase { Code = "DB001", Description = "Internal System Error" };
 		//system
 		public static ErrorBase SysErrorPromoting = new ErrorBase { Code = "SYS001", Description = "Only promote a student to either Instructor/Admin." };
-        
         public static ErrorBase AttributeEmptyOrNull = new ErrorBase { Code = "ATTR004", Description = "Invalid attribute format, emp   ty or null" };
-      
-       
         public static ErrorBase ServerDataBaseErrorUpdating = new ErrorBase { Code = "SYS002", Description = "Not possible for update this entity" };
         //courses 
         public static ErrorBase CourseNoneInscription = new ErrorBase { Code = "COU001", Description = "This course does not contain inscriptions" };
@@ -56,6 +53,7 @@ namespace UniSportUAQ_API.Data.Consts
         public static ErrorBase InscriptionNotEnded = new ErrorBase { Code = "INS002", Description = "Not possible to end this/these inscription(s) for this course, please check provide info for asistance" };
         public static ErrorBase InscriptionAlreadyExist = new ErrorBase { Code = "INS003", Description = "Not possible inscribe to this course, user already insripted" };
         public static ErrorBase InscriptionStudentAlredyInscripted = new ErrorBase { Code = "INS004", Description = "Not possible inscribe to more than one course, user already insripted in one course" };
-
-	}
+        //user prefs
+        public static ErrorBase UserPrefAlreadyExist = new ErrorBase { Code = "UPRF001", Description = "Not possible to create user preff becuase already exist" };
+    }
 }
