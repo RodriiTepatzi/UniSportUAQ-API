@@ -45,9 +45,17 @@ namespace UniSportUAQ_API.Data
 				.HasForeignKey(c => c.CourseId)
 				.OnDelete(DeleteBehavior.NoAction);
 
+			modelBuilder.Entity<UserPreferences>()
+				.HasOne(Us => Us.User)
+				.WithOne(U => U.UserPreferences)
+                .HasForeignKey<UserPreferences>(up => up.UserId)
+				.OnDelete(DeleteBehavior.NoAction);
 
 
-			base.OnModelCreating(modelBuilder);
+
+
+
+            base.OnModelCreating(modelBuilder);
 
 
 
@@ -70,5 +78,7 @@ namespace UniSportUAQ_API.Data
 		public DbSet<Subject> Subjects { get; set; }
 
 		public DbSet<TimePeriod> TimePeriods { get; set; }
+
+		public DbSet<UserPreferences> UserPreferences { get; set; }
     }
 }

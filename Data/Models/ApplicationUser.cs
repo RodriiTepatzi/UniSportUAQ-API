@@ -38,10 +38,13 @@ namespace UniSportUAQ_API.Data.Models
 		public string? StudyPlan { get; set; }
 		public DateTime RegisteredDateTime { get; set; }
 
+        //foreing key
+        public UserPreferences? UserPreferences { get; set; }
 
-		// Authentication
 
-		public string? RefreshToken { get; set; }
+        // Authentication
+
+        public string? RefreshToken { get; set; }
 		public DateTime? RefreshTokenExpiryTime { get; set; }
 
 		public Dictionary<string, object> ToDictionary => new Dictionary<string, object>
