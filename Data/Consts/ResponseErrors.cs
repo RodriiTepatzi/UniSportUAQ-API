@@ -24,12 +24,8 @@ namespace UniSportUAQ_API.Data.Consts
 		//Entity
 		public static ErrorBase EntityNotExist = new ErrorBase { Code = "ENT001", Description = "Entity/Object Does not exist" };
         
-        //User
-        public static ErrorBase UserNotAnStudent = new ErrorBase { Code = "USR001", Description = "User founded but is not an student" };
-        public static ErrorBase UserNotAnInstructor = new ErrorBase { Code = "USR002", Description = "User founded but is not an instructor" };
-        public static ErrorBase UserNotAnAdmin = new ErrorBase { Code = "USR003", Description = "User founded but is not an Admin" };
-        //Entity
-        public static ErrorBase EntityNotExist = new ErrorBase { Code= "ENT001", Description = "Entity/Object Has not founded or not exist"};
+        
+        
 		//Attributes
 		public static ErrorBase AttributeEmaiInvalidlFormat = new ErrorBase { Code = "ATTR001", Description = "Invalid Email format" };
 		public static ErrorBase AttributeIdInvalidlFormat = new ErrorBase { Code = "ATTR002", Description = "Invalid Id format" };
@@ -41,17 +37,11 @@ namespace UniSportUAQ_API.Data.Consts
 		public static ErrorBase ServerDataBaseError = new ErrorBase { Code = "DB001", Description = "Internal System Error" };
 		//system
 		public static ErrorBase SysErrorPromoting = new ErrorBase { Code = "SYS001", Description = "Only promote a student to either Instructor/Admin." };
-        public static ErrorBase AttributeEmaiInvalidlFormat = new ErrorBase { Code = "ATTR001", Description = "Invalid Email format" };
-        public static ErrorBase AttributeIdInvalidlFormat = new ErrorBase { Code = "ATTR002", Description = "Invalid Id format" };
-        public static ErrorBase AttributeExpedienteInvalidlFormat = new ErrorBase { Code = "ATTR003", Description = "Invalid Expediente format" };
+        
         public static ErrorBase AttributeEmptyOrNull = new ErrorBase { Code = "ATTR004", Description = "Invalid attribute format, emp   ty or null" };
-        //Filters
-        public static ErrorBase FilterStartEndContradiction = new ErrorBase { Code = "FIL001", Description="Incosnistent Start and End request" };
-        public static ErrorBase FilterInvalidSearchTerm = new ErrorBase { Code = "FIL002", Description = "Invalid Search term" };
-        //server
-        public static ErrorBase ServerDataBaseError = new ErrorBase { Code = "SYS001", Description = "Internal System Error" };
+      
+       
         public static ErrorBase ServerDataBaseErrorUpdating = new ErrorBase { Code = "SYS002", Description = "Not possible for update this entity" };
-        public static ErrorBase SysErrorPromoting = new ErrorBase { Code = "SYS003", Description = "Only promote a student to either Instructor/Admin." };
         //courses 
         public static ErrorBase CourseNoneInscription = new ErrorBase { Code = "COU001", Description = "This course does not contain inscriptions" };
         public static ErrorBase CourseNotFoundInscription = new ErrorBase { Code = "COU002", Description = "This course does not contain this inscription" };
