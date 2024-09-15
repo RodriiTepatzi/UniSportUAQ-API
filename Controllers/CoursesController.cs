@@ -73,11 +73,7 @@ namespace UniSportUAQ_API.Controllers
 		{
 			var result = await _coursesService.GetAllAsync(c => c.IsActive == true, c => c.Instructor!);
 
-			if (result.Count() < 1) return BadRequest(new BaseResponse<Course> { Error = ResponseErrors.AuthUserEmailAlreadyExists });
-
-
             var data = new List<CourseDTO>();
-
 
 			foreach (var item in result) { 
 
@@ -102,12 +98,9 @@ namespace UniSportUAQ_API.Controllers
                 };
 
 				data.Add(course); 
-
 			}
-
-			if (result.Any()) return Ok(new BaseResponse<List<CourseDTO>> { Data = data });
-
-			return NotFound(new BaseResponse<List<CourseDTO>> { Data = null });
+			
+			return Ok(new BaseResponse<List<CourseDTO>> { Data = data });
 		}
 
 		[HttpGet]
