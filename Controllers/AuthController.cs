@@ -68,7 +68,7 @@ namespace UniSportUAQ_API.Controllers
 				});
 			}
 
-			var user = await _userManager.FindByNameAsync(model.Email!);
+			var user = await _userManager.FindByNameAsync(model.Expediente!);
 
 			if (user != null && await _userManager.CheckPasswordAsync(user, model.Password!))
 			{
