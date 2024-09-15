@@ -68,7 +68,7 @@ namespace UniSportUAQ_API.Controllers
 				});
 			}
 
-			var user = await _userManager.FindByEmailAsync(model.Email!);
+			var user = await _userManager.FindByNameAsync(model.Email!);
 
 			if (user != null && await _userManager.CheckPasswordAsync(user, model.Password!))
 			{
@@ -218,7 +218,7 @@ namespace UniSportUAQ_API.Controllers
 			}
 
 			// Find the user in the database
-			var user = await _userManager.FindByIdAsync(userId);
+			var user = await _userManager.FindByEmailAsync(userId);
 			if (user == null)
 			{
 				return NotFound(new BaseResponse<ApplicationUser>
