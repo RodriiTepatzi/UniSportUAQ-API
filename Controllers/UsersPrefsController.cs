@@ -123,7 +123,7 @@ namespace UniSportUAQ_API.Controllers
 
         [HttpPost]
         [Authorize]
-        [Route("current/create")]
+        [Route("current/update")]
         public async Task<IActionResult> UpdateCurrentUserPrefs([FromBody] UserPrefsSchema userPrefsSchema)
         {
 
