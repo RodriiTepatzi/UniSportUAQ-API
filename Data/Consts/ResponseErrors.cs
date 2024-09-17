@@ -60,6 +60,7 @@ namespace UniSportUAQ_API.Data.Consts
         public static ErrorBase InscriptionNotEnded = new ErrorBase { Code = "INS002", Description = "Not possible to end this/these inscription(s) for this course, please check provide info for asistance" };
         public static ErrorBase InscriptionAlreadyExist = new ErrorBase { Code = "INS003", Description = "Not possible inscribe to this course, user already insripted" };
         public static ErrorBase InscriptionStudentAlredyInscripted = new ErrorBase { Code = "INS004", Description = "Not possible inscribe to more than one course, user already insripted in one course" };
-
-	}
+        //user prefs
+        public static ErrorBase UserPrefAlreadyExist = new ErrorBase { Code = "UPRF001", Description = "Not possible to create user preff becuase already exist" };
+    }
 }
