@@ -35,7 +35,7 @@ namespace UniSportUAQ_API.Data.Models
 		public class LoginModel
 		{
 			[Required]
-			public string? Email { get; set; }
+			public string? Expediente { get; set; }
 
 			[Required]
 			public string? Password { get; set; }
