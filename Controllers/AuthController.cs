@@ -154,8 +154,8 @@ namespace UniSportUAQ_API.Controllers
 		public async Task<IActionResult> UpdateCurrentUser([FromBody] UserSchema model)
 		{
 			// Retrieve the user ID from the JWT token claims
-			var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-			if (userId == null)
+			var userEmail = User.FindFirstValue(ClaimTypes.NameIdentifier);
+			if (userEmail == null)
 			{
 				return Unauthorized(new BaseResponse<string>
 				{
@@ -164,7 +164,7 @@ namespace UniSportUAQ_API.Controllers
 			}
 
 			// Find the user in the database
-			var user = await _userManager.FindByIdAsync(userId);
+			var user = await _userManager.FindByEmailAsync(userEmail);
 			if (user == null)
 			{
 				return NotFound(new BaseResponse<string>
@@ -208,8 +208,8 @@ namespace UniSportUAQ_API.Controllers
 		public async Task<IActionResult> GetCurrentUser()
 		{
 			// Retrieve the user ID from the JWT token claims
-			var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-			if (userId == null)
+			var userEmail = User.FindFirstValue(ClaimTypes.NameIdentifier);
+			if (userEmail == null)
 			{
 				return Unauthorized(new BaseResponse<ApplicationUser>
 				{
@@ -218,7 +218,7 @@ namespace UniSportUAQ_API.Controllers
 			}
 
 			// Find the user in the database
-			var user = await _userManager.FindByEmailAsync(userId);
+			var user = await _userManager.FindByEmailAsync(userEmail);
 			if (user == null)
 			{
 				return NotFound(new BaseResponse<ApplicationUser>
@@ -240,8 +240,8 @@ namespace UniSportUAQ_API.Controllers
 		public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordModel model)
 		{
 			// Retrieve the user ID from the JWT token claims
-			var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-			if (userId == null)
+			var userEmail = User.FindFirstValue(ClaimTypes.NameIdentifier);
+			if (userEmail == null)
 			{
 				return Unauthorized(new BaseResponse<string>
 				{
@@ -250,7 +250,7 @@ namespace UniSportUAQ_API.Controllers
 			}
 
 			// Find the user in the database
-			var user = await _userManager.FindByIdAsync(userId);
+			var user = await _userManager.FindByEmailAsync(userEmail);
 			if (user == null)
 			{
 				return NotFound(new BaseResponse<string>
@@ -270,7 +270,7 @@ namespace UniSportUAQ_API.Controllers
 			}
 
 			// Change the password
-			var result = await _userManager.ChangePasswordAsync(user, model.CurrentPassword, model.NewPassword);
+			var result = await _userManager.ChangePasswordAsync(user, model.CurrentPassword, model.NewPassword!);
 			if (!result.Succeeded)
 			{
 				return BadRequest(new BaseResponse<string>
