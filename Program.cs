@@ -18,6 +18,7 @@ using Hangfire;
 using Hangfire.SqlServer;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using UniSportUAQ_API.Controllers;
 
 namespace UniSportUAQ_API
 {
@@ -97,6 +98,9 @@ namespace UniSportUAQ_API
             
             });
             builder.Services.AddHangfireServer();
+            //
+            
+
             //
 
             var app = builder.Build();
