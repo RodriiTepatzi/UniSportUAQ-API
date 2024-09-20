@@ -51,6 +51,11 @@ namespace UniSportUAQ_API.Data.Models
         [StringLength(6)]
         public string? EndHour { get; set; }
 
+		[Required]
+		public DateTime StartDate { get; set; }
+
+		[Required]
+		public DateTime EndDate { get; set; }
         [Required]
 		public int MaxUsers { get; set; }
 
