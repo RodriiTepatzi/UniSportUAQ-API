@@ -78,6 +78,7 @@ namespace UniSportUAQ_API.Data.Models
 		public IEnumerable<Attendance>? Attendances { get; set; }
 		public IEnumerable<CartaLiberacion>? CartaLiberacions { get; set; }
 		public IEnumerable<Inscription>? Inscriptions { get; set; }
+		public IEnumerable<Horario>? Horarios { get; set; }
 
 
 
