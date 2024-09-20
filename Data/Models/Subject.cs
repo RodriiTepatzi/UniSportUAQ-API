@@ -13,22 +13,20 @@ namespace UniSportUAQ_API.Data.Models
 		public string? Id { get; set; }
         [Required]
         public string? Name { get; set; }
-
-        [Required]
-        public string? InstructorId { get; set; }
         
         [Required]
         public string? CoursePictureUrl { get; set; }
 
-        [ForeignKey("InstructorId")]
-        public ApplicationUser? Instructor { get; set; }
+
+
+		// Relationships
+		public IEnumerable<Course>? Courses { get; set; }
 
 
         public Dictionary<string, object> ToDictionary() => new Dictionary<string, object>
         {
             { nameof(Id), Id is not null ? Id:"" },
             { nameof(Name), Name is not null ? Name:""},
-            { nameof(InstructorId), InstructorId is not null ?  Instructor!.ToDictionary : ""},
             { nameof(CoursePictureUrl), CoursePictureUrl is not null ? CoursePictureUrl : ""  },
         };
 

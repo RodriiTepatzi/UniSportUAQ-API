@@ -9,7 +9,7 @@ using UniSportUAQ_API.Data.Schemas;
 namespace UniSportUAQ_API.Controllers
 {
     [ApiController]
-    [Route("api/attendances")]
+    [Route("api/v1/attendances")]
     public class AttendancesController : Controller
     {
 
@@ -342,7 +342,7 @@ namespace UniSportUAQ_API.Controllers
             if (result is not null) return Ok(new DataResponse { Data = result.Dictionary, ErrorMessage = null });
 
 
-            return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND }); ;
+            return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
         }
     }
 }

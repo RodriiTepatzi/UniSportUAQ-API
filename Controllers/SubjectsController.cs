@@ -40,20 +40,6 @@ namespace UniSportUAQ_API.Controllers
 
         }
 
-        [HttpGet]
-        [Route("instructorid/{id}")]
-        [Authorize]
-        public async Task<IActionResult> GetSubjectByInstructorId(string id)
-        {
-            if (!Guid.TryParse(id, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
-
-            var result = await _subjectsService.GetAllAsync(i => i.InstructorId == id);
-
-            if(result == null) return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
-
-            return Ok(new DataResponse { Data = result.FirstOrDefault()!.ToDictionary(), ErrorMessage = null }); 
-        }
-
         [HttpPost]
         [Route("create")]
         [Authorize]
@@ -61,26 +47,17 @@ namespace UniSportUAQ_API.Controllers
 
             //attrib validations
             if(string.IsNullOrEmpty(subject.Name)) return BadRequest(new DataResponse { Data = null, ErrorMessage ="name: " + ResponseMessages.BAD_REQUEST });
-            if(!Guid.TryParse(subject.InstructorId, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = "instructor: " + ResponseMessages.BAD_REQUEST });
             if(string.IsNullOrEmpty(subject.CoursePictureUrl)) return BadRequest(new DataResponse { Data = null, ErrorMessage = "urlpicture: "+ResponseMessages.BAD_REQUEST });
             
             //name existence
             var courseNameCheck = await _subjectsService.GetAllAsync(i => i.Name!.ToLower() == subject.Name!.ToLower());
 
             if(courseNameCheck.Count() < 0) return Ok(new DataResponse { Data = null, ErrorMessage = "subject name: " + ResponseMessages.ENTITY_EXISTS });
-
-
-            //verify instructor existence and activity
-            var insCheck = await _instructorsService.GetByIdAsync(subject.InstructorId);
-
-            if(insCheck == null) return Ok(new DataResponse { Data = null, ErrorMessage = "instructor:"+ResponseMessages.OBJECT_NOT_FOUND });
-            if(insCheck.IsActive == false) Ok(new DataResponse { Data = null, ErrorMessage = "instructor:" + ResponseMessages.USER_INACTIVE});
                 
             //create new Subject object
             var newSubject = new Subject { 
                 Id = Guid.NewGuid().ToString(),
                 Name = subject.Name,
-                InstructorId = subject.InstructorId,
                 CoursePictureUrl = subject.CoursePictureUrl,
             };
 
@@ -101,7 +78,6 @@ namespace UniSportUAQ_API.Controllers
             //attrib val
             if(!Guid.TryParse(subject.Id, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = "Id: " + ResponseMessages.BAD_REQUEST });
             if (!string.IsNullOrEmpty(subject.Name)) return BadRequest(new DataResponse { Data = null, ErrorMessage = "name: " + ResponseMessages.BAD_REQUEST });
-            if (!Guid.TryParse(subject.InstructorId, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = "instructor: " + ResponseMessages.BAD_REQUEST });
             if (!string.IsNullOrEmpty(subject.CoursePictureUrl)) return BadRequest(new DataResponse { Data = null, ErrorMessage = "urlpicture: " + ResponseMessages.BAD_REQUEST });
             
             //verify name existene
@@ -110,11 +86,6 @@ namespace UniSportUAQ_API.Controllers
 
             if(subjectNameCheck == null) return BadRequest(new DataResponse { Data = null, ErrorMessage = "subject name: " + ResponseMessages.ENTITY_EXISTS });
 
-            //verify instructor existence
-            var insCheck = await _instructorsService.GetByIdAsync(subject.InstructorId);
-
-            if (insCheck == null) return Ok(new DataResponse { Data = null, ErrorMessage = "instructor:" + ResponseMessages.OBJECT_NOT_FOUND });
-            if (insCheck.IsActive == false) Ok(new DataResponse { Data = null, ErrorMessage = "instructor:" + ResponseMessages.USER_INACTIVE });
 
             //create object
 
@@ -122,7 +93,6 @@ namespace UniSportUAQ_API.Controllers
             {
                 Id = subject.Id,
                 Name = subject.Name,
-                InstructorId = subject.InstructorId,
                 CoursePictureUrl = subject.CoursePictureUrl,
 
             };

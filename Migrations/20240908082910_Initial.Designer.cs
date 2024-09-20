@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using UniSportUAQ_API.Data;
 
@@ -11,9 +12,11 @@ using UniSportUAQ_API.Data;
 namespace UniSportUAQ_API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240908082910_Initial")]
+    partial class Initial
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -291,11 +294,17 @@ namespace UniSportUAQ_API.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("InstructorId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("InstructorId");
 
                     b.ToTable("Subject");
                 });
@@ -323,28 +332,6 @@ namespace UniSportUAQ_API.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("TimePeriods");
-                });
-
-            modelBuilder.Entity("UniSportUAQ_API.Data.Models.UserPreferences", b =>
-                {
-                    b.Property<string>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("Language")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId")
-                        .IsUnique();
-
-                    b.ToTable("UserPreferences");
                 });
 
             modelBuilder.Entity("UniSportUAQ_API.Data.Models.Attendance", b =>
@@ -423,20 +410,15 @@ namespace UniSportUAQ_API.Migrations
                     b.Navigation("Student");
                 });
 
-            modelBuilder.Entity("UniSportUAQ_API.Data.Models.UserPreferences", b =>
+            modelBuilder.Entity("UniSportUAQ_API.Data.Models.Subject", b =>
                 {
-                    b.HasOne("UniSportUAQ_API.Data.Models.ApplicationUser", "User")
-                        .WithOne("UserPreferences")
-                        .HasForeignKey("UniSportUAQ_API.Data.Models.UserPreferences", "UserId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                    b.HasOne("UniSportUAQ_API.Data.Models.ApplicationUser", "Instructor")
+                        .WithMany()
+                        .HasForeignKey("InstructorId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("UniSportUAQ_API.Data.Models.ApplicationUser", b =>
-                {
-                    b.Navigation("UserPreferences");
+                    b.Navigation("Instructor");
                 });
 
             modelBuilder.Entity("UniSportUAQ_API.Data.Models.Course", b =>
