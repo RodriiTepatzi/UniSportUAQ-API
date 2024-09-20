@@ -20,6 +20,12 @@ namespace UniSportUAQ_API.Data
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
+			modelBuilder.Entity<Horario>()
+				.HasOne(c => c.Course)
+				.WithMany(c => c.Horarios)
+				.HasForeignKey(c => c.CourseId)
+				.OnDelete(DeleteBehavior.NoAction);
+
 			modelBuilder.Entity<Course>()
 				.HasOne(c => c.Subject)
 				.WithMany(s => s.Courses)
@@ -80,5 +86,6 @@ namespace UniSportUAQ_API.Data
 		public DbSet<TimePeriod> TimePeriods { get; set; }
 
 		public DbSet<UserPreferences> UserPreferences { get; set; }
+		public DbSet<Horario> Horarios { get; set; }
     }
 }
