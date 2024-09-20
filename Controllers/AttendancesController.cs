@@ -271,17 +271,18 @@ namespace UniSportUAQ_API.Controllers
             //review if coincide with course day of week
 
             string newDateDayOfWeek = attendanceSchema.Date.ToString("dddd", new CultureInfo("en-US")).ToLower();
+            string newDateDayOfWeekSpanish = attendanceSchema.Date.ToString("dddd", new CultureInfo("es-ES")).ToLower();
 
-            string[]? courseDay = course!.Day?.ToLower().Split(",");
+            IEnumerable<Horario> horarios = course!.Horarios!;
 
             bool CorrectDay = false;
 
-            foreach (string dayElment in courseDay!)
+            foreach (var horario in horarios!)
             {
 
-                var day = dayElment.ToLower();
+                var day = horario.Day!.ToLower();
 
-                if (day == newDateDayOfWeek) CorrectDay = true;
+                if (day == newDateDayOfWeek || day == newDateDayOfWeekSpanish) CorrectDay = true;
 
             }
 

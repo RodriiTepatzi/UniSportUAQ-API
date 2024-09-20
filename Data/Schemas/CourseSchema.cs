@@ -9,6 +9,7 @@
         public string? Day { get; set; }
         public string? StartHour { get; set; }
         public string? EndHour { get; set; }
+        public List<HorarioSchema>? Horarios { get; set; }
         public DateTime StartDate {get; set;}
         public DateTime EndDate {get; set;}
 		public string? Description { get; set; }

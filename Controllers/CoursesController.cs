@@ -9,6 +9,8 @@ using UniSportUAQ_API.Data.Models;
 using UniSportUAQ_API.Data.Schemas;
 using UniSportUAQ_API.Data.DTO;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using Org.BouncyCastle.Bcpg;
+using System.Reflection.Metadata.Ecma335;
 
 namespace UniSportUAQ_API.Controllers
 {
@@ -20,12 +22,14 @@ namespace UniSportUAQ_API.Controllers
         private readonly ICoursesService _coursesService;
         private readonly IInscriptionsService _inscriptionsService;
 		private readonly IStudentsService _studentsService;
+        private readonly IHorariosService _horariosService;
             
-        public CoursesController(ICoursesService coursesService, IInscriptionsService inscriptionsService, IStudentsService studentsService)
+        public CoursesController(ICoursesService coursesService, IInscriptionsService inscriptionsService, IStudentsService studentsService, IHorariosService horariosService)
         {
             _coursesService = coursesService;
             _inscriptionsService = inscriptionsService;
 			_studentsService = studentsService;
+            _horariosService = horariosService;
         }
 
 		[HttpGet]
@@ -50,6 +54,7 @@ namespace UniSportUAQ_API.Controllers
 					Day = result.Day,
 					MaxUsers = result.MaxUsers,
 					CurrentUsers = result.CurrentUsers,
+                    Horarios = result.Horarios,
 					StartHour = result.StartHour,
 					EndHour = result.EndHour,
 					Description = result.Description,
@@ -92,6 +97,7 @@ namespace UniSportUAQ_API.Controllers
                         Day = item.Day,
                         MaxUsers = item.MaxUsers,
                         CurrentUsers = item.CurrentUsers,
+                        Horarios = item.Horarios,
                         StartHour = item.StartHour,
                         EndHour = item.EndHour,
                         Description = item.Description,
@@ -136,6 +142,7 @@ namespace UniSportUAQ_API.Controllers
                     Day = item.Day,
                     MaxUsers = item.MaxUsers,
                     CurrentUsers = item.CurrentUsers,
+                    Horarios = item.Horarios,
                     StartHour = item.StartHour,
                     EndHour = item.EndHour,
                     Description = item.Description,
@@ -184,6 +191,7 @@ namespace UniSportUAQ_API.Controllers
                     Day = item.Day,
                     MaxUsers = item.MaxUsers,
                     CurrentUsers = item.CurrentUsers,
+                    Horarios = item.Horarios,
                     StartHour = item.StartHour,
                     EndHour = item.EndHour,
                     Description = item.Description,
@@ -228,6 +236,7 @@ namespace UniSportUAQ_API.Controllers
                     Day = item.Day,
                     MaxUsers = item.MaxUsers,
                     CurrentUsers = item.CurrentUsers,
+                    Horarios = item.Horarios,
                     StartHour = item.StartHour,
                     EndHour = item.EndHour,
                     Description = item.Description,
@@ -273,6 +282,7 @@ namespace UniSportUAQ_API.Controllers
                     Day = item.Day,
                     MaxUsers = item.MaxUsers,
                     CurrentUsers = item.CurrentUsers,
+                    Horarios = item.Horarios,
                     StartHour = item.StartHour,
                     EndHour = item.EndHour,
                     Description = item.Description,
@@ -317,6 +327,7 @@ namespace UniSportUAQ_API.Controllers
                     Day = item.Day,
                     MaxUsers = item.MaxUsers,
                     CurrentUsers = item.CurrentUsers,
+                    Horarios = item.Horarios,
                     StartHour = item.StartHour,
                     EndHour = item.EndHour,
                     Description = item.Description,
@@ -369,6 +380,7 @@ namespace UniSportUAQ_API.Controllers
                     Day = item.Day,
                     MaxUsers = item.MaxUsers,
                     CurrentUsers = item.CurrentUsers,
+                    Horarios = item.Horarios,
                     StartHour = item.StartHour,
                     EndHour = item.EndHour,
                     Description = item.Description,
@@ -433,8 +445,9 @@ namespace UniSportUAQ_API.Controllers
 
             if(!DateTime.TryParse(courseSchema.StartHour, out _)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
             if(!DateTime.TryParse(courseSchema.EndHour, out _)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
+            if(courseSchema.Horarios!.Count() < 1) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
 
-            if(courseSchema.Day is null)  return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
+            if (courseSchema.Day is null)  return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
             if (courseSchema.InstructorId is null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
 			if(courseSchema.MaxUsers <= 0) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
 
@@ -466,13 +479,33 @@ namespace UniSportUAQ_API.Controllers
                 IsActive = true,
 				Location = courseSchema.location,
 				
-				
 			};
+            var result = await _coursesService.AddAsync(NewCourse);
 
-			var result = await _coursesService.AddAsync(NewCourse);
+            if(result != null) { 
 
-			if(result != null) return Ok(new BaseResponse<bool> { Data = true });
+                if(IsHorarioConflict(courseSchema.Horarios!)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.CourseHorarioConfict });
 
+                foreach (var horario in courseSchema.Horarios!)
+                {
+                    
+
+                    var NewHorario = new Horario
+                    {
+                        Id = Guid.NewGuid().ToString(),
+                        Day = horario.Day,
+                        StartHour = horario.StartHour,
+                        EndHour = horario.EndHour,
+                        CourseId = NewCourse.Id
+                    };
+
+                    //create horario
+                    var newHorario = await _horariosService.AddAsync(NewHorario);
+                    if (newHorario == null)  return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.ServerDataBaseErrorUpdating }); 
+                }
+                return Ok((new BaseResponse<bool> { Data = true }));
+            }
+           
 			return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.ServerDataBaseErrorUpdating });
         }
 
@@ -523,6 +556,9 @@ namespace UniSportUAQ_API.Controllers
 
             return NotFound(new BaseResponse<bool> { Data = false});
         }
+        /*******************************horarios*******************************/
+
+
 
 
         /*******************************inscriptions*******************************/
@@ -837,7 +873,31 @@ namespace UniSportUAQ_API.Controllers
             return false; // No  Conflict in schedule
         }
 
-		
+        private bool IsHorarioConflict(List<HorarioSchema> horarios) {
+
+            HorarioSchema lastHorario = null;
+
+            foreach (var horario in horarios) {
+
+                if (lastHorario != null) {
+
+                    if (horario.Day == lastHorario.Day) {
+
+                        if (horario.StartHour < lastHorario.EndHour && horario.EndHour > lastHorario.StartHour) return true;
+
+                    }
+                    
+                }
+
+                lastHorario = horario;
+
+            }
+
+
+            return false;
+        }
+
+
 
     }
 }
