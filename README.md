@@ -13,3 +13,7 @@ Install-Package Swashbuckle.AspNetCore -Version 6.5.0
 Install-Package Firebase.Auth -Version 1.0.0
 Install-Package Newtonsoft.Json -Version 13.0.3
 Install-Package Microsoft.EntityFrameworkCore.Tools -Version 7.0.15
+Install-Package Hangfire.Core
+Install-Package Hangfire.SqlServer
+Install-Package Hangfire.AspNetCore
+Install-Package Microsoft.Data.SqlClient

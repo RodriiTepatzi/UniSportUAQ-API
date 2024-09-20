@@ -14,6 +14,11 @@ using UniSportUAQ_API.Data.Interfaces;
 using UniSportUAQ_API.Data.Models;
 using UniSportUAQ_API.Data.Services;
 using UniSportUAQ_API.Models;
+using Hangfire;
+using Hangfire.SqlServer;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using UniSportUAQ_API.Controllers;
 
 namespace UniSportUAQ_API
 {
@@ -65,12 +70,12 @@ namespace UniSportUAQ_API
                 options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
             });
 
-			builder.Services.Configure<ApiBehaviorOptions>(options =>
-			{
-				options.SuppressModelStateInvalidFilter = true;
-			});
+            builder.Services.Configure<ApiBehaviorOptions>(options =>
+            {
+                options.SuppressModelStateInvalidFilter = true;
+            });
 
-			builder.Services.AddTransient<IStudentsService, StudentsService>();
+            builder.Services.AddTransient<IStudentsService, StudentsService>();
             builder.Services.AddTransient<IInstructorsService, InstructorsService>();
             builder.Services.AddTransient<IAdminsService, AdminsService>();
             builder.Services.AddTransient<IUsersService, UsersService>();
@@ -85,6 +90,18 @@ namespace UniSportUAQ_API
             builder.Services.AddControllers();
             builder.Services.AddHttpContextAccessor();
             builder.Services.AddSwaggerGen();
+
+            //hangfire
+            builder.Services.AddHangfire((sp, config) => {
+                var connectionHangfire = sp.GetRequiredService<IConfiguration>().GetConnectionString("HangfireConnection");
+                config.UseSqlServerStorage(connectionHangfire); 
+            
+            });
+            builder.Services.AddHangfireServer();
+            //
+            
+
+            //
 
             var app = builder.Build();
 
@@ -110,7 +127,9 @@ namespace UniSportUAQ_API
             app.MapControllerRoute(
                 name: "default",
                 pattern: "{controller=Home}/{action=Index}/{id?}"
-			);
+            );
+
+            app.UseHangfireDashboard();
 
             //DatabaseInitializer.FeedUsersAndRoles(app);
             //DatabaseInitializer.FeedDatabase(app);
