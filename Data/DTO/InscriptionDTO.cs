@@ -10,7 +10,7 @@
 
         public string? CourseDescription { get; set; }
 
-        public bool ? Accredit { get; set; }
+        public bool Accredit { get; set; }
 
 
 
