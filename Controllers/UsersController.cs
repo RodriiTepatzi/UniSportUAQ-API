@@ -46,7 +46,7 @@ namespace UniSportUAQ_API.Controllers
 		{
 			var result = await _usersService.GetAllAsync();
 
-			if (result.Count() < 1) return NotFound(new BaseResponse<UserDTO> { Data = null });
+			if (result.Count() < 1) return NotFound(new BaseResponse<object> { Data = result });
 
 			var data = new List<UserDTO>();
 
@@ -154,11 +154,11 @@ namespace UniSportUAQ_API.Controllers
 
             var result = await _usersService.GetAllAsync(i => i.IsAdmin == true);
 
-            if (result.Count() < 1) return NotFound(new BaseResponse<List<UserDTO>> { Data = null });
+            if (result.Count() < 1) return NotFound(new BaseResponse<object> { Data = result });
 
             var adminsInRange = result.Skip(start).Take(end - start + 1).ToList();
 
-            if (adminsInRange.Count() < 1) return NotFound(new BaseResponse<List<UserDTO>> { Data = null });
+            if (adminsInRange.Count() < 1) return NotFound(new BaseResponse<object> { Data = adminsInRange });
 
             var data = new List<UserDTO>();
 
@@ -211,11 +211,11 @@ namespace UniSportUAQ_API.Controllers
                 return StatusCode(500, new BaseResponse<List<UserDTO>> { Data = null, Error = ResponseErrors.ServerDataBaseError });
             }
 
-            if (result.Count() < 1) return NotFound(new BaseResponse<List<UserDTO>> { Data = null });
+            if (result.Count() < 1) return NotFound(new BaseResponse<object> { Data = result });
 
             var admins = result.ToList();
 
-            if (admins.Count() < 1) NotFound(new BaseResponse<List<UserDTO>> { Data = null });
+            if (admins.Count() < 1) NotFound(new BaseResponse<object> { Data = admins });
 
             var data = new List<UserDTO>();
 
@@ -356,11 +356,11 @@ namespace UniSportUAQ_API.Controllers
 
             var result = await _usersService.GetAllAsync(i => i.Email == email);
 
-            if (result.Count() < 1) return NotFound(new BaseResponse<UserDTO> { Data = null});
+            if (result.Count() < 1) return NotFound(new BaseResponse<object> { Data = result });
 
             var user = result.FirstOrDefault();
 
-            if (user == null) return NotFound(new BaseResponse<UserDTO> { Data = null});
+            if (user == null) return NotFound(new BaseResponse<object> { Data = user });
 
             var response = new UserDTO
             {
@@ -391,11 +391,11 @@ namespace UniSportUAQ_API.Controllers
 
             var result = await _usersService.GetAllAsync();
 
-            if (result.Count() < 1) return NotFound(new BaseResponse<List<UserDTO>> { Data = null });
+            if (result.Count() < 1) return NotFound(new BaseResponse<object> { Data = result });
 
             var usersInRange = result.Skip(start).Take(end - start + 1).ToList();
 
-            if (usersInRange.Count() < 1) return NotFound(new BaseResponse<List<UserDTO>> { Data = null });
+            if (usersInRange.Count() < 1) return NotFound(new BaseResponse<object> { Data = usersInRange });
 
             var data = new List<UserDTO>();
 
