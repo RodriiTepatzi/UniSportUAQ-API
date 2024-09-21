@@ -79,17 +79,23 @@ namespace UniSportUAQ_API.Controllers
 		[Authorize]
 		public async Task<IActionResult> GetUsersByFilter(
 			[FromQuery] string? q,
-			[FromQuery] bool admin = false,
-			[FromQuery] bool student = true,
-			[FromQuery] bool instructor = false)
+			[FromQuery] bool? admin,
+			[FromQuery] bool? student,
+			[FromQuery] bool? instructor)
 		{
 			var users = new List<UserDTO>();
-			var result = await _usersService.GetAllAsync(
-					u => u.IsAdmin == admin &&
-					u.IsStudent == student &&
-					u.IsInstructor == instructor &&
-					(u.Name!.Contains(q) || u.LastName!.Contains(q) || u.Expediente!.Contains(q) || u.Email!.Contains(q) || u.PhoneNumber!.Contains(q))
-				);
+
+			var result = await _usersService.GetAllAsync(u =>
+				(!admin.HasValue || u.IsAdmin == admin.Value) &&
+				(!student.HasValue || u.IsStudent == student.Value) &&
+				(!instructor.HasValue || u.IsInstructor == instructor.Value) &&
+				(string.IsNullOrEmpty(q) ||
+				 u.Name!.Contains(q) ||
+				 u.LastName!.Contains(q) ||
+				 u.Expediente!.Contains(q) ||
+				 u.Email!.Contains(q) ||
+				 u.PhoneNumber!.Contains(q))
+			);
 
 			foreach (var item in result)
 			{
@@ -113,7 +119,7 @@ namespace UniSportUAQ_API.Controllers
 		}
 
 		[HttpGet]
-		[Route("id")]
+		[Route("{id}")]
 		[Authorize]
 		public async Task<IActionResult> GetUserById(string id)
 		{
