@@ -2,12 +2,15 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Security.Claims;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Azure;
+using Firebase.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 using UniSportUAQ_API.Data.Base;
 using UniSportUAQ_API.Data.Consts;
 using UniSportUAQ_API.Data.DTO;
@@ -847,6 +850,52 @@ namespace UniSportUAQ_API.Controllers
 
 
 
+        }
+
+        //**********************************PROFILE-PICTURE**********************************//
+        [HttpPost]
+        [Route("update/image")]
+        [Authorize]
+        public async Task<IActionResult> UpdateImage([FromBody] ImageProfile imageBytes)
+        {
+
+            //recibir imagen
+            //comprobar si se recibe la imagen
+            if (imageBytes.Image == null || imageBytes.Image.Length == 0) return BadRequest(new BaseResponse<bool> {Data = false, Error = ResponseErrors.AttributeEmptyOrNull});
+
+            //generar el nombre de la imagen
+            var fileName = Guid.NewGuid() + ".jpg";
+            var path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/users/profile/", fileName);
+
+            try
+            {
+                //guardar la imagen
+                await System.IO.File.WriteAllBytesAsync(path, imageBytes.Image);
+
+                //obtener url de la imagen 
+                var imageUrl = Url.Content($"~/images/users/profile/{fileName}");
+
+                //id del usuario
+                var userEmail = User.FindFirstValue(ClaimTypes.Email);
+                var user = await _userManager.FindByEmailAsync(userEmail);
+
+                //guardarla url al usuario
+                user.PictureUrl = imageUrl;
+
+                //actualizo
+                var result = await _usersService.UpdateAsync(user);
+
+                //responder con un true o false
+                return Ok(new BaseResponse<bool>
+                {
+                    Data = true,
+                    Error = null
+                });
+            }
+            catch
+            {
+                return StatusCode(500, new BaseResponse<bool> {Data = false, Error = ResponseErrors.ServerDataBaseError});
+            }
         }
 
         //**********************************GENERIC**********************************//
