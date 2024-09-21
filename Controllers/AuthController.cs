@@ -8,6 +8,7 @@ using System.Security.Cryptography;
 using System.Text;
 using UniSportUAQ_API.Data.Base;
 using UniSportUAQ_API.Data.Consts;
+using UniSportUAQ_API.Data.DTO;
 using UniSportUAQ_API.Data.Models;
 using UniSportUAQ_API.Data.Schemas;
 using static UniSportUAQ_API.Data.Models.Authentication;
@@ -47,7 +48,8 @@ namespace UniSportUAQ_API.Controllers
 				UserName = model.Expediente,
 				Group = model.Group,
 				Semester = model.Semester,
-				Email = model.Email 
+				Email = model.Email,
+				IsStudent = true,
 			};
 			var result = await _userManager.CreateAsync(user, model.Password!);
 
@@ -124,7 +126,7 @@ namespace UniSportUAQ_API.Controllers
 			}
 
 			var user = await _userManager.FindByEmailAsync(userId);
-			if (user == null || user.RefreshToken != model.RefreshToken || user.RefreshTokenExpiryTime <= DateTime.Now)
+			if (user == null || user.RefreshToken != model.RefreshToken)
 			{
 				return BadRequest(new BaseResponse<TokenRefreshModel>
 				{
@@ -132,11 +134,16 @@ namespace UniSportUAQ_API.Controllers
 				});
 			}
 
-			var newAccessToken = GenerateJwtToken(user);
-			var newRefreshToken = GenerateRefreshToken();
+			if (user.RefreshTokenExpiryTime <= DateTime.Now)
+			{
+				return Unauthorized(new BaseResponse<TokenRefreshModel>
+				{
+					Error = ResponseErrors.AuthRefreshTokenExpired
+				});
+			}
 
-			user.RefreshToken = newRefreshToken;
-			user.RefreshTokenExpiryTime = DateTime.Now.AddDays(7);
+			var newAccessToken = GenerateJwtToken(user);
+
 			await _userManager.UpdateAsync(user);
 
 			return Ok(new BaseResponse<TokenRefreshModel>
@@ -144,16 +151,16 @@ namespace UniSportUAQ_API.Controllers
 				Data = new TokenRefreshModel
 				{
 					AccessToken = newAccessToken,
-					RefreshToken = newRefreshToken
+					RefreshToken = user.RefreshToken
 				}
 			});
 		}
 
+
 		[HttpPut("update")]
-		[Authorize] // Ensures the user is authenticated
+		[Authorize]
 		public async Task<IActionResult> UpdateCurrentUser([FromBody] UserSchema model)
 		{
-			// Retrieve the user ID from the JWT token claims
 			var userEmail = User.FindFirstValue(ClaimTypes.NameIdentifier);
 			if (userEmail == null)
 			{
@@ -163,7 +170,6 @@ namespace UniSportUAQ_API.Controllers
 				});
 			}
 
-			// Find the user in the database
 			var user = await _userManager.FindByEmailAsync(userEmail);
 			if (user == null)
 			{
@@ -173,7 +179,6 @@ namespace UniSportUAQ_API.Controllers
 				});
 			}
 
-			// Update user fields based on the received model
 			user.Name = model.Name;
 			user.LastName = model.LastName;
 			user.PhoneNumber = model.PhoneNumber;
@@ -181,7 +186,7 @@ namespace UniSportUAQ_API.Controllers
 			user.Semester = model.Semester;
 			user.Group = model.Group;
 			user.Expediente = model.Expediente;
-			user.UserName = model.Expediente; // Make sure UserName is unique
+			user.UserName = model.Expediente;
 			user.IsAdmin = model.IsAdmin;
 			user.IsStudent = model.IsStudent;
 			user.Email = model.Email;
@@ -196,18 +201,16 @@ namespace UniSportUAQ_API.Controllers
 				});
 			}
 
-			return Ok(new BaseResponse<string>
+			return Ok(new BaseResponse<bool>
 			{
-				Data = "User information updated successfully"
+				Data = true
 			});
 		}
 
-		// Endpoint for getting the current user info
 		[HttpGet("current")]
-		[Authorize] // Ensures the user is authenticated
+		[Authorize]
 		public async Task<IActionResult> GetCurrentUser()
 		{
-			// Retrieve the user ID from the JWT token claims
 			var userEmail = User.FindFirstValue(ClaimTypes.NameIdentifier);
 			if (userEmail == null)
 			{
@@ -217,7 +220,6 @@ namespace UniSportUAQ_API.Controllers
 				});
 			}
 
-			// Find the user in the database
 			var user = await _userManager.FindByEmailAsync(userEmail);
 			if (user == null)
 			{
@@ -227,19 +229,16 @@ namespace UniSportUAQ_API.Controllers
 				});
 			}
 
-			// Return user details as a dictionary
 			return Ok(new BaseResponse<Dictionary<string, object>>
 			{
 				Data = user.ToDictionary
 			});
 		}
 
-		// Endpoint for changing the password
 		[HttpPut("change-password")]
 		[Authorize]
 		public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordModel model)
 		{
-			// Retrieve the user ID from the JWT token claims
 			var userEmail = User.FindFirstValue(ClaimTypes.NameIdentifier);
 			if (userEmail == null)
 			{
@@ -249,7 +248,6 @@ namespace UniSportUAQ_API.Controllers
 				});
 			}
 
-			// Find the user in the database
 			var user = await _userManager.FindByEmailAsync(userEmail);
 			if (user == null)
 			{
@@ -259,7 +257,6 @@ namespace UniSportUAQ_API.Controllers
 				});
 			}
 
-			// Verify the current password
 			var passwordCheck = await _userManager.CheckPasswordAsync(user, model.CurrentPassword);
 			if (!passwordCheck)
 			{
@@ -269,7 +266,6 @@ namespace UniSportUAQ_API.Controllers
 				});
 			}
 
-			// Change the password
 			var result = await _userManager.ChangePasswordAsync(user, model.CurrentPassword, model.NewPassword!);
 			if (!result.Succeeded)
 			{
