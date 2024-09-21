@@ -10,7 +10,7 @@ namespace UniSportUAQ_API.Data.Models
         [Key]
         [Required]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int Id { get; set; }
+        public string? Id { get; set; }
         [Required]
         public string? Day { get; set; }
         [Required]
