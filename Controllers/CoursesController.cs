@@ -873,8 +873,8 @@ namespace UniSportUAQ_API.Controllers
 
 
 
-		//local use
-
+        //local use
+        [ApiExplorerSettings(IgnoreApi =true)]
         private bool IsScheduleConflict(IEnumerable<Horario> existingCourse, List<HorarioSchema> newCourse)
         {
 
@@ -903,6 +903,7 @@ namespace UniSportUAQ_API.Controllers
             return false; // No  Conflict in schedule
         }
 
+        [ApiExplorerSettings(IgnoreApi = true)]
         private bool IsHorarioConflict(List<HorarioSchema> horarios) {
 
             HorarioSchema lastHorario = null;
