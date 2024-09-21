@@ -82,9 +82,9 @@ namespace UniSportUAQ_API.Controllers
 		{
 			var users = new List<UserDTO>();
 			var result = await _usersService.GetAllAsync(
-					u => u.IsAdmin == admin &&
-					u.IsStudent == student &&
-					u.IsInstructor == instructor &&
+					u => u.IsAdmin == admin ||
+					u.IsStudent == student ||
+					u.IsInstructor == instructor ||
 					(u.Name!.Contains(q) || u.LastName!.Contains(q) || u.Expediente!.Contains(q) || u.Email!.Contains(q) || u.PhoneNumber!.Contains(q))
 				);
 
@@ -110,7 +110,7 @@ namespace UniSportUAQ_API.Controllers
 		}
 
 		[HttpGet]
-		[Route("id")]
+		[Route("{id}")]
 		[Authorize]
 		public async Task<IActionResult> GetUserById(string id)
 		{
