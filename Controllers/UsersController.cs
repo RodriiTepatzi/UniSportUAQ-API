@@ -480,9 +480,7 @@ namespace UniSportUAQ_API.Controllers
             oldUser.IsStudent = user.IsStudent;
             oldUser.IsInstructor = user.IsInstructor;
             oldUser.PictureUrl = user.PictureUrl;
-				
 			
-
 			var result = await _usersService.UpdateAsync(oldUser);
 
 			if(result == null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND});
