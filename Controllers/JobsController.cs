@@ -83,12 +83,14 @@ namespace UniSportUAQ_API.Controllers
             }
         }
 
-        // Método sincrónico que llama al método asincrónico
+		// Método sincrónico que llama al método asincrónico
+		[ApiExplorerSettings(IgnoreApi = true)]
         public void CheckTodayAttendance(DateTime date, string courseId, string day)
         {
             CheckTodayAttendanceAsync(date, courseId, day).GetAwaiter().GetResult();
         }
 
+		[ApiExplorerSettings(IgnoreApi = true)]
         public async Task CheckTodayAttendanceAsync(DateTime date, string courseId, string day)
         {
              Console.WriteLine($"Executing VerifyAssistence to day: {day}");
