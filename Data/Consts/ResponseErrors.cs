@@ -31,8 +31,9 @@ namespace UniSportUAQ_API.Data.Consts
 		public static ErrorBase AttributeEmaiInvalidlFormat = new ErrorBase { Code = "ATTR001", Description = "Invalid Email format" };
 		public static ErrorBase AttributeIdInvalidlFormat = new ErrorBase { Code = "ATTR002", Description = "Invalid Id format" };
 		public static ErrorBase AttributeExpedienteInvalidlFormat = new ErrorBase { Code = "ATTR003", Description = "Invalid Expediente format" };
-		//Filters
-		public static ErrorBase FilterStartEndContradiction = new ErrorBase { Code = "FIL001", Description = "Incosnistent Start and End request" };
+        public static ErrorBase AttributeIsInstructorFalse = new ErrorBase { Code = "ATTR004", Description = "this user Is not an instructor" };
+        //Filters
+        public static ErrorBase FilterStartEndContradiction = new ErrorBase { Code = "FIL001", Description = "Incosnistent Start and End request" };
 		public static ErrorBase FilterInvalidSearchTerm = new ErrorBase { Code = "FIL002", Description = "Invalid Search term" };
 		//server
 		public static ErrorBase ServerDataBaseError = new ErrorBase { Code = "DB001", Description = "Internal System Error" };
@@ -46,7 +47,7 @@ namespace UniSportUAQ_API.Data.Consts
 
         public static ErrorBase SysErrorUserAlredyThisRole= new ErrorBase { Code = "SYS001", Description = "Only promote a student to either Instructor/Admin." };
 
-        public static ErrorBase ServerDataBaseErrorUpdating = new ErrorBase { Code = "SYS002", Description = "Not possible for update this entity" };
+        public static ErrorBase ServerDataBaseErrorUpdating = new ErrorBase { Code = "SYS002", Description = "Not possible for update/create this entity try again later" };
         //courses 
         public static ErrorBase CourseNoneInscription = new ErrorBase { Code = "COU001", Description = "This course does not contain inscriptions" };
         public static ErrorBase CourseNotFoundInscription = new ErrorBase { Code = "COU002", Description = "This course does not contain this inscription" };
@@ -54,6 +55,7 @@ namespace UniSportUAQ_API.Data.Consts
         public static ErrorBase CourseInstructorHindered = new ErrorBase { Code = "COU004", Description = "An instructor cannot be in further than one course at the same time. Please change Day or Start and End hour to avoid problems." };
         public static ErrorBase CourseCanNotEnd = new ErrorBase { Code = "COU005", Description = "Can not end this course, please provide info to solve this problem" };
         public static ErrorBase CourseExceedMaxUsers = new ErrorBase { Code = "COU006", Description = "This user cannot be enrolled due to max users already registered on this course." };
+        public static ErrorBase CourseHorarioConfict= new ErrorBase { Code = "COU007", Description = "One or many horarios share day and the active hours are in conflict, try uncrossed hours" };
 
 
         //inscriptions

@@ -343,40 +343,7 @@ namespace UniSportUAQ_API.Controllers
         }
 
         //**********************************GENERIC**********************************//
-        [HttpGet]
-        [Route("all")]
-        [Authorize]
-        public async Task<IActionResult> GetAllUsers()
-        {
-            var result = await _usersService.GetAllAsync();
-
-            if (result.Count() < 1) return NotFound(new BaseResponse<UserDTO> { Data = null });
-
-            var data = new List<UserDTO>();
-
-            foreach (var item in result)
-            {
-
-                var gnrc = new UserDTO
-                {
-
-                    Id = item.Id,
-                    Expediente = item.Expediente,
-                    PictureUrl = item.PictureUrl,
-                    Name = item.Name,
-                    LastName = item.LastName,
-                    IsAdmin = item.IsAdmin,
-                    IsInstructor = item.IsInstructor,
-                    IsStudent = item.IsStudent,
-
-                };
-
-                data.Add(gnrc);
-            }
-
-            return Ok(new BaseResponse<List<UserDTO>> { Data = data });
-
-        }
+        
 
         [HttpGet]
         [Route("email/{email}")]

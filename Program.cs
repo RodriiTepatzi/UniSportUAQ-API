@@ -37,7 +37,7 @@ namespace UniSportUAQ_API
 
             builder.Services.AddDbContext<AppDbContext>(
                 options => options.UseSqlServer(
-                    Configuration.GetConnectionString("DefaultConnectionString"),
+                    Configuration.GetConnectionString("DevelopmentConnectionString"),
                     providerOptions => providerOptions.EnableRetryOnFailure()
                 ))
                 .AddIdentityCore<ApplicationUser>()
@@ -86,6 +86,7 @@ namespace UniSportUAQ_API
             builder.Services.AddTransient<ISubjectsService, SubjectsService>();
             builder.Services.AddTransient<IUtilsService, UtilsService>();
             builder.Services.AddTransient<ITimePeriodsService, TimePeriodsService>();
+            builder.Services.AddTransient<IHorariosService, HorariosService>();
 
             builder.Services.AddControllers();
             builder.Services.AddHttpContextAccessor();

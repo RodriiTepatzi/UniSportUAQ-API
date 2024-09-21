@@ -9,6 +9,8 @@ using UniSportUAQ_API.Data.Models;
 using UniSportUAQ_API.Data.Schemas;
 using UniSportUAQ_API.Data.DTO;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using Org.BouncyCastle.Bcpg;
+using System.Reflection.Metadata.Ecma335;
 
 namespace UniSportUAQ_API.Controllers
 {
@@ -19,13 +21,15 @@ namespace UniSportUAQ_API.Controllers
     {
         private readonly ICoursesService _coursesService;
         private readonly IInscriptionsService _inscriptionsService;
-		private readonly IStudentsService _studentsService;
+		private readonly IUsersService _userService;
+        private readonly IHorariosService _horariosService;
             
-        public CoursesController(ICoursesService coursesService, IInscriptionsService inscriptionsService, IStudentsService studentsService)
+        public CoursesController(ICoursesService coursesService, IInscriptionsService inscriptionsService, IUsersService userService, IHorariosService horariosService)
         {
             _coursesService = coursesService;
             _inscriptionsService = inscriptionsService;
-			_studentsService = studentsService;
+			_userService = userService;
+            _horariosService = horariosService;
         }
 
 		[HttpGet]
@@ -50,6 +54,7 @@ namespace UniSportUAQ_API.Controllers
 					Day = result.Day,
 					MaxUsers = result.MaxUsers,
 					CurrentUsers = result.CurrentUsers,
+                    Horarios = result.Horarios,
 					StartHour = result.StartHour,
 					EndHour = result.EndHour,
 					Description = result.Description,
@@ -92,6 +97,7 @@ namespace UniSportUAQ_API.Controllers
                         Day = item.Day,
                         MaxUsers = item.MaxUsers,
                         CurrentUsers = item.CurrentUsers,
+                        Horarios = item.Horarios,
                         StartHour = item.StartHour,
                         EndHour = item.EndHour,
                         Description = item.Description,
@@ -136,6 +142,7 @@ namespace UniSportUAQ_API.Controllers
                     Day = item.Day,
                     MaxUsers = item.MaxUsers,
                     CurrentUsers = item.CurrentUsers,
+                    Horarios = item.Horarios,
                     StartHour = item.StartHour,
                     EndHour = item.EndHour,
                     Description = item.Description,
@@ -184,6 +191,7 @@ namespace UniSportUAQ_API.Controllers
                     Day = item.Day,
                     MaxUsers = item.MaxUsers,
                     CurrentUsers = item.CurrentUsers,
+                    Horarios = item.Horarios,
                     StartHour = item.StartHour,
                     EndHour = item.EndHour,
                     Description = item.Description,
@@ -228,6 +236,7 @@ namespace UniSportUAQ_API.Controllers
                     Day = item.Day,
                     MaxUsers = item.MaxUsers,
                     CurrentUsers = item.CurrentUsers,
+                    Horarios = item.Horarios,
                     StartHour = item.StartHour,
                     EndHour = item.EndHour,
                     Description = item.Description,
@@ -273,6 +282,7 @@ namespace UniSportUAQ_API.Controllers
                     Day = item.Day,
                     MaxUsers = item.MaxUsers,
                     CurrentUsers = item.CurrentUsers,
+                    Horarios = item.Horarios,
                     StartHour = item.StartHour,
                     EndHour = item.EndHour,
                     Description = item.Description,
@@ -317,6 +327,7 @@ namespace UniSportUAQ_API.Controllers
                     Day = item.Day,
                     MaxUsers = item.MaxUsers,
                     CurrentUsers = item.CurrentUsers,
+                    Horarios = item.Horarios,
                     StartHour = item.StartHour,
                     EndHour = item.EndHour,
                     Description = item.Description,
@@ -369,6 +380,7 @@ namespace UniSportUAQ_API.Controllers
                     Day = item.Day,
                     MaxUsers = item.MaxUsers,
                     CurrentUsers = item.CurrentUsers,
+                    Horarios = item.Horarios,
                     StartHour = item.StartHour,
                     EndHour = item.EndHour,
                     Description = item.Description,
@@ -431,23 +443,32 @@ namespace UniSportUAQ_API.Controllers
 			if(courseSchema.CourseName is null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
             if (courseSchema.Day is null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
 
-            if(!DateTime.TryParse(courseSchema.StartHour, out _)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
-            if(!DateTime.TryParse(courseSchema.EndHour, out _)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
+            if(courseSchema.Horarios!.Count() < 1) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
 
-            if(courseSchema.Day is null)  return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
+            if (courseSchema.Day is null)  return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
             if (courseSchema.InstructorId is null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
-			if(courseSchema.MaxUsers <= 0) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
 
+            if ((await _userService.GetAllAsync(i => i.Id == courseSchema.InstructorId && i.IsInstructor == true)).Count() < 1) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeIsInstructorFalse });
+
+            if (courseSchema.MaxUsers <= 0) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });      
+            
 
             var courses = await _coursesService.GetAllAsync(c => c.InstructorId == courseSchema.InstructorId);
 			
-			if(courses is not null ) {
+			if(courses.Count() > 0 ) {
 
                 foreach (var course in courses)
                 {
-                    if (IsScheduleConflict(course, courseSchema)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.CourseInstructorHindered });
+
+                    var findedHorarios = await _horariosService.GetAllAsync(h => h.CourseId == course.Id);
+
+                    
+                    //delete data in response
+
+                    if (IsScheduleConflict(findedHorarios, courseSchema.Horarios!)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.CourseInstructorHindered });
                     
                 }
+
             }
 
 
@@ -466,13 +487,33 @@ namespace UniSportUAQ_API.Controllers
                 IsActive = true,
 				Location = courseSchema.location,
 				
-				
 			};
+            var result = await _coursesService.AddAsync(NewCourse);
 
-			var result = await _coursesService.AddAsync(NewCourse);
+            if(result != null) { 
 
-			if(result != null) return Ok(new BaseResponse<bool> { Data = true });
+                if(IsHorarioConflict(courseSchema.Horarios!)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.CourseHorarioConfict });
 
+                foreach (var horario in courseSchema.Horarios!)
+                {
+                    
+
+                    var NewHorario = new Horario
+                    {
+                        Id = Guid.NewGuid().ToString(),
+                        Day = horario.Day,
+                        StartHour = horario.StartHour,
+                        EndHour = horario.EndHour,
+                        CourseId = NewCourse.Id
+                    };
+
+                    //create horario
+                    var newHorario = await _horariosService.AddAsync(NewHorario);
+                    if (newHorario == null)  return BadRequest(new BaseResponse<object> {Data = NewHorario, Error = ResponseErrors.ServerDataBaseErrorUpdating }); 
+                }
+                return Ok((new BaseResponse<bool> { Data = true }));
+            }
+           
 			return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.ServerDataBaseErrorUpdating });
         }
 
@@ -523,6 +564,9 @@ namespace UniSportUAQ_API.Controllers
 
             return NotFound(new BaseResponse<bool> { Data = false});
         }
+        /*******************************horarios*******************************/
+
+
 
 
         /*******************************inscriptions*******************************/
@@ -534,7 +578,7 @@ namespace UniSportUAQ_API.Controllers
         {
 			// First we have to check if the courseId and studentId, both exist on our database. Otherwise we shall return an error.
 
-			if (await _studentsService.GetByIdAsync(studentId) is null) return NotFound(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.EntityNotExist});
+			if (await _userService.GetByIdAsync(studentId) is null) return NotFound(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.EntityNotExist});
 			if (await _coursesService.GetByIdAsync(courseId) is null) return NotFound(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.EntityNotExist});
 
 			
@@ -588,7 +632,7 @@ namespace UniSportUAQ_API.Controllers
 		{
 			// First we have to check if the courseId and studentId, both exist on our database. Otherwise we shall return an error.
 
-			if (await _studentsService.GetByIdAsync(studentId) is null) return NotFound(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.EntityNotExist});
+			if (await _userService.GetByIdAsync(studentId) is null) return NotFound(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.EntityNotExist});
 			if (await _coursesService.GetByIdAsync(courseId) is null) return NotFound(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.EntityNotExist});
 
 			var checkIfInCourse = await _inscriptionsService.GetAllAsync(i => i.CourseId == courseId && i.StudentId == studentId);
@@ -605,7 +649,7 @@ namespace UniSportUAQ_API.Controllers
 		{
 			// First we have to check if the courseId and studentId, both exist on our database. Otherwise we shall return an error.
 
-			if (await _studentsService.GetByIdAsync(studentId) is null) return NotFound(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.EntityNotExist});
+			if (await _userService.GetByIdAsync(studentId) is null) return NotFound(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.EntityNotExist});
 
 			var result = await _inscriptionsService.GetAllAsync(i => i.StudentId == studentId);
 
@@ -621,7 +665,7 @@ namespace UniSportUAQ_API.Controllers
 		{
 			// First we have to check if the courseId and studentId, both exist on our database. Otherwise we shall return an error.
 
-			if (await _studentsService.GetByIdAsync(studentId) is null) return NotFound(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.EntityNotExist});
+			if (await _userService.GetByIdAsync(studentId) is null) return NotFound(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.EntityNotExist});
 
 			var result = await _inscriptionsService.GetAllAsync(i => i.StudentId == studentId,
 				i => i.Student!,
@@ -657,7 +701,7 @@ namespace UniSportUAQ_API.Controllers
 		{
 			// First we have to check if the courseId and studentId, both exist on our database. Otherwise we shall return an error.
 
-			if (await _studentsService.GetByIdAsync(studentId) is null) return NotFound(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.EntityNotExist});
+			if (await _userService.GetByIdAsync(studentId) is null) return NotFound(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.EntityNotExist});
 
 			var result = await _inscriptionsService.GetAllAsync(i => i.StudentId == studentId && i.IsFinished == false,
 				i => i.Student!,
@@ -780,7 +824,7 @@ namespace UniSportUAQ_API.Controllers
 		{
 			// First we have to check if the courseId and studentId, both exist on our database. Otherwise we shall return an error.
 
-			if (await _studentsService.GetByIdAsync(studentId) is null) return NotFound(new BaseResponse<bool> { Error = ResponseErrors.EntityNotExist});
+			if (await _userService.GetByIdAsync(studentId) is null) return NotFound(new BaseResponse<bool> { Error = ResponseErrors.EntityNotExist});
 
 			if (await _coursesService.GetByIdAsync(courseId) is null) return NotFound(new BaseResponse<bool> { Error = ResponseErrors.EntityNotExist});
 
@@ -818,26 +862,59 @@ namespace UniSportUAQ_API.Controllers
 
 		//local use
 
-        private bool IsScheduleConflict(Course existingCourse, CourseSchema newCourse)
+        private bool IsScheduleConflict(IEnumerable<Horario> existingCourse, List<HorarioSchema> newCourse)
         {
-            if (existingCourse.Day == newCourse.Day)
+
+
+            if(existingCourse.Count() < 1 || newCourse.Count() < 1) return false;
+
+            foreach(var existingHr in existingCourse)
             {
-                DateTime existingStartHour = DateTime.Parse(existingCourse.StartHour!);
-                DateTime existingEndHour = DateTime.Parse(existingCourse.EndHour!);
 
-                DateTime newStartHour = DateTime.Parse(newCourse.StartHour!);
-                DateTime newEndHour = DateTime.Parse(newCourse.EndHour!);
-
-                if (existingStartHour < newEndHour && newStartHour < existingEndHour)
+                foreach(var newHr in newCourse) 
                 {
-                    return true; // Conflict in schedule
+                    if (existingHr.Day!.ToLower() == newHr.Day!.ToLower())
+                    {
+
+                        if (existingHr.StartHour < newHr.EndHour && newHr.StartHour < existingHr.EndHour)
+                        {
+                            return true; // Conflict in schedule
+                        }
+                    }
+
                 }
+
+            
             }
 
             return false; // No  Conflict in schedule
         }
 
-		
+        private bool IsHorarioConflict(List<HorarioSchema> horarios) {
+
+            HorarioSchema lastHorario = null;
+
+            foreach (var horario in horarios) {
+
+                if (lastHorario != null) {
+
+                    if (horario.Day == lastHorario.Day) {
+
+                        if (horario.StartHour < lastHorario.EndHour && horario.EndHour > lastHorario.StartHour) return true;
+
+                    }
+                    
+                }
+
+                lastHorario = horario;
+
+            }
+
+
+            return false;
+        }
+
+
 
     }
 }
