@@ -21,14 +21,14 @@ namespace UniSportUAQ_API.Controllers
     {
         private readonly ICoursesService _coursesService;
         private readonly IInscriptionsService _inscriptionsService;
-		private readonly IStudentsService _studentsService;
+		private readonly IUsersService _userService;
         private readonly IHorariosService _horariosService;
             
-        public CoursesController(ICoursesService coursesService, IInscriptionsService inscriptionsService, IStudentsService studentsService, IHorariosService horariosService)
+        public CoursesController(ICoursesService coursesService, IInscriptionsService inscriptionsService, IUsersService userService, IHorariosService horariosService)
         {
             _coursesService = coursesService;
             _inscriptionsService = inscriptionsService;
-			_studentsService = studentsService;
+			_userService = userService;
             _horariosService = horariosService;
         }
 
@@ -443,14 +443,14 @@ namespace UniSportUAQ_API.Controllers
 			if(courseSchema.CourseName is null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
             if (courseSchema.Day is null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
 
-            if(!DateTime.TryParse(courseSchema.StartHour, out _)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
-            if(!DateTime.TryParse(courseSchema.EndHour, out _)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
             if(courseSchema.Horarios!.Count() < 1) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
 
             if (courseSchema.Day is null)  return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
             if (courseSchema.InstructorId is null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
-			if(courseSchema.MaxUsers <= 0) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
 
+            if ((await _userService.GetAllAsync(i => i.Id == courseSchema.InstructorId && i.IsInstructor == true)).Count() < 1) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeIsInstructorFalse });
+
+            if (courseSchema.MaxUsers <= 0) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });            
 
             var courses = await _coursesService.GetAllAsync(c => c.InstructorId == courseSchema.InstructorId);
 			
@@ -458,7 +458,7 @@ namespace UniSportUAQ_API.Controllers
 
                 foreach (var course in courses)
                 {
-                    if (IsScheduleConflict(course, courseSchema)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.CourseInstructorHindered });
+                    if (IsScheduleConflict(course.Horarios!, courseSchema.Horarios!)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.CourseInstructorHindered });
                     
                 }
             }
@@ -501,7 +501,7 @@ namespace UniSportUAQ_API.Controllers
 
                     //create horario
                     var newHorario = await _horariosService.AddAsync(NewHorario);
-                    if (newHorario == null)  return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.ServerDataBaseErrorUpdating }); 
+                    if (newHorario == null)  return BadRequest(new BaseResponse<object> {Data = NewHorario, Error = ResponseErrors.ServerDataBaseErrorUpdating }); 
                 }
                 return Ok((new BaseResponse<bool> { Data = true }));
             }
@@ -570,7 +570,7 @@ namespace UniSportUAQ_API.Controllers
         {
 			// First we have to check if the courseId and studentId, both exist on our database. Otherwise we shall return an error.
 
-			if (await _studentsService.GetByIdAsync(studentId) is null) return NotFound(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.EntityNotExist});
+			if (await _userService.GetByIdAsync(studentId) is null) return NotFound(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.EntityNotExist});
 			if (await _coursesService.GetByIdAsync(courseId) is null) return NotFound(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.EntityNotExist});
 
 			
@@ -624,7 +624,7 @@ namespace UniSportUAQ_API.Controllers
 		{
 			// First we have to check if the courseId and studentId, both exist on our database. Otherwise we shall return an error.
 
-			if (await _studentsService.GetByIdAsync(studentId) is null) return NotFound(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.EntityNotExist});
+			if (await _userService.GetByIdAsync(studentId) is null) return NotFound(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.EntityNotExist});
 			if (await _coursesService.GetByIdAsync(courseId) is null) return NotFound(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.EntityNotExist});
 
 			var checkIfInCourse = await _inscriptionsService.GetAllAsync(i => i.CourseId == courseId && i.StudentId == studentId);
@@ -641,7 +641,7 @@ namespace UniSportUAQ_API.Controllers
 		{
 			// First we have to check if the courseId and studentId, both exist on our database. Otherwise we shall return an error.
 
-			if (await _studentsService.GetByIdAsync(studentId) is null) return NotFound(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.EntityNotExist});
+			if (await _userService.GetByIdAsync(studentId) is null) return NotFound(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.EntityNotExist});
 
 			var result = await _inscriptionsService.GetAllAsync(i => i.StudentId == studentId);
 
@@ -657,7 +657,7 @@ namespace UniSportUAQ_API.Controllers
 		{
 			// First we have to check if the courseId and studentId, both exist on our database. Otherwise we shall return an error.
 
-			if (await _studentsService.GetByIdAsync(studentId) is null) return NotFound(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.EntityNotExist});
+			if (await _userService.GetByIdAsync(studentId) is null) return NotFound(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.EntityNotExist});
 
 			var result = await _inscriptionsService.GetAllAsync(i => i.StudentId == studentId,
 				i => i.Student!,
@@ -693,7 +693,7 @@ namespace UniSportUAQ_API.Controllers
 		{
 			// First we have to check if the courseId and studentId, both exist on our database. Otherwise we shall return an error.
 
-			if (await _studentsService.GetByIdAsync(studentId) is null) return NotFound(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.EntityNotExist});
+			if (await _userService.GetByIdAsync(studentId) is null) return NotFound(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.EntityNotExist});
 
 			var result = await _inscriptionsService.GetAllAsync(i => i.StudentId == studentId && i.IsFinished == false,
 				i => i.Student!,
@@ -816,7 +816,7 @@ namespace UniSportUAQ_API.Controllers
 		{
 			// First we have to check if the courseId and studentId, both exist on our database. Otherwise we shall return an error.
 
-			if (await _studentsService.GetByIdAsync(studentId) is null) return NotFound(new BaseResponse<bool> { Error = ResponseErrors.EntityNotExist});
+			if (await _userService.GetByIdAsync(studentId) is null) return NotFound(new BaseResponse<bool> { Error = ResponseErrors.EntityNotExist});
 
 			if (await _coursesService.GetByIdAsync(courseId) is null) return NotFound(new BaseResponse<bool> { Error = ResponseErrors.EntityNotExist});
 
@@ -854,20 +854,27 @@ namespace UniSportUAQ_API.Controllers
 
 		//local use
 
-        private bool IsScheduleConflict(Course existingCourse, CourseSchema newCourse)
+        private bool IsScheduleConflict(IEnumerable<Horario> existingCourse, List<HorarioSchema> newCourse)
         {
-            if (existingCourse.Day == newCourse.Day)
+            if(existingCourse.Count() < 1 || newCourse.Count() < 1) return true;
+
+            foreach(var existingHr in existingCourse)
             {
-                DateTime existingStartHour = DateTime.Parse(existingCourse.StartHour!);
-                DateTime existingEndHour = DateTime.Parse(existingCourse.EndHour!);
 
-                DateTime newStartHour = DateTime.Parse(newCourse.StartHour!);
-                DateTime newEndHour = DateTime.Parse(newCourse.EndHour!);
-
-                if (existingStartHour < newEndHour && newStartHour < existingEndHour)
+                foreach(var newHr in newCourse) 
                 {
-                    return true; // Conflict in schedule
+                    if (existingHr.Day == newHr.Day)
+                    {
+
+                        if (existingHr.StartHour < newHr.EndHour && newHr.StartHour < existingHr.EndHour)
+                        {
+                            return true; // Conflict in schedule
+                        }
+                    }
+
                 }
+
+            
             }
 
             return false; // No  Conflict in schedule

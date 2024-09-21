@@ -254,11 +254,9 @@ namespace UniSportUAQ_API.Migrations
 
             modelBuilder.Entity("UniSportUAQ_API.Data.Models.Horario", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<string>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("CourseId")
                         .IsRequired()

@@ -12,8 +12,8 @@ using UniSportUAQ_API.Data;
 namespace UniSportUAQ_API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20240920201414_addedHorarios")]
-    partial class addedHorarios
+    [Migration("20240921011658_cratehorarios")]
+    partial class cratehorarios
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -257,11 +257,9 @@ namespace UniSportUAQ_API.Migrations
 
             modelBuilder.Entity("UniSportUAQ_API.Data.Models.Horario", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<string>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("CourseId")
                         .IsRequired()
@@ -274,7 +272,7 @@ namespace UniSportUAQ_API.Migrations
                     b.Property<TimeSpan>("EndHour")
                         .HasColumnType("time");
 
-                    b.Property<TimeSpan>("Time")
+                    b.Property<TimeSpan>("StartHour")
                         .HasColumnType("time");
 
                     b.HasKey("Id");

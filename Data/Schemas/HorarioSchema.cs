@@ -4,6 +4,8 @@ namespace UniSportUAQ_API.Data.Schemas
 {
     public class HorarioSchema
     {
+        public string? Id { get; set; }
+        
         public string? Day { get; set; }
         
         public TimeSpan StartHour { get; set; }

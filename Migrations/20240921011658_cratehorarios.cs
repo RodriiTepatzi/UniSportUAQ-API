@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace UniSportUAQ_API.Migrations
 {
     /// <inheritdoc />
-    public partial class addedHorarios : Migration
+    public partial class cratehorarios : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -15,10 +15,9 @@ namespace UniSportUAQ_API.Migrations
                 name: "Horarios",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     Day = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Time = table.Column<TimeSpan>(type: "time", nullable: false),
+                    StartHour = table.Column<TimeSpan>(type: "time", nullable: false),
                     EndHour = table.Column<TimeSpan>(type: "time", nullable: false),
                     CourseId = table.Column<string>(type: "nvarchar(450)", nullable: false)
                 },
