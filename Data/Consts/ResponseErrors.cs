@@ -16,6 +16,7 @@ namespace UniSportUAQ_API.Data.Consts
 		public static ErrorBase AuthErrorUpdatingUser = new ErrorBase { Code = "AU010", Description = "Error updating user" };
 		public static ErrorBase AuthInvalidCurrentPassword = new ErrorBase { Code = "AU011", Description = "Invalid current password" };
 		public static ErrorBase AuthErrorChangingPassword = new ErrorBase { Code = "AU012", Description = "Error changing password" };
+		public static ErrorBase AuthRefreshTokenExpired = new ErrorBase { Code = "AU013", Description = "Refresh token expired" };
 
 		//User
 		public static ErrorBase UserNotAnStudent = new ErrorBase { Code = "USR001", Description = "User founded but is not an student" };
