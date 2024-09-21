@@ -450,17 +450,25 @@ namespace UniSportUAQ_API.Controllers
 
             if ((await _userService.GetAllAsync(i => i.Id == courseSchema.InstructorId && i.IsInstructor == true)).Count() < 1) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeIsInstructorFalse });
 
-            if (courseSchema.MaxUsers <= 0) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });            
+            if (courseSchema.MaxUsers <= 0) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });      
+            
 
             var courses = await _coursesService.GetAllAsync(c => c.InstructorId == courseSchema.InstructorId);
 			
-			if(courses is not null ) {
+			if(courses.Count() > 0 ) {
 
                 foreach (var course in courses)
                 {
-                    if (IsScheduleConflict(course.Horarios!, courseSchema.Horarios!)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.CourseInstructorHindered });
+
+                    var findedHorarios = await _horariosService.GetAllAsync(h => h.CourseId == course.Id);
+
+                    
+                    //delete data in response
+
+                    if (IsScheduleConflict(findedHorarios, courseSchema.Horarios!)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.CourseInstructorHindered });
                     
                 }
+
             }
 
 
@@ -856,14 +864,16 @@ namespace UniSportUAQ_API.Controllers
 
         private bool IsScheduleConflict(IEnumerable<Horario> existingCourse, List<HorarioSchema> newCourse)
         {
-            if(existingCourse.Count() < 1 || newCourse.Count() < 1) return true;
+
+
+            if(existingCourse.Count() < 1 || newCourse.Count() < 1) return false;
 
             foreach(var existingHr in existingCourse)
             {
 
                 foreach(var newHr in newCourse) 
                 {
-                    if (existingHr.Day == newHr.Day)
+                    if (existingHr.Day!.ToLower() == newHr.Day!.ToLower())
                     {
 
                         if (existingHr.StartHour < newHr.EndHour && newHr.StartHour < existingHr.EndHour)
