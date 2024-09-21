@@ -978,29 +978,24 @@ namespace UniSportUAQ_API.Controllers
             var oldUser = await _usersService.GetByIdAsync(user.Id);
 
             if (oldUser == null) return Ok(new DataResponse { Data = null , ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND});
-
-			var userUpdt = new ApplicationUser { 
-
-				Id = oldUser.Id,
-				Name = user.Name,
-				LastName = user.LastName,
-				PhoneNumber = user.PhoneNumber,
-				Email = user.Email,
-				IsInFIF = user.IsInFIF,
-				Semester = user.Semester,
-				IsActive = user.IsActive,
-				IsAdmin = user.IsAdmin,
-				IsStudent = user.IsStudent,
-				IsInstructor = user.IsInstructor,
-				PictureUrl = user.PictureUrl,
+	
+			oldUser.PhoneNumber = user.PhoneNumber;
+            oldUser.Email = user.Email;
+            oldUser.IsInFIF = user.IsInFIF;
+            oldUser.Semester = user.Semester;
+            oldUser.IsActive = user.IsActive;
+            oldUser.IsAdmin = user.IsAdmin;
+            oldUser.IsStudent = user.IsStudent;
+            oldUser.IsInstructor = user.IsInstructor;
+            oldUser.PictureUrl = user.PictureUrl;
 				
-			};
+			
 
-			var result = await _usersService.UpdateAsync(userUpdt);
+			var result = await _usersService.UpdateAsync(oldUser);
 
 			if(result == null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND});
 
-            return Ok(new DataResponse { Data = userUpdt.ToDictionary, ErrorMessage = null});
+            return Ok(new DataResponse { Data = oldUser.ToDictionary, ErrorMessage = null});
 		}
 
     }
