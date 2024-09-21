@@ -12,7 +12,7 @@ namespace UniSportUAQ_API.Data.DTO
         public string? Day { get; set; }
         public int MaxUsers { get; set; }
         public int CurrentUsers { get; set; }
-        public IEnumerable<Horario>? Horarios { get; set; }
+        public List<HorarioDTO>? Horarios { get; set; }
         public string? StartHour { get; set; }
         public string? EndHour { get; set; }
         public string? Description { get; set; }
