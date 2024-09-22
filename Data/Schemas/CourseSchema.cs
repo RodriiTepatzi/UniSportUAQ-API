@@ -15,7 +15,6 @@
 		public string? Description { get; set; }
         public string? SubjectId { get; set; }
 		public int MaxUsers { get; set; }
-
         public string? location { get; set; }
 
 
