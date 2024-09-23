@@ -37,6 +37,17 @@ namespace UniSportUAQ_API.Controllers
         }
 
         [HttpGet]
+        [Route("count")]
+        [Authorize]
+        public async Task<IActionResult> GetCourseCount() {
+        
+            var courses = await _coursesService.GetAllAsync(i => i.IsActive == true);
+            var count = courses.Count();
+
+            return Ok(new BaseResponse<int>{ Data = count});
+        }
+
+        [HttpGet]
         [Route("id/{id}")]
         [Authorize]
         public async Task<IActionResult> GetCourseById(string id)
