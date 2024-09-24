@@ -80,7 +80,18 @@ namespace UniSportUAQ_API.Controllers
 
 		}
 
-		[HttpGet]
+        [HttpGet]
+        [Route("count")]
+        [Authorize]
+        public async Task<IActionResult> GetUsersCount() {
+
+            var usercount = await _usersService.GetAllAsync(i => i.IsActive == true);
+            var count= usercount.Count();
+
+            return Ok(new BaseResponse<int> { Data = count });
+        }
+
+        [HttpGet]
 		[Route("filter")]
 		[Authorize]
 		public async Task<IActionResult> GetUsersByFilter(

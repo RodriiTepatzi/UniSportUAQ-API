@@ -37,7 +37,7 @@ namespace UniSportUAQ_API
 
             builder.Services.AddDbContext<AppDbContext>(
                 options => options.UseSqlServer(
-                    Configuration.GetConnectionString("DevelopmentConnectionString"),
+                    Configuration.GetConnectionString("DefaultConnectionString"),
                     providerOptions => providerOptions.EnableRetryOnFailure()
                 ))
                 .AddIdentityCore<ApplicationUser>()
@@ -130,7 +130,8 @@ namespace UniSportUAQ_API
                 pattern: "{controller=Home}/{action=Index}/{id?}"
             );
 
-            app.UseHangfireDashboard();
+            app.UseHangfireDashboard("/hangfire");
+
 
             //DatabaseInitializer.FeedUsersAndRoles(app);
             //DatabaseInitializer.FeedDatabase(app);
