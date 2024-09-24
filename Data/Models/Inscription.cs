@@ -43,7 +43,7 @@ namespace UniSportUAQ_API.Data.Models
 			{ nameof(Course), Course is not null ? Course.Dictionary : ""  },
 			{ nameof(Grade), Grade},
 			{ nameof(Accredit), Accredit},
-			{ nameof(IsFinished), IsFinished}
+            { nameof(IsFinished), IsFinished}
 		};
 
 		public Dictionary<string, object> ToDictionaryWithNoStudent() => new Dictionary<string, object>

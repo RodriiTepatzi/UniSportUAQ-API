@@ -742,6 +742,124 @@ namespace UniSportUAQ_API.Controllers
             return NotFound(new BaseResponse<InscriptionDTO> { Data = null });
         }
 
+        [HttpPut]
+        [Route("inscription/unenrolled/{courseId}/{studentId}")]
+        [Authorize] 
+        public async Task<IActionResult> UnenrolledStudent(string courseId, string studentId)
+        {
+            //check exists
+            if (await _coursesService.GetByIdAsync(courseId) is null) return NotFound(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.EntityNotExist });
+
+            if (await _userService.GetByIdAsync(studentId) is null) return NotFound(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.EntityNotExist });
+
+            //check inscription
+            var result = await _inscriptionsService.GetAllAsync(i => i.CourseId == courseId && i.StudentId == studentId);
+
+            if (!result.Any()) return BadRequest(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.CourseNotFoundInscription });
+
+            //update inscription
+            var inscription = result.FirstOrDefault();
+            if (inscription != null)
+            {
+                inscription.IsFinished = true; 
+                await _inscriptionsService.UpdateAsync(inscription);
+
+                //update inscriptions
+                var fromCourse = await _coursesService.GetByIdAsync(courseId);
+                if (fromCourse != null && fromCourse.CurrentUsers > 0)
+                {
+                    fromCourse.CurrentUsers--;
+                    await _coursesService.UpdateAsync(fromCourse);
+                }
+
+                return Ok(new BaseResponse<bool> { Data = true });
+            }
+
+            return BadRequest(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.ServerDataBaseError });
+        }
+
+        [HttpPut]
+        [Route("inscription/switchstudents/{inscription1}/{inscription2}")]
+        [Authorize]
+        public async Task<IActionResult> TransferStudent(string inscription1, string inscription2)
+        {
+
+
+            //check exists
+            if (await _inscriptionsService.GetByIdAsync(inscription1) is null) return NotFound(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.EntityNotExist });
+
+            if (await _inscriptionsService.GetByIdAsync(inscription2) is null) return NotFound(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.EntityNotExist });
+
+            //guardar en dos ver ins1 y la 2
+
+            //obtener todas las asistencias de ins1 por courso y alumno con attendances service getall(params)
+            //cambiar el course id de ins 1 por el course id de ins2
+
+            //obtener todas las asistencias de ins2 por courso y alumno con attendances service getall(params)
+            //cambiar el course id de ins 2 por el course id de ins1
+
+            //guardar ambos con update async
+
+            //si se guardan correctamente cambiar ins1 course por ins2 course y cambiar ins2 course por ins1 course
+
+            //si se guarda satisfactoriamente return ok data true
+
+            //check current inscription
+            var currentInscription = await _inscriptionsService.GetAllAsync(i => i.CourseId == fromCourseId && i.StudentId == studentId);
+
+            if (!currentInscription.Any()) return BadRequest(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.CourseNotFoundInscription });
+
+            //update course
+            
+            var inscription = currentInscription.FirstOrDefault();
+
+            if (inscription != null)
+            {
+                //delete inscription
+                inscription.IsFinished = true;
+                await _inscriptionsService.UpdateAsync(inscription);
+                //await _inscriptionsService.DeleteAsync(inscription);
+
+                //update inscriptions
+                var fromCourse = await _coursesService.GetByIdAsync(fromCourseId);
+                if (fromCourse != null && fromCourse.CurrentUsers > 0)
+                {
+                    fromCourse.CurrentUsers--; 
+                    await _coursesService.UpdateAsync(fromCourse);
+                }
+
+            }
+
+            //check new inscription
+            var newCourseInscription = await _inscriptionsService.GetAllAsync(i => i.CourseId == toCourseId && i.StudentId == studentId);
+            if (newCourseInscription.Any()) return BadRequest(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.InscriptionAlreadyExist });
+
+            //new inscription
+            var newInscription = new Inscription
+            {
+                DateInscription = DateTime.Now,
+                Accredit = false,
+                CourseId = toCourseId,
+                StudentId = studentId
+            };
+
+            //check capacity
+            var toCourse = await _coursesService.GetByIdAsync(toCourseId);
+            if (toCourse != null)
+            {
+                if (toCourse.CurrentUsers >= toCourse.MaxUsers) return BadRequest(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.CourseExceedMaxUsers });
+
+                toCourse.CurrentUsers++;
+                await _coursesService.UpdateAsync(toCourse);
+            }
+
+            var inscriptionResult = await _inscriptionsService.AddAsync(newInscription);
+            if (inscriptionResult == null) return BadRequest(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.ServerDataBaseError });
+
+            return Ok(new BaseResponse<bool> { Data = true });
+        }
+
+
         [HttpGet]
         [Route("inscription/finished/{studentId}")]
         [Authorize]
