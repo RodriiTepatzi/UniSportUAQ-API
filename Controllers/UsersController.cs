@@ -11,6 +11,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.Extensions.Hosting.Internal;
+using Microsoft.Identity.Client;
 using UniSportUAQ_API.Data.Base;
 using UniSportUAQ_API.Data.Consts;
 using UniSportUAQ_API.Data.DTO;
@@ -30,12 +32,16 @@ namespace UniSportUAQ_API.Controllers
 		private readonly UserManager<ApplicationUser> _userManager;
 		private readonly ICoursesService _coursesService;
 		private readonly IInscriptionsService _inscriptionsService;
-		public UsersController(IUsersService usersService, UserManager<ApplicationUser> userManager, ICoursesService coursesService, IInscriptionsService inscriptionsService)
+        private readonly IWebHostEnvironment _hostingEnvironment;
+
+		public UsersController(IUsersService usersService, UserManager<ApplicationUser> userManager, ICoursesService coursesService, IInscriptionsService inscriptionsService,
+            IWebHostEnvironment hostingEnvironment)
 		{
 			_usersService = usersService;
 			_userManager = userManager;
 			_coursesService = coursesService;
 			_inscriptionsService = inscriptionsService;
+            _hostingEnvironment = hostingEnvironment;
 		}
 
 
@@ -308,53 +314,63 @@ namespace UniSportUAQ_API.Controllers
         }
 
         //**********************************PROFILE-PICTURE**********************************//
-        [HttpPost]
+        [HttpPut]
         [Route("update/image")]
         [Authorize]
         public async Task<IActionResult> UpdateImage([FromBody] ImageProfile imageBytes)
         {
+            if (imageBytes.Image == null || imageBytes.Image.Length == 0)
+                return BadRequest(new BaseResponse<bool> { Data = false, Error = ResponseErrors.AttributeEmptyOrNull });
 
-            //recibir imagen
-            //comprobar si se recibe la imagen
-            if (imageBytes.Image == null || imageBytes.Image.Length == 0) return BadRequest(new BaseResponse<bool> {Data = false, Error = ResponseErrors.AttributeEmptyOrNull});
+            var fileName = Guid.NewGuid() + imageBytes.FileFormat;
+            string folderPath = "users/uploads/profile";
+            string filePath = Path.Combine(_hostingEnvironment.WebRootPath, folderPath);
 
-            //generar el nombre de la imagen
-            var fileName = Guid.NewGuid() + ".jpg";
-            var path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/users/profile/", fileName);
+            if (!Directory.Exists(filePath))
+                Directory.CreateDirectory(filePath);
 
             try
             {
-                //guardar la imagen
-                await System.IO.File.WriteAllBytesAsync(path, imageBytes.Image);
+                var path = Path.Combine(filePath, fileName);
 
-                //obtener url de la imagen 
-                var imageUrl = Url.Content($"~/images/users/profile/{fileName}");
+                var base64Image = Convert.ToBase64String(imageBytes.Image);
 
-                //id del usuario
+                using (var fs = new FileStream(path, FileMode.Create))
+                {
+                    await fs.WriteAsync(Convert.FromBase64String(base64Image), 0, imageBytes.Image.Length);
+                }
+
                 var userEmail = User.FindFirstValue(ClaimTypes.Email);
                 var user = await _userManager.FindByEmailAsync(userEmail);
 
-                //guardarla url al usuario
+                var imageUrl = $"{Request.Scheme}://{Request.Host}/{folderPath}/{fileName}";
+
                 user.PictureUrl = imageUrl;
 
-                //actualizo
                 var result = await _usersService.UpdateAsync(user);
 
-                //responder con un true o false
-                return Ok(new BaseResponse<bool>
+                if (result != null)
                 {
-                    Data = true,
-                    Error = null
-                });
+                    return Ok(new BaseResponse<bool>
+                    {
+                        Data = true,
+                        Error = null
+                    });
+                }
+                else
+                {
+                    return StatusCode(500, new BaseResponse<bool> { Data = false, Error = ResponseErrors.ServerDataBaseError });
+                }
             }
             catch
             {
-                return StatusCode(500, new BaseResponse<bool> {Data = false, Error = ResponseErrors.ServerDataBaseError});
+                return StatusCode(500, new BaseResponse<bool> { Data = false, Error = ResponseErrors.ServerDataBaseError });
             }
         }
 
+
         //**********************************GENERIC**********************************//
-        
+
 
         [HttpGet]
         [Route("email/{email}")]
