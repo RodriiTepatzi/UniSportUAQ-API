@@ -94,7 +94,7 @@ namespace UniSportUAQ_API
 
             //hangfire
             builder.Services.AddHangfire((sp, config) => {
-                var connectionHangfire = sp.GetRequiredService<IConfiguration>().GetConnectionString("HangfireConnection");
+                var connectionHangfire = sp.GetRequiredService<IConfiguration>().GetConnectionString("DefaultConnectionString");
                 config.UseSqlServerStorage(connectionHangfire); 
             
             });
