@@ -6,7 +6,6 @@ using UniSportUAQ_API.Data.Consts;
 using UniSportUAQ_API.Data.Models;
 using UniSportUAQ_API.Data.Schemas;
 using UniSportUAQ_API.Data.Interfaces;
-
 using UniSportUAQ_API.Data.Base;
 
 
@@ -36,7 +35,7 @@ namespace UniSportUAQ_API.Controllers
         }
 
         [HttpGet]
-        [Route("download-pdf")]
+        [Route("download-pdf/{id}")]
         [Authorize]
         public async Task<IActionResult> DownloadPdf(string id)
         {
@@ -49,7 +48,8 @@ namespace UniSportUAQ_API.Controllers
 
                 var filePath = carta.Url;
                 var fileBytes = System.IO.File.ReadAllBytes(filePath!);
-                var fileName = "archivo.pdf";
+                //clean file name
+                var fileName = filePath!.Split('\\').Last();
                 return Ok(File(fileBytes, "aplication/pdf", fileName));
 
             }
@@ -138,7 +138,7 @@ namespace UniSportUAQ_API.Controllers
             //check existance and limit of liberation
             var result = await _cartasLiberacionService.GetAllAsync(c => c.StudentId == schema.StudentId!, c => c.Course!, c => c.Student!);
 
-            if (result is not null && result.Count() >= 6) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.LIBERATION_LIMIT});
+            if (result is not null && result.Count() >= 3) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.LIBERATION_LIMIT});
 
             foreach (CartaLiberacion carta in result!) {
 
@@ -150,17 +150,23 @@ namespace UniSportUAQ_API.Controllers
             //get student course and instructor
 
             var  course = await _coursesService.GetByIdAsync(schema.CourseId!);
+            if (course == null) return BadRequest(new DataResponse { Data = null, ErrorMessage = "course null" });
 
             var student = await _studentsService.GetByIdAsync(schema.StudentId!);
+            if (student == null) return BadRequest(new DataResponse { Data = null, ErrorMessage = "student null" });
 
-            var instructor = await _instructorsService.GetByIdAsync(schema.InstructorId!);
+            var instructor = await _instructorsService.GetByIdAsync(course.InstructorId!);
+            if (instructor == null) return BadRequest(new DataResponse { Data = null, ErrorMessage = "instructor null" });
 
-            var inscriptions = await _inscriptionsService.GetAllAsync(i => i.StudentId == schema.StudentId! && i.CourseId == schema.CourseId!,
+            var inscriptions = await _inscriptionsService.GetAllAsync(i => 
+                i.StudentId == schema.StudentId! && 
+                i.CourseId == schema.CourseId!,
 				i => i.Student!,
 				i => i.Course!
 			);
+            if (course == null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.STUDENT_NOT_ACCREDITED });
 
-			var inscript = inscriptions.FirstOrDefault();
+            var inscript = inscriptions.FirstOrDefault();
 
 			//check if concluded and aprobed course by inscription
 
@@ -171,8 +177,18 @@ namespace UniSportUAQ_API.Controllers
 
 				try
 				{
+                    var data = new CartaModel
+                    {
+                        Expediente = student!.Expediente,
+                        StudentName = student.FullName,
+                        Grupo = student.Group,
+                        StudyPlan = student.StudyPlan,
+                        CourseName = course!.CourseName,
+                        InstructorName = instructor!.FullName
+                    };
+
                     //Generate byteArray
-                    byte[] streamBytes = GeneratePDf(student!, instructor!, course!);
+                    byte[] streamBytes = GeneratePDf(data);
 
                     if(streamBytes.Length < 1) return BadRequest(new DataResponse { Data = null, ErrorMessage = "Error generating carta"});
 
@@ -231,7 +247,7 @@ namespace UniSportUAQ_API.Controllers
 
         //create carta local
 
-        private byte[] GeneratePDf(ApplicationUser student, ApplicationUser instructor, Course course) 
+        private byte[] GeneratePDf(CartaModel data) 
         {
 
 
@@ -291,9 +307,9 @@ namespace UniSportUAQ_API.Controllers
                     // Celda de información lateral
                     PdfPTable sideTable = new PdfPTable(1);
                     sideTable.DefaultCell.Border = Rectangle.NO_BORDER;
-                    sideTable.AddCell(new Phrase("Expediente: " + student.Expediente, bodyFont)); // Reemplazar con el expediente real
-                    sideTable.AddCell(new Phrase("Grupo: " + student.Group, bodyFont)); // Reemplazar con el grupo real
-                    sideTable.AddCell(new Phrase("Plan de Estudios: " + student.StudyPlan, bodyFont)); // Reemplazar con el plan de estudios real
+                    sideTable.AddCell(new Phrase("Expediente: " + data.Expediente, bodyFont)); // Reemplazar con el expediente real
+                    sideTable.AddCell(new Phrase("Grupo: " + data.Grupo, bodyFont)); // Reemplazar con el grupo real
+                    sideTable.AddCell(new Phrase("Plan de Estudios: " + data.StudyPlan, bodyFont)); // Reemplazar con el plan de estudios real
                     PdfPCell sideCell = new PdfPCell(sideTable);
                     sideCell.Border = Rectangle.NO_BORDER;
                     mainTable.AddCell(sideCell);
@@ -305,8 +321,8 @@ namespace UniSportUAQ_API.Controllers
                     Paragraph body = new Paragraph
             {
                 new Phrase("Por el presente medio:\n\n", bodyFont),
-                new Phrase("Se informa de la liberación en relación con la participación del alumno "+student.FullName+" con expediente "+student.Expediente+" en el taller "+course.CourseName+". En reconocimiento del cumplimiento satisfactorio con los requisitos establecidos y ha finalizado exitosamente su participación en el taller nos complace emitir este documento de liberación.\n\n", bodyFont),
-                new Phrase("Por medio de esta carta, "+instructor.FullName+" declara que el alumno "+student.FullName+" ha completado el curso correspondiente al taller deportivo con éxito y ha cumplido con todas las obligaciones y responsabilidades requeridas durante su participación en el mismo.\n\n", bodyFont),
+                new Phrase("Se informa de la liberación en relación con la participación del alumno "+data.StudentName+" con expediente "+data.Expediente+" en el taller "+data.CourseName+". En reconocimiento del cumplimiento satisfactorio con los requisitos establecidos y ha finalizado exitosamente su participación en el taller nos complace emitir este documento de liberación.\n\n", bodyFont),
+                new Phrase("Por medio de esta carta, "+data.InstructorName+" declara que el alumno "+data.StudentName+" ha completado el curso correspondiente al taller deportivo con éxito y ha cumplido con todas las obligaciones y responsabilidades requeridas durante su participación en el mismo.\n\n", bodyFont),
                 new Phrase("Le agradecemos sinceramente su interés y participación en nuestro taller deportivo.\n\n", bodyFont),
                 new Phrase("Esperamos haber contribuido positivamente a su desarrollo y crecimiento en el ámbito deportivo, y le deseamos éxito continuo en sus futuras actividades y metas deportivas.\n", bodyFont)
         };
@@ -317,8 +333,8 @@ namespace UniSportUAQ_API.Controllers
                     Paragraph firma = new Paragraph
             {
                 new Phrase("ATENTAMENTE,\n\n", bodyFont),
-                new Phrase(instructor.FullName+"\n", bodyFont), // Reemplazar con el nombre del instructor real
-            new Phrase(course.CourseName+"\n", bodyFont) // Reemplazar con el nombre del taller real
+                new Phrase(data.InstructorName+"\n", bodyFont), // Reemplazar con el nombre del instructor real
+                new Phrase(data.CourseName+"\n", bodyFont) // Reemplazar con el nombre del taller real
         };
                     firma.Alignment = Element.ALIGN_CENTER;
                     firma.SpacingAfter = 50;

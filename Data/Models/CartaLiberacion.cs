@@ -30,6 +30,8 @@ namespace UniSportUAQ_API.Data.Models
         [ForeignKey("CourseId")]
         public Course? Course { get; set; }
 
+        
+
 		public Dictionary<string, object> Dictionary => new Dictionary<string, object>
 		{
 			{ nameof(Id), Id ?? string.Empty },
