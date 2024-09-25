@@ -56,7 +56,7 @@ namespace UniSportUAQ_API.Data.Consts
         public static ErrorBase CourseCanNotEnd = new ErrorBase { Code = "COU005", Description = "Can not end this course, please provide info to solve this problem" };
         public static ErrorBase CourseExceedMaxUsers = new ErrorBase { Code = "COU006", Description = "This user cannot be enrolled due to max users already registered on this course." };
         public static ErrorBase CourseHorarioConfict= new ErrorBase { Code = "COU007", Description = "One or many horarios share day and the active hours are in conflict, try uncrossed hours" };
-
+		public static ErrorBase CourseEndInscriptionProblem = new ErrorBase { Code = "COU008", Description = "Cpurses ended BUT Could not end inscriptions for the folowing users id" };
 
         //inscriptions
         public static ErrorBase InscriptionNotAecredit= new ErrorBase { Code = "INS001", Description = "Not possible to accredit this course to this inscription, please check asistence quantity" };
