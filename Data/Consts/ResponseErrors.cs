@@ -32,6 +32,11 @@ namespace UniSportUAQ_API.Data.Consts
 		public static ErrorBase AttributeIdInvalidlFormat = new ErrorBase { Code = "ATTR002", Description = "Invalid Id format" };
 		public static ErrorBase AttributeExpedienteInvalidlFormat = new ErrorBase { Code = "ATTR003", Description = "Invalid Expediente format" };
         public static ErrorBase AttributeIsInstructorFalse = new ErrorBase { Code = "ATTR004", Description = "this user Is not an instructor" };
+        public static ErrorBase AttributeSchemaEmpty = new ErrorBase { Code = "ATTR005", Description = "schema Empty" };
+        public static ErrorBase AttributeNameEmpty = new ErrorBase { Code = "ATTR006", Description = "Name Empty" };
+
+        public static ErrorBase AttributeHorariosEmpty = new ErrorBase { Code = "ATTR007", Description = "horarios Empty" };
+
         //Filters
         public static ErrorBase FilterStartEndContradiction = new ErrorBase { Code = "FIL001", Description = "Incosnistent Start and End request" };
 		public static ErrorBase FilterInvalidSearchTerm = new ErrorBase { Code = "FIL002", Description = "Invalid Search term" };

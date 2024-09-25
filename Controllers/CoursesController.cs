@@ -476,11 +476,11 @@ namespace UniSportUAQ_API.Controllers
         [Authorize]
         public async Task<IActionResult> AddToCourse([FromBody] CourseSchema courseSchema)
         {
-            if (courseSchema == null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
-            if (courseSchema.CourseName is null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
+            if (courseSchema == null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeSchemaEmpty });
+            if (courseSchema.CourseName is null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeNameEmpty });
             if (courseSchema.Day is null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
 
-            if (courseSchema.Horarios!.Count() < 1) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
+            if (courseSchema.Horarios!.Count() < 1) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeHorariosEmpty });
 
             if (courseSchema.Day is null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
             if (courseSchema.InstructorId is null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
@@ -615,7 +615,7 @@ namespace UniSportUAQ_API.Controllers
                     //execute next lines
 
                     //count the assitance for that inscription 
-                    var assistance = await _attendancesService.GetAllAsync(i => i.StudentId == inscription.StudentId && i.CourseId == inscription.CourseId);
+                    var assistance = await _attendancesService.GetAllAsync(i => i.StudentId == inscription.StudentId && i.CourseId == inscription.CourseId && i.AttendanceClass == true);
 
                     var countAttendance = assistance.Count();
 
@@ -1322,7 +1322,8 @@ namespace UniSportUAQ_API.Controllers
                             //execute next lines
 
                             //count the assitance for that inscription 
-                            var assistance = await _attendancesService.GetAllAsync(i => i.StudentId == inscription.StudentId && i.CourseId == inscription.CourseId);
+                            var assistance = await _attendancesService.GetAllAsync(i => i.StudentId == inscription.StudentId && i.CourseId == inscription.CourseId
+                            && i.AttendanceClass == true);
 
                             var countAttendance = assistance.Count();
 
