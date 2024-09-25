@@ -344,18 +344,24 @@ namespace UniSportUAQ_API.Controllers
                 byte[] imageBytes = Convert.FromBase64String(Data.Base64Image);
 
                 //set directory
-                string baseDirectory = Directory.GetCurrentDirectory();
-                string folderPath = Path.Combine(baseDirectory, "ProfilePicture");
+                string baseDirectory = _hostingEnvironment.WebRootPath;
+                string folderPath = Path.Combine(baseDirectory, "users");
+                string concretePath = Path.Combine(folderPath, "profile");
 
                 // Crear la carpeta si no existe
-                if (!Directory.Exists(folderPath))
+                if (!Directory.Exists(concretePath))
                 {
-                    Directory.CreateDirectory(folderPath);
+                    Directory.CreateDirectory(concretePath);
                 }
+                
 
-                string? filePath = Path.Combine(folderPath, $"{user.Expediente}.{Data.FileFormat}");
+                string? filePath = Path.Combine(concretePath, $"{user.Expediente}.{Data.FileFormat}");
 
                 await System.IO.File.WriteAllBytesAsync(filePath, imageBytes);
+
+                user.PictureUrl = $"/users/profile/{user.Expediente}.{Data.FileFormat}";
+
+                await _usersService.UpdateAsync(user);
 
                 return Ok(new BaseResponse<bool> { Data = true });
 

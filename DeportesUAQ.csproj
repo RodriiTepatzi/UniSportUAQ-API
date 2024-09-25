@@ -10,6 +10,12 @@
   <PropertyGroup Condition=" '$(RunConfiguration)' == 'https' " />
   <PropertyGroup Condition=" '$(RunConfiguration)' == 'http' " />
   <ItemGroup>
+    <Compile Remove="CartasLiberacion\**" />
+    <Content Remove="CartasLiberacion\**" />
+    <EmbeddedResource Remove="CartasLiberacion\**" />
+    <None Remove="CartasLiberacion\**" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Firebase.Auth" Version="1.0.0" />
     <PackageReference Include="FirebaseStorage.net" Version="1.0.3" />
     <PackageReference Include="Hangfire.AspNetCore" Version="1.8.14" />
@@ -32,7 +38,6 @@
     <PackageReference Include="System.Text.Encoding.CodePages" Version="8.0.0" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="CartasLiberacion\" />
     <Folder Include="Migrations\" />
   </ItemGroup>
 
