@@ -62,6 +62,9 @@ namespace UniSportUAQ_API.Data.Models
 		[DefaultValue(0)]
 		public int CurrentUsers { get; set; }
 
+		[Required]
+		public int MinAttendances { get; set; }
+
 		[DefaultValue(true)]
 		public bool IsActive { get; set; }
 
