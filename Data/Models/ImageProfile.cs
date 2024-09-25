@@ -6,10 +6,14 @@ namespace UniSportUAQ_API.Data.Models
 {
     public class ImageProfile
     {
-        [Required]
-        public byte[] Image { get; set; }
+
+        
+        
+        public string? Base64Image { get; set; }
 
         public string? FileFormat { get; set; }
+       
+        
 
     }
 }
