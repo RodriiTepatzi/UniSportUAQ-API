@@ -13,6 +13,7 @@ using Org.BouncyCastle.Bcpg;
 using System.Reflection.Metadata.Ecma335;
 using Hangfire;
 using UniSportUAQ_API.Data.Services;
+using iTextSharp.text;
 
 namespace UniSportUAQ_API.Controllers
 {
@@ -39,12 +40,13 @@ namespace UniSportUAQ_API.Controllers
         [HttpGet]
         [Route("count")]
         [Authorize]
-        public async Task<IActionResult> GetCourseCount() {
-        
+        public async Task<IActionResult> GetCourseCount()
+        {
+
             var courses = await _coursesService.GetAllAsync(i => i.IsActive == true);
             var count = courses.Count();
 
-            return Ok(new BaseResponse<int>{ Data = count});
+            return Ok(new BaseResponse<int> { Data = count });
         }
 
         [HttpGet]
@@ -474,11 +476,11 @@ namespace UniSportUAQ_API.Controllers
         [Authorize]
         public async Task<IActionResult> AddToCourse([FromBody] CourseSchema courseSchema)
         {
-            if(courseSchema == null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
-            if (courseSchema.CourseName is null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
+            if (courseSchema == null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeSchemaEmpty });
+            if (courseSchema.CourseName is null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeNameEmpty });
             if (courseSchema.Day is null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
 
-            if (courseSchema.Horarios!.Count() < 1) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
+            if (courseSchema.Horarios!.Count() < 1) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeHorariosEmpty });
 
             if (courseSchema.Day is null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
             if (courseSchema.InstructorId is null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
@@ -552,9 +554,10 @@ namespace UniSportUAQ_API.Controllers
                     //create horario
                     var newHorario = await _horariosService.AddAsync(NewHorario);
 
-                    if (newHorario == null) { 
+                    if (newHorario == null)
+                    {
 
-                        return BadRequest(new BaseResponse<object> { Data = NewHorario, Error = ResponseErrors.ServerDataBaseErrorUpdating }); 
+                        return BadRequest(new BaseResponse<object> { Data = NewHorario, Error = ResponseErrors.ServerDataBaseErrorUpdating });
                     }
 
                     horarios.Add(newHorario);
@@ -575,55 +578,85 @@ namespace UniSportUAQ_API.Controllers
         }
 
         [HttpPut]
-        [Route("endcourse")]
+        [Route("endcourse/{id}")]
         [Authorize]
-        public async Task<IActionResult> EndCourse([FromBody] CourseSchema course)
+        public async Task<IActionResult> EndCourse(string Id)
         {
 
-            if (string.IsNullOrEmpty(course.Id)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeIdInvalidlFormat });
-            var result = await _coursesService.GetByIdAsync(course.Id);
+            if (string.IsNullOrEmpty(Id)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeIdInvalidlFormat });
 
-            if (result is not null)
+            //get course
+            var endCourse = await _coursesService.GetByIdAsync(Id);
+
+            List<string> list = new List<string>();
+
+
+            //check course existence
+            if (endCourse is not null)
             {
+                //get inscriptions related with course
+                var inscriptions = await _inscriptionsService.GetAllAsync(i => i.CourseId == Id);
 
-                var inscriptions = await _inscriptionsService.GetAllAsync(i => i.CourseId == course.Id);
-
+                //verify inscriptions related with course
                 if (inscriptions.Count() < 1) return NotFound(new BaseResponse<bool> { Data = false, Error = ResponseErrors.EntityNotExist });
 
+                //deactivate course
+                endCourse.IsActive = false;
 
-                var endCourse = await _coursesService.GetByIdAsync(course.Id);
+                //try to update course status
+                var endedResult = await _coursesService.UpdateAsync(endCourse);
 
-                if (endCourse != null)
-                {
-                    endCourse.IsActive = false;
+                if (endedResult == null) return BadRequest(new BaseResponse<bool> { Data = false, Error = ResponseErrors.CourseCanNotEnd });
 
-                    var endedResult = await _coursesService.UpdateAsync(endCourse);
-
-                    if (endedResult != null) return BadRequest(new BaseResponse<bool> { Data = false, Error = ResponseErrors.CourseCanNotEnd });
-                }
-
+                //End inscriptions related with that course
                 foreach (var inscription in inscriptions)
                 {
+                    //if(inscription.unenroled == false)
+                    //execute next lines
 
+                    //count the assitance for that inscription 
+                    var assistance = await _attendancesService.GetAllAsync(i => i.StudentId == inscription.StudentId && i.CourseId == inscription.CourseId && i.AttendanceClass == true);
+
+                    var countAttendance = assistance.Count();
+
+                    //if have more or equal to the minimal attendances acrredit user
+                    if (countAttendance >= endCourse.MinAttendances)
+                    {
+
+
+                        inscription.Grade = 10;
+                        inscription.Accredit = true;
+
+                    }
+                    else
+                    {
+
+                        inscription.Grade = 5;
+                        inscription.Accredit = false;
+                    }
+
+                    //end inscription
                     inscription.IsFinished = true;
-
-                    if (inscription.Accredit == true) inscription.Grade = 10;
-                    if (inscription.Accredit == false) inscription.Grade = 5;
 
                     var endedInscription = await _inscriptionsService.UpdateAsync(inscription);
 
-                    if (endedInscription == null) return BadRequest(new BaseResponse<bool> { Data = false, Error = ResponseErrors.InscriptionNotEnded });
+                    //in case ther is an error add user id to a list to provide info
+                    if (endedInscription == null) list.Add(inscription.StudentId!);
                 }
 
 
 
+                if (list.Any()) return Ok(new BaseResponse<List<string>> { Data = list, Error = ResponseErrors.CourseEndInscriptionProblem });
+
                 return Ok(new BaseResponse<bool> { Data = true });
+
+
+
 
             }
 
             return NotFound(new BaseResponse<bool> { Data = false });
         }
-        /*******************************horarios*******************************/
 
 
 
@@ -757,7 +790,7 @@ namespace UniSportUAQ_API.Controllers
 
         [HttpPut]
         [Route("inscription/unenrolled/{courseId}/{studentId}")]
-        [Authorize] 
+        [Authorize]
         public async Task<IActionResult> UnenrolledStudent(string courseId, string studentId)
         {
             //check exists
@@ -774,7 +807,7 @@ namespace UniSportUAQ_API.Controllers
             var inscription = result.FirstOrDefault();
             if (inscription != null)
             {
-                inscription.IsFinished = true; 
+                inscription.IsFinished = true;
                 await _inscriptionsService.UpdateAsync(inscription);
 
                 //update inscriptions
@@ -1242,11 +1275,12 @@ namespace UniSportUAQ_API.Controllers
                     }
                 }
             }
-            else {
+            else
+            {
                 Console.WriteLine($"Can not generate attendance for this course :{courseId} cause it ended or is inactive");
             }
 
-           
+
 
 
         }
@@ -1255,55 +1289,103 @@ namespace UniSportUAQ_API.Controllers
         [ApiExplorerSettings(IgnoreApi = true)]
         public async Task EndCourseTask(string CourseId)
         {
-            var result = await _coursesService.GetByIdAsync(CourseId);
+            
 
-            if (result is not null)
+            //get course
+            var endCourse = await _coursesService.GetByIdAsync(CourseId);
+
+            List<string> list = new List<string>();
+
+
+            //check course existence
+            if (endCourse is not null)
             {
-
+                //get inscriptions related with course
                 var inscriptions = await _inscriptionsService.GetAllAsync(i => i.CourseId == CourseId);
 
-                if (inscriptions.Any())
+                //verify inscriptions related with course
+                if (inscriptions.Count() > 0)
                 {
+                    //deactivate course
+                    endCourse.IsActive = false;
 
-                    var endCourse = await _coursesService.GetByIdAsync(CourseId);
+                    //try to update course status
+                    var endedResult = await _coursesService.UpdateAsync(endCourse);
 
-                    if (endCourse != null)
+                    if (endedResult != null)
                     {
-                        endCourse.IsActive = false;
 
-                        var endedResult = await _coursesService.UpdateAsync(endCourse);
-
-                        if (endedResult != null)
+                        //End inscriptions related with that course
+                        foreach (var inscription in inscriptions)
                         {
+                            //if(inscription.unenroled == false)
+                            //execute next lines
 
-                            foreach (var inscription in inscriptions)
+                            //count the assitance for that inscription 
+                            var assistance = await _attendancesService.GetAllAsync(i => i.StudentId == inscription.StudentId && i.CourseId == inscription.CourseId
+                            && i.AttendanceClass == true);
+
+                            var countAttendance = assistance.Count();
+
+                            //if have more or equal to the minimal attendances acrredit user
+                            if (countAttendance >= endCourse.MinAttendances)
                             {
 
-                                inscription.IsFinished = true;
 
-                                if (inscription.Accredit == true) inscription.Grade = 10;
-                                if (inscription.Accredit == false) inscription.Grade = 5;
-
-                                var endedInscription = await _inscriptionsService.UpdateAsync(inscription);
-
-                                if (endedInscription == null) Console.WriteLine($"Can not end inscription {inscription.Id}");
+                                inscription.Grade = 10;
+                                inscription.Accredit = true;
 
                             }
+                            else
+                            {
 
+                                inscription.Grade = 5;
+                                inscription.Accredit = false;
+                            }
 
+                            //end inscription
+                            inscription.IsFinished = true;
+
+                            var endedInscription = await _inscriptionsService.UpdateAsync(inscription);
+
+                            //in case ther is an error add user id to a list to provide info
+                            if (endedInscription == null) list.Add(inscription.StudentId!);
                         }
+
+                        if (list.Any())
+                        {
+
+                            Console.WriteLine($"all the inscriptions ended correctly");
+
+                            foreach (var element in list)
+                            {
+                                Console.WriteLine($"partial isncriptions ended, Can not end inscription for this user id: {element}");
+                            }
+                        }
+                        else {
+                            Console.WriteLine($"all the inscriptions ended correctly");
+                        }
+
                     }
+                    //return BadRequest(new BaseResponse<bool> { Data = false, Error = ResponseErrors.CourseCanNotEnd });
+
+
+
                 }
+                //return NotFound(new BaseResponse<bool> { Data = false, Error = ResponseErrors.EntityNotExist });
+                Console.WriteLine($"There is no isncriptions for this course: {endCourse.Id}");
+
+
+
+
 
 
             }
+            else {
 
+                Console.WriteLine($"Can not find course with id provided");
 
-
-
-
-
-
+            }
 
 
 
