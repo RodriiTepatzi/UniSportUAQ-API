@@ -457,6 +457,7 @@ namespace UniSportUAQ_API.Controllers
                 EndHour = courseSchema.EndHour,
                 MaxUsers = courseSchema.MaxUsers,
                 Description = courseSchema.Description,
+                MinAttendances = courseSchema.MinAttendances,
             };
 
             var result = await _coursesService.UpdateAsync(course);
@@ -525,6 +526,7 @@ namespace UniSportUAQ_API.Controllers
                 Description = courseSchema.Description,
                 IsActive = true,
                 Location = courseSchema.location,
+                MinAttendances = courseSchema.MinAttendances
 
             };
             var result = await _coursesService.AddAsync(NewCourse);
