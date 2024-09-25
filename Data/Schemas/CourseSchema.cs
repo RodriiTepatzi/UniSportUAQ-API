@@ -17,6 +17,8 @@
 		public int MaxUsers { get; set; }
         public string? location { get; set; }
 
+        public int MinAttendances { get; set; }
+
 
     }
 }
