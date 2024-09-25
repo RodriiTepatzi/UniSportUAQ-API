@@ -789,7 +789,7 @@ namespace UniSportUAQ_API.Controllers
             return BadRequest(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.ServerDataBaseError });
         }
 
-        [HttpPut]
+        /*[HttpPut]
         [Route("inscription/switchstudents/{inscription1}/{inscription2}")]
         [Authorize]
         public async Task<IActionResult> TransferStudent(string inscription1, string inscription2)
@@ -868,7 +868,7 @@ namespace UniSportUAQ_API.Controllers
             if (inscriptionResult == null) return BadRequest(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.ServerDataBaseError });
 
             return Ok(new BaseResponse<bool> { Data = true });
-        }
+        }*/
 
 
         [HttpGet]
