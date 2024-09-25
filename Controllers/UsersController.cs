@@ -353,7 +353,7 @@ namespace UniSportUAQ_API.Controllers
                     Directory.CreateDirectory(folderPath);
                 }
 
-                string? filePath = Path.Combine(folderPath, $"{Data.Expediente}.{Data.FileFormat}");
+                string? filePath = Path.Combine(folderPath, $"{user.Expediente}.{Data.FileFormat}");
 
                 await System.IO.File.WriteAllBytesAsync(filePath, imageBytes);
 
