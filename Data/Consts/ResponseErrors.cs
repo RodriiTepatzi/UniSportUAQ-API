@@ -24,11 +24,11 @@ namespace UniSportUAQ_API.Data.Consts
 		public static ErrorBase UserNotAnAdmin = new ErrorBase { Code = "USR003", Description = "User founded but is not an Admin" };
 		//Entity
 		public static ErrorBase EntityNotExist = new ErrorBase { Code = "ENT001", Description = "Entity/Object Does not exist" };
-        
-        
-        
-		//Attributes
-		public static ErrorBase AttributeEmaiInvalidlFormat = new ErrorBase { Code = "ATTR001", Description = "Invalid Email format" };
+        //convert
+
+        public static ErrorBase ConvertImageError = new ErrorBase { Code = "CON001", Description = "Can not convert the data you provided into a image"};
+        //Attributes
+        public static ErrorBase AttributeEmaiInvalidlFormat = new ErrorBase { Code = "ATTR001", Description = "Invalid Email format" };
 		public static ErrorBase AttributeIdInvalidlFormat = new ErrorBase { Code = "ATTR002", Description = "Invalid Id format" };
 		public static ErrorBase AttributeExpedienteInvalidlFormat = new ErrorBase { Code = "ATTR003", Description = "Invalid Expediente format" };
         public static ErrorBase AttributeIsInstructorFalse = new ErrorBase { Code = "ATTR004", Description = "this user Is not an instructor" };

@@ -1,26 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
+﻿
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Security.Claims;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using Azure;
-using Firebase.Auth;
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.Extensions.Hosting.Internal;
-using Microsoft.Identity.Client;
 using UniSportUAQ_API.Data.Base;
 using UniSportUAQ_API.Data.Consts;
 using UniSportUAQ_API.Data.DTO;
 using UniSportUAQ_API.Data.Interfaces;
 using UniSportUAQ_API.Data.Models;
 using UniSportUAQ_API.Data.Schemas;
-using UniSportUAQ_API.Data.Services;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.IO;
+using System.Security.Claims;
+
 
 namespace UniSportUAQ_API.Controllers
 {
@@ -317,55 +309,63 @@ namespace UniSportUAQ_API.Controllers
         [HttpPut]
         [Route("update/image")]
         [Authorize]
-        public async Task<IActionResult> UpdateImage([FromBody] ImageProfile imageBytes)
+        public async Task<IActionResult> UpdateImage([FromBody] ImageProfile Data)
         {
-            if (imageBytes.Image == null || imageBytes.Image.Length == 0)
-                return BadRequest(new BaseResponse<bool> { Data = false, Error = ResponseErrors.AttributeEmptyOrNull });
+            if (Data == null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
+            if (string.IsNullOrEmpty(Data!.Base64Image)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
+            if(string.IsNullOrEmpty(Data.FileFormat))return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
 
-            var fileName = Guid.NewGuid() + imageBytes.FileFormat;
-            string folderPath = "users/uploads/profile";
-            string filePath = Path.Combine(_hostingEnvironment.WebRootPath, folderPath);
+            //get current user
+            var userEmail = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userEmail == null)
+            {
+                return Unauthorized(new BaseResponse<ApplicationUser>
+                {
+                    Error = ResponseErrors.AuthInvalidToken
+                });
+            }
 
-            if (!Directory.Exists(filePath))
-                Directory.CreateDirectory(filePath);
+            var user = await _userManager.FindByEmailAsync(userEmail);
+            if (user == null)
+            {
+                return NotFound(new BaseResponse<ApplicationUser>
+                {
+                    Error = ResponseErrors.AuthUserNotFound
+                });
+            }
+
+            var users = await _usersService.GetAllAsync(i => i.Expediente == user.Expediente);
+
+            if (users == null) return NotFound();
 
             try
             {
-                var path = Path.Combine(filePath, fileName);
+                //convert
+                byte[] imageBytes = Convert.FromBase64String(Data.Base64Image);
 
-                var base64Image = Convert.ToBase64String(imageBytes.Image);
+                //set directory
+                string baseDirectory = Directory.GetCurrentDirectory();
+                string folderPath = Path.Combine(baseDirectory, "ProfilePicture");
 
-                using (var fs = new FileStream(path, FileMode.Create))
+                // Crear la carpeta si no existe
+                if (!Directory.Exists(folderPath))
                 {
-                    await fs.WriteAsync(Convert.FromBase64String(base64Image), 0, imageBytes.Image.Length);
+                    Directory.CreateDirectory(folderPath);
                 }
 
-                var userEmail = User.FindFirstValue(ClaimTypes.Email);
-                var user = await _userManager.FindByEmailAsync(userEmail);
+                string? filePath = Path.Combine(folderPath, $"{Data.Expediente}.{Data.FileFormat}");
 
-                var imageUrl = $"{Request.Scheme}://{Request.Host}/{folderPath}/{fileName}";
+                await System.IO.File.WriteAllBytesAsync(filePath, imageBytes);
 
-                user.PictureUrl = imageUrl;
+                return Ok(new BaseResponse<bool> { Data = true });
 
-                var result = await _usersService.UpdateAsync(user);
 
-                if (result != null)
-                {
-                    return Ok(new BaseResponse<bool>
-                    {
-                        Data = true,
-                        Error = null
-                    });
-                }
-                else
-                {
-                    return StatusCode(500, new BaseResponse<bool> { Data = false, Error = ResponseErrors.ServerDataBaseError });
-                }
             }
-            catch
-            {
-                return StatusCode(500, new BaseResponse<bool> { Data = false, Error = ResponseErrors.ServerDataBaseError });
+            catch {
+
+                return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.ConvertImageError }); 
             }
+            
         }
 
 
@@ -452,7 +452,8 @@ namespace UniSportUAQ_API.Controllers
         [HttpPut]
 		[Route("{id}/update")]
 		[Authorize]
-		public async Task<IActionResult> UpdateUserAsync([FromBody]UserSchema user, string id) {
+		public async Task<IActionResult> UpdateUserAsync([FromBody]UserSchema user, string id) 
+        {
 
 			if (user.Id == null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
 			if (user.Name == null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
@@ -481,6 +482,8 @@ namespace UniSportUAQ_API.Controllers
 
             return Ok(new DataResponse { Data = oldUser.ToDictionary, ErrorMessage = null});
 		}
+
+        
 
     }
 }
