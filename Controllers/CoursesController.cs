@@ -595,7 +595,9 @@ namespace UniSportUAQ_API.Controllers
             if (endCourse is not null)
             {
                 //get inscriptions related with course
-                var inscriptions = await _inscriptionsService.GetAllAsync(i => i.CourseId == Id && i.UnEnrolled == false);
+                var inscriptions = await _inscriptionsService.GetAllAsync(i =>
+                i.CourseId == Id && 
+                i.UnEnrolled == false);
 
                 //verify inscriptions related with course
                 if (inscriptions.Count() < 1) return NotFound(new BaseResponse<bool> { Data = false, Error = ResponseErrors.EntityNotExist });
@@ -1062,7 +1064,10 @@ namespace UniSportUAQ_API.Controllers
 
 
 
-        //local use
+        //**********************************local use**********************************
+
+        
+
         [ApiExplorerSettings(IgnoreApi = true)]
         private bool IsScheduleConflict(IEnumerable<Horario> existingCourse, List<HorarioSchema> newCourse)
         {
@@ -1289,7 +1294,9 @@ namespace UniSportUAQ_API.Controllers
             if (endCourse is not null)
             {
                 //get inscriptions related with course
-                var inscriptions = await _inscriptionsService.GetAllAsync(i => i.CourseId == CourseId);
+                var inscriptions = await _inscriptionsService.GetAllAsync(i => 
+                i.CourseId == CourseId && 
+                i.UnEnrolled == false);
 
                 //verify inscriptions related with course
                 if (inscriptions.Count() > 0)

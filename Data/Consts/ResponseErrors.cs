@@ -54,6 +54,7 @@ namespace UniSportUAQ_API.Data.Consts
 
         public static ErrorBase ServerDataBaseErrorUpdating = new ErrorBase { Code = "SYS002", Description = "Not possible for update/create this entity try again later" };
         //courses 
+        public static ErrorBase CourseNotFound = new ErrorBase { Code = "COU000", Description = "This course does not exist" };
         public static ErrorBase CourseNoneInscription = new ErrorBase { Code = "COU001", Description = "This course does not contain inscriptions" };
         public static ErrorBase CourseNotFoundInscription = new ErrorBase { Code = "COU002", Description = "This course does not contain this inscription" };
         public static ErrorBase CourseErrorRemoving = new ErrorBase { Code = "COU003", Description = "Not possible to remove this inscription from this course" };
@@ -63,6 +64,8 @@ namespace UniSportUAQ_API.Data.Consts
         public static ErrorBase CourseHorarioConfict= new ErrorBase { Code = "COU007", Description = "One or many horarios share day and the active hours are in conflict, try uncrossed hours" };
 		public static ErrorBase CourseEndInscriptionProblem = new ErrorBase { Code = "COU008", Description = "Cpurses ended BUT Could not end inscriptions for the folowing users id" };
         public static ErrorBase CourseInscriptionAttendanceProblemUpdate = new ErrorBase { Code = "COU009", Description = "Can not update the following attendance(s) please provide this identifiers" };
+        public static ErrorBase CourseHasEnded = new ErrorBase { Code = "COU010", Description = "This course has already ended" };
+        public static ErrorBase CourseHasNotEnded = new ErrorBase { Code = "COU011", Description = "This course has NOT ended" };
 
         //inscriptions
         public static ErrorBase InscriptionNotAecredit= new ErrorBase { Code = "INS001", Description = "Not possible to accredit this course to this inscription, please check asistence quantity" };
@@ -71,5 +74,9 @@ namespace UniSportUAQ_API.Data.Consts
         public static ErrorBase InscriptionStudentAlredyInscripted = new ErrorBase { Code = "INS004", Description = "Not possible inscribe to more than one course, user already insripted in one course" };
         //user prefs
         public static ErrorBase UserPrefAlreadyExist = new ErrorBase { Code = "UPRF001", Description = "Not possible to create user preff becuase already exist" };
+        //carta
+        public static ErrorBase CartasErrorGenerating = new ErrorBase { Code = "CART001", Description = "Not possible to generate cartas for the following Expedientes, please provide us this expedienst and course Id" };
+        public static ErrorBase CartasAlreadyExist= new ErrorBase { Code = "CART002", Description = "Not possible to generate cartas because there is alreadya a carta for this inscription" };
+
     }
 }
