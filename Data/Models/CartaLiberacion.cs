@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 using UniSportUAQ_API.Data.Schemas;
 using UniSportUAQ_API.Data.Base;
+using System.Diagnostics.CodeAnalysis;
 
 
 
@@ -24,11 +25,16 @@ namespace UniSportUAQ_API.Data.Models
         [Required]
         public string? Url { get; set; }
 
+        [AllowNull]
+        public string? InscriptionId { get; set; }
+
         [ForeignKey("StudentId")]
         public ApplicationUser? Student { get; set; }
 
         [ForeignKey("CourseId")]
         public Course? Course { get; set; }
+        [ForeignKey("InscriptionId")]
+        public Inscription? Inscription { get; set; }
 
         
 

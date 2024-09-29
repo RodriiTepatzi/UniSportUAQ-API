@@ -583,7 +583,7 @@ namespace UniSportUAQ_API.Controllers
         public async Task<IActionResult> EndCourse(string Id)
         {
 
-            if (string.IsNullOrEmpty(Id)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeIdInvalidlFormat });
+            if (string.IsNullOrEmpty(Id)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeIdInvalidlFormat});
 
             //get course
             var endCourse = await _coursesService.GetByIdAsync(Id);
@@ -595,7 +595,7 @@ namespace UniSportUAQ_API.Controllers
             if (endCourse is not null)
             {
                 //get inscriptions related with course
-                var inscriptions = await _inscriptionsService.GetAllAsync(i => i.CourseId == Id);
+                var inscriptions = await _inscriptionsService.GetAllAsync(i => i.CourseId == Id && i.UnEnrolled == false);
 
                 //verify inscriptions related with course
                 if (inscriptions.Count() < 1) return NotFound(new BaseResponse<bool> { Data = false, Error = ResponseErrors.EntityNotExist });
@@ -615,7 +615,10 @@ namespace UniSportUAQ_API.Controllers
                     //execute next lines
 
                     //count the assitance for that inscription 
-                    var assistance = await _attendancesService.GetAllAsync(i => i.StudentId == inscription.StudentId && i.CourseId == inscription.CourseId && i.AttendanceClass == true);
+                    var assistance = await _attendancesService.GetAllAsync(i => i.StudentId == inscription.StudentId &&
+                    i.CourseId == inscription.CourseId &&
+                    i.AttendanceClass == true
+                    );
 
                     var countAttendance = assistance.Count();
 
@@ -808,7 +811,7 @@ namespace UniSportUAQ_API.Controllers
             if (inscription != null)
             {
                 inscription.IsFinished = true;
-                inscription.Unenrolled = true;
+                inscription.UnEnrolled = true;
                 await _inscriptionsService.UpdateAsync(inscription);
 
                 //update inscriptions

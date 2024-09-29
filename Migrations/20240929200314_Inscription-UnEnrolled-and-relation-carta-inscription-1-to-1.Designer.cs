@@ -12,8 +12,8 @@ using UniSportUAQ_API.Data;
 namespace UniSportUAQ_API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20240929192916_inscriptionsunenrolled")]
-    partial class inscriptionsunenrolled
+    [Migration("20240929200314_Inscription-UnEnrolled-and-relation-carta-inscription-1-to-1")]
+    partial class InscriptionUnEnrolledandrelationcartainscription1to1
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -162,6 +162,9 @@ namespace UniSportUAQ_API.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<string>("InscriptionId")
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<string>("StudentId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
@@ -173,6 +176,10 @@ namespace UniSportUAQ_API.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CourseId");
+
+                    b.HasIndex("InscriptionId")
+                        .IsUnique()
+                        .HasFilter("[InscriptionId] IS NOT NULL");
 
                     b.HasIndex("StudentId");
 
@@ -294,6 +301,9 @@ namespace UniSportUAQ_API.Migrations
                     b.Property<bool>("Accredit")
                         .HasColumnType("bit");
 
+                    b.Property<string>("CartaId")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("CourseId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
@@ -311,7 +321,7 @@ namespace UniSportUAQ_API.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<bool>("Unenrolled")
+                    b.Property<bool>("UnEnrolled")
                         .HasColumnType("bit");
 
                     b.HasKey("Id");
@@ -416,6 +426,11 @@ namespace UniSportUAQ_API.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
+                    b.HasOne("UniSportUAQ_API.Data.Models.Inscription", "Inscription")
+                        .WithOne("CartaLiberacion")
+                        .HasForeignKey("UniSportUAQ_API.Data.Models.CartaLiberacion", "InscriptionId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.HasOne("UniSportUAQ_API.Data.Models.ApplicationUser", "Student")
                         .WithMany()
                         .HasForeignKey("StudentId")
@@ -423,6 +438,8 @@ namespace UniSportUAQ_API.Migrations
                         .IsRequired();
 
                     b.Navigation("Course");
+
+                    b.Navigation("Inscription");
 
                     b.Navigation("Student");
                 });
@@ -501,6 +518,11 @@ namespace UniSportUAQ_API.Migrations
                     b.Navigation("Horarios");
 
                     b.Navigation("Inscriptions");
+                });
+
+            modelBuilder.Entity("UniSportUAQ_API.Data.Models.Inscription", b =>
+                {
+                    b.Navigation("CartaLiberacion");
                 });
 
             modelBuilder.Entity("UniSportUAQ_API.Data.Models.Subject", b =>

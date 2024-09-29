@@ -57,6 +57,13 @@ namespace UniSportUAQ_API.Data
                 .HasForeignKey<UserPreferences>(up => up.UserId)
 				.OnDelete(DeleteBehavior.NoAction);
 
+            // Configuración de la relación 1 a 1 entre Inscription y CartaLiberacion
+            modelBuilder.Entity<Inscription>()
+                .HasOne(i => i.CartaLiberacion)
+                .WithOne(c => c.Inscription)
+                .HasForeignKey<CartaLiberacion>(c => c.InscriptionId)
+                .OnDelete(DeleteBehavior.NoAction);
+
 
 
 
