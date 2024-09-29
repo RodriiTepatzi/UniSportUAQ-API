@@ -824,87 +824,71 @@ namespace UniSportUAQ_API.Controllers
             return BadRequest(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.ServerDataBaseError });
         }
 
-        /*[HttpPut]
+        [HttpPut]
         [Route("inscription/switchstudents/{inscription1}/{inscription2}")]
         [Authorize]
         public async Task<IActionResult> TransferStudent(string inscription1, string inscription2)
         {
-
+            //cehck format string
+            if (string.IsNullOrEmpty(inscription1)) return NotFound(new BaseResponse<bool> { Error = ResponseErrors.AttributeIdInvalidlFormat });
+            if (string.IsNullOrEmpty(inscription2)) return NotFound(new BaseResponse<bool> { Error = ResponseErrors.AttributeIdInvalidlFormat });
 
             //check exists
-            if (await _inscriptionsService.GetByIdAsync(inscription1) is null) return NotFound(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.EntityNotExist });
 
-            if (await _inscriptionsService.GetByIdAsync(inscription2) is null) return NotFound(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.EntityNotExist });
 
-            //guardar en dos ver ins1 y la 2
+            //guardar en dos var ins1 y la 2
+            var ins1 = await _inscriptionsService.GetByIdAsync(inscription1);
+            if (ins1 is null) return NotFound(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.EntityNotExist });
+
+            var ins2 = await _inscriptionsService.GetByIdAsync(inscription2);
+            if (ins2 is null) return NotFound(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.EntityNotExist });
+
 
             //obtener todas las asistencias de ins1 por courso y alumno con attendances service getall(params)
-            //cambiar el course id de ins 1 por el course id de ins2
+            var ins1Attendances = await _attendancesService.GetAllAsync(a => a.StudentId == ins1.StudentId && a.CourseId == ins1.CourseId);
+            if (!ins1Attendances.Any()) return NotFound(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.EntityNotExist });
 
             //obtener todas las asistencias de ins2 por courso y alumno con attendances service getall(params)
-            //cambiar el course id de ins 2 por el course id de ins1
+            var ins2Attendances = await _attendancesService.GetAllAsync(i => i.StudentId == ins2.StudentId && i.CourseId == ins2.CourseId);
+            if (!ins1Attendances.Any()) return NotFound(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.EntityNotExist });
 
-            //guardar ambos con update async
+            //not posible to update list
+            List<Attendance> notPossibleUpdt = new List<Attendance>();
+
+
+            //cambiar el course id de ins 1 por el course id de ins2
+            foreach (var attendance in ins1Attendances)
+            {
+                attendance.CourseId = ins2.CourseId;
+                var ins1att = await _attendancesService.UpdateAsync(attendance);
+
+                if (ins1att is not null) notPossibleUpdt.Add(attendance);
+            }
+
+            //cambiar el course id de ins 2 por el course id de ins1
+            foreach (var attendance in ins2Attendances)
+            {
+                attendance.CourseId = ins1.CourseId;
+                var ins2att = await _attendancesService.UpdateAsync(attendance);
+                if (ins2att is not null) notPossibleUpdt.Add(attendance);
+            }
+
+
 
             //si se guardan correctamente cambiar ins1 course por ins2 course y cambiar ins2 course por ins1 course
+            var tempCourseId = ins1.CourseId;
+            ins1.CourseId = ins2.CourseId;
+            ins2.CourseId = tempCourseId;
+
+            //guardar ambos con update async
+            await _inscriptionsService.UpdateAsync(ins1);
+            await _inscriptionsService.UpdateAsync(ins2);
+
+            if (notPossibleUpdt.Any()) return Ok(new BaseResponse<List<Attendance>> { Data = notPossibleUpdt, Error = ResponseErrors.CourseInscriptionAttendanceProblemUpdate });
 
             //si se guarda satisfactoriamente return ok data true
-
-            //check current inscription
-            var currentInscription = await _inscriptionsService.GetAllAsync(i => i.CourseId == fromCourseId && i.StudentId == studentId);
-
-            if (!currentInscription.Any()) return BadRequest(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.CourseNotFoundInscription });
-
-            //update course
-            
-            var inscription = currentInscription.FirstOrDefault();
-
-            if (inscription != null)
-            {
-                //delete inscription
-                inscription.IsFinished = true;
-                await _inscriptionsService.UpdateAsync(inscription);
-                //await _inscriptionsService.DeleteAsync(inscription);
-
-                //update inscriptions
-                var fromCourse = await _coursesService.GetByIdAsync(fromCourseId);
-                if (fromCourse != null && fromCourse.CurrentUsers > 0)
-                {
-                    fromCourse.CurrentUsers--; 
-                    await _coursesService.UpdateAsync(fromCourse);
-                }
-
-            }
-
-            //check new inscription
-            var newCourseInscription = await _inscriptionsService.GetAllAsync(i => i.CourseId == toCourseId && i.StudentId == studentId);
-            if (newCourseInscription.Any()) return BadRequest(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.InscriptionAlreadyExist });
-
-            //new inscription
-            var newInscription = new Inscription
-            {
-                DateInscription = DateTime.Now,
-                Accredit = false,
-                CourseId = toCourseId,
-                StudentId = studentId
-            };
-
-            //check capacity
-            var toCourse = await _coursesService.GetByIdAsync(toCourseId);
-            if (toCourse != null)
-            {
-                if (toCourse.CurrentUsers >= toCourse.MaxUsers) return BadRequest(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.CourseExceedMaxUsers });
-
-                toCourse.CurrentUsers++;
-                await _coursesService.UpdateAsync(toCourse);
-            }
-
-            var inscriptionResult = await _inscriptionsService.AddAsync(newInscription);
-            if (inscriptionResult == null) return BadRequest(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.ServerDataBaseError });
-
             return Ok(new BaseResponse<bool> { Data = true });
-        }*/
-
+        }
 
         [HttpGet]
         [Route("inscription/finished/{studentId}")]
