@@ -7,6 +7,8 @@ using UniSportUAQ_API.Data.Models;
 using UniSportUAQ_API.Data.Schemas;
 using UniSportUAQ_API.Data.Interfaces;
 using UniSportUAQ_API.Data.Base;
+using Microsoft.EntityFrameworkCore.Query.Internal;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 
 
@@ -14,7 +16,7 @@ namespace UniSportUAQ_API.Controllers
 {
     [ApiController]
     [Route("api/v1/cartasLiberacion")]
-    public class CartasLiberacionController: Controller
+    public class CartasLiberacionController : Controller
     {
 
         private readonly ICartasLiberacionService _cartasLiberacionService;
@@ -23,7 +25,8 @@ namespace UniSportUAQ_API.Controllers
         private readonly IInscriptionsService _inscriptionsService;
         private readonly IInstructorsService _instructorsService;
 
-        public CartasLiberacionController(ICartasLiberacionService cartasLiberacionService, ICoursesService coursesService, IStudentsService studentsService, IInscriptionsService inscriptionsService, IInstructorsService instructorsService) {
+        public CartasLiberacionController(ICartasLiberacionService cartasLiberacionService, ICoursesService coursesService, IStudentsService studentsService, IInscriptionsService inscriptionsService, IInstructorsService instructorsService)
+        {
 
             _cartasLiberacionService = cartasLiberacionService;
             _coursesService = coursesService;
@@ -39,11 +42,12 @@ namespace UniSportUAQ_API.Controllers
         [Authorize]
         public async Task<IActionResult> DownloadPdf(string id)
         {
-            if(string.IsNullOrEmpty(id)) return BadRequest();
+            if (string.IsNullOrEmpty(id)) return BadRequest();
 
             var carta = await _cartasLiberacionService.GetByIdAsync(id);
 
-            if (carta != null) { 
+            if (carta != null)
+            {
 
 
                 var filePath = carta.Url;
@@ -61,7 +65,8 @@ namespace UniSportUAQ_API.Controllers
         [Route("id/{id}")]
         [Authorize]
 
-        public async Task<IActionResult> GetCartaByIdAsync(string id) {
+        public async Task<IActionResult> GetCartaByIdAsync(string id)
+        {
 
             if (!Guid.TryParse(id, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
 
@@ -77,11 +82,12 @@ namespace UniSportUAQ_API.Controllers
         [Route("course/{courseid}")]
         [Authorize]
 
-        public async Task<IActionResult> GetCartaByCourseIdAsync(string courseId) {
+        public async Task<IActionResult> GetCartaByCourseIdAsync(string courseId)
+        {
 
             if (!Guid.TryParse(courseId, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
 
-            var result = await _cartasLiberacionService.GetAllAsync(c => c.CourseId == courseId, c => c.Course! , c => c.Student!);
+            var result = await _cartasLiberacionService.GetAllAsync(c => c.CourseId == courseId, c => c.Course!, c => c.Student!);
 
             var data = new List<Dictionary<string, object>>();
 
@@ -95,7 +101,8 @@ namespace UniSportUAQ_API.Controllers
         [HttpGet]
         [Route("student/{studentid}")]
         [Authorize]
-        public async Task<IActionResult> GetCartaByStudentIdAsync(string studentid) {
+        public async Task<IActionResult> GetCartaByStudentIdAsync(string studentid)
+        {
 
             if (!Guid.TryParse(studentid, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
 
@@ -114,42 +121,42 @@ namespace UniSportUAQ_API.Controllers
         [HttpPost]
         [Route("create")]
         [Authorize]
+        public async Task<IActionResult> CreateCartaAsync([FromBody] CartaLiberacionSchema schema)
+        {
 
-        public async Task<IActionResult> CreateCartaAsync([FromBody] CartaLiberacionSchema schema) {
 
-            
 
             //check if student and course exist
-            if (await _studentsService.GetByIdAsync(schema.StudentId!) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = "student:"+ResponseMessages.OBJECT_NOT_FOUND });
+            if (await _studentsService.GetByIdAsync(schema.StudentId!) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = "student:" + ResponseMessages.OBJECT_NOT_FOUND });
             if (await _coursesService.GetByIdAsync(schema.CourseId!) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = "course:" + ResponseMessages.OBJECT_NOT_FOUND });
 
-			//check if student is inscribed
-			var isInscribed = await _inscriptionsService.GetAllAsync(i => i.CourseId == schema.CourseId! && i.StudentId == schema.StudentId!,
-				i => i.Student!,
-				i => i.Course!
-			);
+            //check if student is inscribed
+            var isInscribed = await _inscriptionsService.GetAllAsync(i => i.CourseId == schema.CourseId! && i.StudentId == schema.StudentId!,
+                i => i.Student!,
+                i => i.Course!
+            );
 
 
-			if (!isInscribed.Any()) return BadRequest(new DataResponse { Data = null, ErrorMessage = "Inscription:" + ResponseMessages.NOT_FOUND_IN_COURSE});
-            
+            if (!isInscribed.Any()) return BadRequest(new DataResponse { Data = null, ErrorMessage = "Inscription:" + ResponseMessages.NOT_FOUND_IN_COURSE });
+
             //check if carta exist
 
 
             //check existance and limit of liberation
             var result = await _cartasLiberacionService.GetAllAsync(c => c.StudentId == schema.StudentId!, c => c.Course!, c => c.Student!);
 
-            if (result is not null && result.Count() >= 3) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.LIBERATION_LIMIT});
+            if (result is not null && result.Count() >= 3) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.LIBERATION_LIMIT });
 
-            foreach (CartaLiberacion carta in result!) {
+            foreach (CartaLiberacion carta in result!)
+            {
 
-                if (carta.CourseId == schema.CourseId && carta.StudentId == schema.StudentId) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.CARTA_EXIST});
+                if (carta.CourseId == schema.CourseId && carta.StudentId == schema.StudentId) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.CARTA_EXIST });
 
 
             }
 
             //get student course and instructor
-
-            var  course = await _coursesService.GetByIdAsync(schema.CourseId!);
+            var course = await _coursesService.GetByIdAsync(schema.CourseId!);
             if (course == null) return BadRequest(new DataResponse { Data = null, ErrorMessage = "course null" });
 
             var student = await _studentsService.GetByIdAsync(schema.StudentId!);
@@ -158,25 +165,25 @@ namespace UniSportUAQ_API.Controllers
             var instructor = await _instructorsService.GetByIdAsync(course.InstructorId!);
             if (instructor == null) return BadRequest(new DataResponse { Data = null, ErrorMessage = "instructor null" });
 
-            var inscriptions = await _inscriptionsService.GetAllAsync(i => 
-                i.StudentId == schema.StudentId! && 
+            var inscriptions = await _inscriptionsService.GetAllAsync(i =>
+                i.StudentId == schema.StudentId! &&
                 i.CourseId == schema.CourseId!,
-				i => i.Student!,
-				i => i.Course!
-			);
+                i => i.Student!,
+                i => i.Course!
+            );
             if (course == null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.STUDENT_NOT_ACCREDITED });
 
             var inscript = inscriptions.FirstOrDefault();
 
-			//check if concluded and aprobed course by inscription
+            //check if concluded and aprobed course by inscription
 
-			if (inscript != null)
-			{
-				if (inscript!.IsFinished is false) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.STUDENT_NOT_ACCREDITED });
-				if (inscript!.Accredit is false) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.STUDENT_NOT_ACCREDITED });
+            if (inscript != null)
+            {
+                if (inscript!.IsFinished is false) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.STUDENT_NOT_ACCREDITED });
+                if (inscript!.Accredit is false) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.STUDENT_NOT_ACCREDITED });
 
-				try
-				{
+                try
+                {
                     var data = new CartaModel
                     {
                         Expediente = student!.Expediente,
@@ -190,13 +197,13 @@ namespace UniSportUAQ_API.Controllers
                     //Generate byteArray
                     byte[] streamBytes = GeneratePDf(data);
 
-                    if(streamBytes.Length < 1) return BadRequest(new DataResponse { Data = null, ErrorMessage = "Error generating carta"});
+                    if (streamBytes.Length < 1) return BadRequest(new DataResponse { Data = null, ErrorMessage = "Error generating carta" });
 
                     //convert to memory stream
                     MemoryStream stream = new MemoryStream(streamBytes);
 
-					//generate fileaname
-					string filename = student!.Expediente + "_" + course!.CourseName + ".pdf";
+                    //generate fileaname
+                    string filename = student!.Expediente + "_" + course!.CourseName +"_"+ course.Id + ".pdf";
 
                     //get file route
                     string projectPath = Directory.GetCurrentDirectory();
@@ -216,17 +223,17 @@ namespace UniSportUAQ_API.Controllers
                     //string? url = await _cartasLiberacionService.UploadLetterAsync(stream, filename);
 
 
-					//create bew object carta
-					var carta = new CartaLiberacion
-					{
+                    //create bew object carta
+                    var carta = new CartaLiberacion
+                    {
 
-						Id = Guid.NewGuid().ToString(),
-						CourseId = schema.CourseId!,
-						StudentId = schema.StudentId!,
-						Url = localPath,
+                        Id = Guid.NewGuid().ToString(),
+                        CourseId = schema.CourseId!,
+                        StudentId = schema.StudentId!,
+                        Url = localPath,
                         InscriptionId = inscript.Id,
 
-					};
+                    };
 
                     inscript.CartaId = carta.Id;
 
@@ -237,24 +244,149 @@ namespace UniSportUAQ_API.Controllers
                     var cartaRegister = await _cartasLiberacionService.AddAsync(carta);
 
 
-					if (cartaRegister != null ) return Ok(new DataResponse { Data = cartaRegister.Dictionary, ErrorMessage = null });
+                    if (cartaRegister != null) return Ok(new DataResponse { Data = cartaRegister.Dictionary, ErrorMessage = null });
 
-					return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.INTERNAL_ERROR });
+                    return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.INTERNAL_ERROR });
 
-				}
-				catch
-				{
-					return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.STREAM_ERROR });
-				}
-			}
-			return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.STREAM_ERROR });
-		}
+                }
+                catch
+                {
+                    return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.STREAM_ERROR });
+                }
+            }
+            return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.STREAM_ERROR });
+        }
+
+        //generate all the cartas liberacion
+
+        [HttpPost]
+        [Route("generateAllCartas/course/{courseId}")]
+        [Authorize]
+
+        public async Task<IActionResult> GenerateAllCartasByCourseId(string courseId)
+        {
+
+            //expedientes carta that could not generate
+            List<string> FailedExpedientes = new List<string>();
+
+            //check cours exist
+            var course = await _coursesService.GetByIdAsync(courseId);
+
+            //check if ended
+            if (course == null) return NotFound(new BaseResponse<bool> { Error = ResponseErrors.CourseNotFound});
+
+            //return course is not over yet
+            if (course.IsActive == true) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.CourseHasNotEnded});
+
+            //get all ins for that course
+
+            var inscriptions = await _inscriptionsService.GetAllAsync(i =>
+                i.CourseId == courseId && 
+                i.UnEnrolled == false &&
+                i.Accredit == true,
+                i => i.Course!,
+                i => i.Student!,
+                i => i.Course!.Instructor!);
+
+            //return not found inscriptions related to this course
+            if (!inscriptions.Any()) return NotFound(new BaseResponse<bool> { Error = ResponseErrors.CourseNoneInscription});
+
+            foreach (var inscription in inscriptions)
+            {
+
+                if (inscription.CartaId == null)
+                {
+
+                    try
+                    {
+                        var data = new CartaModel
+                        {
+                            Expediente = inscription.Student!.Expediente,
+                            StudentName = inscription.Student!.FullName,
+                            Grupo = inscription.Student!.Group,
+                            StudyPlan = inscription.Student!.StudyPlan,
+                            CourseName = inscription.Course!.CourseName,
+                            InstructorName = inscription.Course!.Instructor!.FullName
+                        };
+
+                        //Generate byteArray
+                        byte[] streamBytes = GeneratePDf(data);
+
+                        if (streamBytes.Length < 1) return BadRequest(new DataResponse { Data = null, ErrorMessage = "Error generating carta" });
+
+                        //convert to memory stream
+                        MemoryStream stream = new MemoryStream(streamBytes);
+
+                        //generate fileaname
+                        string filename = inscription.Student!.Expediente! + "_" + course!.CourseName +"_"+ course.Id + ".pdf";
+
+                        //get file route
+                        string projectPath = Directory.GetCurrentDirectory();
+                        string folderPath = Path.Combine(projectPath, "CartasLiberacion");
+
+                        // Crear la carpeta si no existe
+                        if (!Directory.Exists(folderPath))
+                        {
+                            Directory.CreateDirectory(folderPath);
+                        }
+
+                        string localPath = Path.Combine(folderPath, filename);
+                        await System.IO.File.WriteAllBytesAsync(localPath, streamBytes);
+
+
+                        //save in hangfire
+                        //string? url = await _cartasLiberacionService.UploadLetterAsync(stream, filename);
+
+
+                        //create bew object carta
+                        var carta = new CartaLiberacion
+                        {
+
+                            Id = Guid.NewGuid().ToString(),
+                            CourseId = inscription.CourseId!,
+                            StudentId = inscription.StudentId!,
+                            Url = localPath,
+                            InscriptionId = inscription.Id,
+
+                        };
+
+                        inscription.CartaId = carta.Id;
+
+                        var inscriptUpdt = await _inscriptionsService.UpdateAsync(inscription);
+
+                        //add to lits not poisbble generate carta
+                        if (inscriptUpdt == null) FailedExpedientes.Add(data.Expediente! + ": not posible to conect to carta to inscription");
+
+
+                        var cartaRegister = await _cartasLiberacionService.AddAsync(carta);
+
+                        //add to lits not poisbble generate carta
+                        if (cartaRegister == null) FailedExpedientes.Add(data.Expediente! + ": not posibble to save carta");
+
+                    }
+                    catch
+                    {
+                        FailedExpedientes.Add(inscription.Student!.Expediente! + ": stream error");
+                    }
+                }
+                else {
+                    FailedExpedientes.Add(inscription.Student!.Expediente! + ": already has a carta liberacion");
+                }
+
+            }
+            if (FailedExpedientes.Any()) return Ok(new BaseResponse<List<string>> { Data = FailedExpedientes, Error = ResponseErrors.CartasAlreadyExist });
+
+            return Ok(new BaseResponse<bool> { Data = true });
+
+
+        }
+
 
 
 
         //create carta local
 
-        private byte[] GeneratePDf(CartaModel data) 
+        private byte[] GeneratePDf(CartaModel data)
         {
 
 
@@ -381,11 +513,11 @@ namespace UniSportUAQ_API.Controllers
                     byte[] outbyte = new byte[0];
                     return outbyte;
                 }
-                }
+            }
 
 
         }
 
-       
+
     }
 }
