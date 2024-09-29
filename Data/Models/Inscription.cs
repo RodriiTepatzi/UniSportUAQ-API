@@ -25,6 +25,8 @@ namespace UniSportUAQ_API.Data.Models
 
         public bool Accredit { get; set; }
 
+        public bool Unenrolled { get; set; }
+
         [Required]
 		[DefaultValue(false)]
 		public bool IsFinished { get; set; }

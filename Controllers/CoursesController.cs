@@ -808,6 +808,7 @@ namespace UniSportUAQ_API.Controllers
             if (inscription != null)
             {
                 inscription.IsFinished = true;
+                inscription.Unenrolled = true;
                 await _inscriptionsService.UpdateAsync(inscription);
 
                 //update inscriptions
