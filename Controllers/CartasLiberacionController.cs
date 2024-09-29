@@ -224,13 +224,20 @@ namespace UniSportUAQ_API.Controllers
 						CourseId = schema.CourseId!,
 						StudentId = schema.StudentId!,
 						Url = localPath,
+                        InscriptionId = inscript.Id,
 
 					};
 
-					var cartaRegister = await _cartasLiberacionService.AddAsync(carta);
+                    inscript.CartaId = carta.Id;
+
+                    var inscriptUpdt = await _inscriptionsService.UpdateAsync(inscript);
+                    if (inscriptUpdt == null) return BadRequest(new DataResponse { Data = null, ErrorMessage = "no se pudo ligar la carta a la inscripcion" });
 
 
-					if (cartaRegister != null) return Ok(new DataResponse { Data = cartaRegister.Dictionary, ErrorMessage = null });
+                    var cartaRegister = await _cartasLiberacionService.AddAsync(carta);
+
+
+					if (cartaRegister != null ) return Ok(new DataResponse { Data = cartaRegister.Dictionary, ErrorMessage = null });
 
 					return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.INTERNAL_ERROR });
 
