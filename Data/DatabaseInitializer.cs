@@ -143,9 +143,9 @@ namespace UniSportUAQ_API.Data
                             Description = "Este curso proporciona a los participantes una sólida introducción al lenguaje de programación C#. Diseñado para principiantes",
                             MaxUsers = 30,
                             CurrentUsers = 0,
-                            Day = "Lunes",
-                            StartHour = "8:00",
-                            EndHour = "11:00",
+                            //Day = "Lunes",
+                            //StartHour = "8:00",
+                            //EndHour = "11:00",
                             IsActive = true
                         },
                         new()
