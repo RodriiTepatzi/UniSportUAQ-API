@@ -1127,6 +1127,8 @@ namespace UniSportUAQ_API.Controllers
                 // Obtener la fecha y hora actual en la zona horaria de Ciudad de México
                 DateTime cdmxDateTime = TimeZoneInfo.ConvertTime(DateTimeOffset.Now.Date, cdmxTimeZone);
 
+                DateTime datenow= DateTime.Now.Date;
+
                 //para cada horario
                 foreach (var horario in horarios)
                 {
@@ -1144,7 +1146,7 @@ namespace UniSportUAQ_API.Controllers
 
                         RecurringJob.AddOrUpdate(
                             $"job-{day+"-"+course.Id!}",
-                            () => CheckTodayAttendance(cdmxDateTime, course.Id!, day!.ToLower(), course.StartDate, course.EndDate),
+                            () => CheckTodayAttendance(datenow, course.Id!, day!.ToLower(), course.StartDate, course.EndDate),
                             cronExpresion,
                             options
                         );
