@@ -12,6 +12,8 @@ using UniSportUAQ_API.Data.Models;
 using UniSportUAQ_API.Data.Schemas;
 using System.IO;
 using System.Security.Claims;
+using static iTextSharp.text.pdf.events.IndexEvents;
+using UniSportUAQ_API.Data;
 
 
 namespace UniSportUAQ_API.Controllers
@@ -25,15 +27,19 @@ namespace UniSportUAQ_API.Controllers
 		private readonly ICoursesService _coursesService;
 		private readonly IInscriptionsService _inscriptionsService;
         private readonly IWebHostEnvironment _hostingEnvironment;
+		private readonly ILogger<UsersController> _logger;
+		private readonly AppDbContext _context;
 
 		public UsersController(IUsersService usersService, UserManager<ApplicationUser> userManager, ICoursesService coursesService, IInscriptionsService inscriptionsService,
-            IWebHostEnvironment hostingEnvironment)
+            IWebHostEnvironment hostingEnvironment, ILogger<UsersController> logger, AppDbContext appDbContext)
 		{
 			_usersService = usersService;
 			_userManager = userManager;
 			_coursesService = coursesService;
 			_inscriptionsService = inscriptionsService;
-            _hostingEnvironment = hostingEnvironment;
+			_hostingEnvironment = hostingEnvironment;
+			_logger = logger;
+			_context = appDbContext;
 		}
 
 
@@ -325,48 +331,66 @@ namespace UniSportUAQ_API.Controllers
                 });
             }
 
-            var user = await _userManager.FindByEmailAsync(userEmail);
-            if (user == null)
-            {
-                return NotFound(new BaseResponse<ApplicationUser>
-                {
-                    Error = ResponseErrors.AuthUserNotFound
-                });
-            }
+			var user = await _userManager.FindByEmailAsync(userEmail);
 
-            var users = await _usersService.GetAllAsync(i => i.Expediente == user.Expediente);
-
-            if (users == null) return NotFound();
+			if (user == null)
+			{
+				return BadRequest(new BaseResponse<ApplicationUser>
+				{
+					Error = ResponseErrors.AuthUserNotFound
+				});
+			}
 
             try
             {
-                //convert
-                byte[] imageBytes = Convert.FromBase64String(Data.Base64Image);
+				if (string.IsNullOrWhiteSpace(Data.Base64Image) || string.IsNullOrWhiteSpace(Data.FileFormat))
+				{
+					return BadRequest(new BaseResponse<bool> { Data = false });
+				}
 
-                //set directory
-                string baseDirectory = _hostingEnvironment.WebRootPath;
-                string folderPath = Path.Combine(baseDirectory, "users");
-                string concretePath = Path.Combine(folderPath, "profile");
+				byte[] imageBytes;
+				try
+				{
+					imageBytes = Convert.FromBase64String(Data.Base64Image);
+				}
+				catch (FormatException)
+				{
+					return BadRequest(new BaseResponse<bool> { Data = false });
+				}
 
-                // Crear la carpeta si no existe
-                if (!Directory.Exists(concretePath))
-                {
-                    Directory.CreateDirectory(concretePath);
-                }
-                
+				string baseDirectory = _hostingEnvironment.WebRootPath ?? throw new InvalidOperationException("WebRootPath is not set.");
+				string folderPath = Path.Combine(baseDirectory, "users");
+				string concretePath = Path.Combine(folderPath, "profile");
 
-                string? filePath = Path.Combine(concretePath, $"{user.Expediente}.{Data.FileFormat}");
+				if (!Directory.Exists(concretePath))
+				{
+					Directory.CreateDirectory(concretePath);
+				}
 
-                await System.IO.File.WriteAllBytesAsync(filePath, imageBytes);
+				string filePath = Path.Combine(concretePath, $"{user.Expediente}.{Data.FileFormat}");
 
-                user.PictureUrl = $"/users/profile/{user.Expediente}.{Data.FileFormat}";
+				using (var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None, 4096, useAsync: true))
+				{
+					await fileStream.WriteAsync(imageBytes, 0, imageBytes.Length);
+					await fileStream.FlushAsync();
+				}
 
-                var result = await _userManager.UpdateAsync(user);
 
-                return Ok(new BaseResponse<bool> { Data = true });
+				var url = $"/users/profile/{user.Expediente}.{Data.FileFormat}";
+
+				await _context.Entry(user).ReloadAsync();
+
+				var entry = _context.Entry(user);
+
+				entry.Entity.PictureUrl = url;
+
+				_context.Entry(user).Property(e => e.PictureUrl).IsModified = true;
+
+				await _context.SaveChangesAsync();
 
 
-            }
+				return Ok(new BaseResponse<bool> { Data = true });
+			}
             catch {
 
                 return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.ConvertImageError }); 
