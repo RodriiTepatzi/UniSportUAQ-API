@@ -39,17 +39,6 @@ namespace UniSportUAQ_API.Data.Models
         [AllowNull]
         public string? Link { get; set; }
 
-        [AllowNull]
-        [StringLength(20)]
-		public string? Day { get; set; }
-
-        [AllowNull]
-        [StringLength(6)]
-		public string? StartHour { get; set; }
-
-        [AllowNull]
-        [StringLength(6)]
-        public string? EndHour { get; set; }
 
 		[Required]
 		public DateTime StartDate { get; set; }
@@ -94,9 +83,6 @@ namespace UniSportUAQ_API.Data.Models
 		{ nameof(VirtualOrHybrid), VirtualOrHybrid },
 		{ nameof(Location), Location ?? string.Empty },
 		{ nameof(Link), Link ?? string.Empty },
-		{ nameof(Day), Day ?? string.Empty },
-		{ nameof(StartHour), StartHour ?? string.Empty },
-		{ nameof(EndHour), EndHour ?? string.Empty },
 		{ nameof(MaxUsers), MaxUsers },
 		{ nameof(CurrentUsers), CurrentUsers },
 		{ nameof(IsActive), IsActive },
