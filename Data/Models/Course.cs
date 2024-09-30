@@ -37,17 +37,17 @@ namespace UniSportUAQ_API.Data.Models
         public string? Location { get; set; }
 
         [AllowNull]
-        public string? Link { get; set; }	
+        public string? Link { get; set; }
 
-		[Required]
-		[StringLength(20)]
+        [AllowNull]
+        [StringLength(20)]
 		public string? Day { get; set; }
 
-		[Required]
-		[StringLength(6)]
+        [AllowNull]
+        [StringLength(6)]
 		public string? StartHour { get; set; }
 
-        [Required]
+        [AllowNull]
         [StringLength(6)]
         public string? EndHour { get; set; }
 

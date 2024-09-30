@@ -443,10 +443,6 @@ namespace UniSportUAQ_API.Controllers
         public async Task<IActionResult> UpdateCourse([FromBody] CourseSchema courseSchema)
         {
             if (courseSchema.CourseName is null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
-            if (courseSchema.Day is null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
-            if (courseSchema.StartHour is null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
-            if (courseSchema.EndHour is null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
-            if (courseSchema.Day is null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
             if (courseSchema.InstructorId is null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
             if (courseSchema.MaxUsers <= 0) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
 
@@ -454,9 +450,6 @@ namespace UniSportUAQ_API.Controllers
             {
                 Id = courseSchema.Id,
                 CourseName = courseSchema.CourseName,
-                Day = courseSchema.Day,
-                StartHour = courseSchema.StartHour,
-                EndHour = courseSchema.EndHour,
                 MaxUsers = courseSchema.MaxUsers,
                 Description = courseSchema.Description,
                 MinAttendances = courseSchema.MinAttendances,
@@ -480,19 +473,14 @@ namespace UniSportUAQ_API.Controllers
         {
             if (courseSchema == null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeSchemaEmpty });
             if (courseSchema.CourseName is null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeNameEmpty });
-            if (courseSchema.Day is null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
-
-            if (courseSchema.Horarios!.Count() < 1) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeHorariosEmpty });
-
-            if (courseSchema.Day is null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
-            if (courseSchema.InstructorId is null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
+            if (courseSchema.InstructorId is null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull});
 
             if ((await _userService.GetAllAsync(i => i.Id == courseSchema.InstructorId && i.IsInstructor == true)).Count() < 1) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeIsInstructorFalse });
 
             if (courseSchema.MaxUsers <= 0) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
 
 
-            var courses = await _coursesService.GetAllAsync(c => c.InstructorId == courseSchema.InstructorId);
+            var courses = await _coursesService.GetAllAsync(c => c.InstructorId == courseSchema.InstructorId && c.IsActive == true);
 
             if (courses.Count() > 0)
             {
@@ -518,9 +506,6 @@ namespace UniSportUAQ_API.Controllers
                 SubjectId = courseSchema.SubjectId,
                 CourseName = courseSchema.CourseName,
                 InstructorId = courseSchema.InstructorId,
-                Day = courseSchema.Day,
-                StartHour = courseSchema.StartHour,
-                EndHour = courseSchema.EndHour,
                 EndDate = courseSchema.EndDate,
                 StartDate = courseSchema.StartDate,
                 MaxUsers = courseSchema.MaxUsers,
@@ -681,7 +666,7 @@ namespace UniSportUAQ_API.Controllers
             if (await _coursesService.GetByIdAsync(courseId) is null) return NotFound(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.EntityNotExist });
 
 
-            var existingInscription = await _inscriptionsService.GetAllAsync(i => i.StudentId == studentId);
+            var existingInscription = await _inscriptionsService.GetAllAsync(i => i.StudentId == studentId, i => i.Course!);
 
             foreach (var item in existingInscription)
             {
