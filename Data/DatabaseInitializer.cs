@@ -155,9 +155,6 @@ namespace UniSportUAQ_API.Data
                             Description = "Este curso ofrece a los participantes una introducción completa al lenguaje de programación Python",
                             MaxUsers = 30,
                             CurrentUsers = 0,
-                            Day = "Martes",
-                            StartHour = "12:00",
-                            EndHour = "14:00",
                             IsActive = true
                         },
 
