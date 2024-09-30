@@ -1143,7 +1143,7 @@ namespace UniSportUAQ_API.Controllers
                         };
 
                         RecurringJob.AddOrUpdate(
-                            $"job-{day}",
+                            $"job-{day+"-"+course.Id!}",
                             () => CheckTodayAttendance(cdmxDateTime, course.Id!, day!.ToLower(), course.StartDate, course.EndDate),
                             cronExpresion,
                             options
