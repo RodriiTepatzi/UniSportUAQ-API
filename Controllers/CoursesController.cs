@@ -27,14 +27,16 @@ namespace UniSportUAQ_API.Controllers
         private readonly IUsersService _userService;
         private readonly IHorariosService _horariosService;
         private readonly IAttendancesService _attendancesService;
+        private readonly IHangfireJobsService _hangfireJobsService;
 
-        public CoursesController(IAttendancesService attendancesService, ICoursesService coursesService, IInscriptionsService inscriptionsService, IUsersService userService, IHorariosService horariosService)
+        public CoursesController(IHangfireJobsService hangfireJobsService, IAttendancesService attendancesService, ICoursesService coursesService, IInscriptionsService inscriptionsService, IUsersService userService, IHorariosService horariosService)
         {
             _coursesService = coursesService;
             _inscriptionsService = inscriptionsService;
             _userService = userService;
             _horariosService = horariosService;
             _attendancesService = attendancesService;
+            _hangfireJobsService = hangfireJobsService;
         }
 
         [HttpGet]
@@ -1189,6 +1191,20 @@ namespace UniSportUAQ_API.Controllers
             catch
             {
                 Console.WriteLine($"Error creating task end course automatically");
+            }
+
+            try
+            {
+                BackgroundJob.Schedule(
+                    () => _hangfireJobsService.GenerateAllCartasAsync(course.Id!),
+                    course.EndDate.AddDays(1)
+                    );
+
+
+            }
+            catch
+            {
+                Console.WriteLine($"Error creating task GENERATE ALL CARTAS automatically");
             }
         }
 

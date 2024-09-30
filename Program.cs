@@ -87,6 +87,7 @@ namespace UniSportUAQ_API
             builder.Services.AddTransient<IUtilsService, UtilsService>();
             builder.Services.AddTransient<ITimePeriodsService, TimePeriodsService>();
             builder.Services.AddTransient<IHorariosService, HorariosService>();
+            builder.Services.AddTransient<IHangfireJobsService, HangfireJobsService>();
 
             builder.Services.AddControllers();
             builder.Services.AddHttpContextAccessor();
