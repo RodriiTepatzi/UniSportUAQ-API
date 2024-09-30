@@ -361,7 +361,7 @@ namespace UniSportUAQ_API.Controllers
 
                 user.PictureUrl = $"/users/profile/{user.Expediente}.{Data.FileFormat}";
 
-                await _usersService.UpdateAsync(user);
+                var result = await _userManager.UpdateAsync(user);
 
                 return Ok(new BaseResponse<bool> { Data = true });
 
