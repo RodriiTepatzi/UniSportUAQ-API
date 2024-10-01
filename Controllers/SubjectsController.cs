@@ -6,6 +6,9 @@ using UniSportUAQ_API.Data.Interfaces;
 using UniSportUAQ_API.Data.Models;
 using UniSportUAQ_API.Data.Schemas;
 
+using UniSportUAQ_API.Data.Base;
+using UniSportUAQ_API.Data.DTO;
+
 namespace UniSportUAQ_API.Controllers
 {
     [ApiController]
@@ -39,6 +42,44 @@ namespace UniSportUAQ_API.Controllers
 
 
         }
+
+        [HttpGet]
+        [Route("count")]
+        [Authorize]
+        public async Task<IActionResult> GetCountAsync()
+        {
+            var SubjectCounts = await _subjectsService.GetAllAsync();
+            var count = SubjectCounts.Count();
+            return Ok(new BaseResponse<int> { Data = count});
+        }
+        [HttpGet]
+        [Route("all")]
+        [Authorize]
+        public async Task<IActionResult> GetAllAsync()
+        {
+            
+            var SubjectCounts = await _subjectsService.GetAllAsync();
+
+            List<SubjectDTO> subjectList = new List<SubjectDTO>();
+
+            foreach (var subject in SubjectCounts)
+            {
+                var item = new SubjectDTO 
+                {
+                    Id = subject.Id,
+                    Name = subject.Name,
+                    CoursePictureUrl = subject.CoursePictureUrl
+                };
+
+                subjectList.Add(item);
+            
+            }
+
+            return Ok(new BaseResponse<List<SubjectDTO>> { Data = subjectList });
+
+
+        }
+
 
         [HttpPost]
         [Route("create")]
