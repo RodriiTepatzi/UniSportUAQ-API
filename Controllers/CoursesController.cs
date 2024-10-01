@@ -8,6 +8,7 @@ using UniSportUAQ_API.Data.Schemas;
 using UniSportUAQ_API.Data.DTO;
 
 using Hangfire;
+using System.Globalization;
 
 namespace UniSportUAQ_API.Controllers
 {
@@ -22,8 +23,9 @@ namespace UniSportUAQ_API.Controllers
         private readonly IHorariosService _horariosService;
         private readonly IAttendancesService _attendancesService;
         private readonly IHangfireJobsService _hangfireJobsService;
+        private readonly ISubjectsService _subjectsService;
 
-        public CoursesController(IHangfireJobsService hangfireJobsService, IAttendancesService attendancesService, ICoursesService coursesService, IInscriptionsService inscriptionsService, IUsersService userService, IHorariosService horariosService)
+        public CoursesController(ISubjectsService subjectsService, IHangfireJobsService hangfireJobsService, IAttendancesService attendancesService, ICoursesService coursesService, IInscriptionsService inscriptionsService, IUsersService userService, IHorariosService horariosService)
         {
             _coursesService = coursesService;
             _inscriptionsService = inscriptionsService;
@@ -31,6 +33,7 @@ namespace UniSportUAQ_API.Controllers
             _horariosService = horariosService;
             _attendancesService = attendancesService;
             _hangfireJobsService = hangfireJobsService;
+            _subjectsService = subjectsService;
         }
 
         [HttpGet]
@@ -557,6 +560,8 @@ namespace UniSportUAQ_API.Controllers
             if (courseSchema == null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeSchemaEmpty });
             if (courseSchema.CourseName is null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeNameEmpty });
             if (courseSchema.InstructorId is null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull});
+            if (courseSchema.SubjectId is null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
+            if (await _subjectsService.GetByIdAsync(courseSchema.SubjectId) == null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.DataNotFound});
 
             if ((await _userService.GetAllAsync(i => i.Id == courseSchema.InstructorId && i.IsInstructor == true)).Count() < 1) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeIsInstructorFalse });
 
@@ -733,10 +738,7 @@ namespace UniSportUAQ_API.Controllers
             return NotFound(new BaseResponse<bool> { Data = false });
         }
 
-
-
-
-        /*******************************inscriptions*******************************/
+        /**************************************************************inscriptions**************************************************************/
 
         [HttpPost]
         [Route("inscription/{courseId}/{studentId}")]
