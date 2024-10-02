@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Globalization;
+using UniSportUAQ_API.Data.Base;
 using UniSportUAQ_API.Data.Consts;
+using UniSportUAQ_API.Data.DTO;
 using UniSportUAQ_API.Data.Interfaces;
 using UniSportUAQ_API.Data.Models;
 using UniSportUAQ_API.Data.Schemas;
@@ -31,14 +33,14 @@ namespace UniSportUAQ_API.Controllers
             _horariosService = horariosService;
         }
 
-
+        //si
         [HttpGet]
         [Route("id/{id}")]
         [Authorize]
 
         public async Task<IActionResult> GetAttendanceByIdAsync(string id)
         {
-            if (!Guid.TryParse(id, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+            if (!Guid.TryParse(id, out _)) return BadRequest(new BaseResponse<AttendanceDTO> { Data = null, Error = ResponseErrors.DataNotFound });
 
             var result = await _atenndancesService.GetByIdAsync(id,
 				a => a.Course!,
@@ -46,9 +48,21 @@ namespace UniSportUAQ_API.Controllers
 				a => a.Course!.Instructor!
 			);
 
-            if (result is not null) return Ok(new DataResponse { Data = result.Dictionary, ErrorMessage = null });
+            if (result is not null)
+            {
+                var attendanceDTO = new AttendanceDTO
+                {
+                    Id = result.Id,
+                    StudentId = result.StudentId,
+                    CourseId = result.CourseId,
+                    Date = result.Date,
+                    AttendanceClass = result.AttendanceClass
+                };
 
-            return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+                return Ok(new BaseResponse<AttendanceDTO> { Data = attendanceDTO, Error = null });
+            }
+
+            return NotFound(new BaseResponse<AttendanceDTO> { Data = null, Error = ResponseErrors.DataNotFound });
         }
 
         [HttpGet]
@@ -57,7 +71,7 @@ namespace UniSportUAQ_API.Controllers
 
         public async Task<IActionResult> GetAttendancesByCourseIdAsync(string courseid) {
 
-            if (!Guid.TryParse(courseid, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+            if (!Guid.TryParse(courseid, out _)) return BadRequest(new BaseResponse<List<AttendanceDTO>> { Data = null, Error = ResponseErrors.AttributeIdInvalidlFormat });
 
             var result = await _atenndancesService.GetAllAsync(a => a.CourseId == courseid,
 				a => a.Course!,
@@ -65,13 +79,24 @@ namespace UniSportUAQ_API.Controllers
 				a => a.Course!.Instructor!
 			);
 
-            var data = new List<Dictionary<string, object>>();
+            var data = new List<AttendanceDTO>();
 
-            foreach (var item in result) data.Add(item.Dictionary);
+            foreach (var item in result)
+            {
+                var attendanceDTO = new AttendanceDTO
+                {
+                    Id = item.Id,
+                    StudentId = item.StudentId,
+                    CourseId = courseid,
+                    Date = item.Date,
+                    AttendanceClass = item.AttendanceClass
+                };
+                data.Add(attendanceDTO);
+            }
 
-            if (result.Any()) return Ok(new DataResponse { Data = data, ErrorMessage = null });
+            if (data.Any()) return Ok(new BaseResponse<List<AttendanceDTO>> { Data = data, Error = null });
 
-            return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+            return NotFound(new BaseResponse<List<AttendanceDTO>> { Data = null, Error = ResponseErrors.DataNotFound });
         }
 
         [HttpGet]
@@ -79,7 +104,7 @@ namespace UniSportUAQ_API.Controllers
         [Authorize]
         public async Task<IActionResult> GetAttendancesByStudentIdAsync(string studentid) {
 
-            if (!Guid.TryParse(studentid, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+            if (!Guid.TryParse(studentid, out _)) return BadRequest(new BaseResponse<List<AttendanceDTO>> { Data = null, Error = ResponseErrors.AttributeIdInvalidlFormat });
 
             var result = await _atenndancesService.GetAllAsync(a => a.StudentId == studentid,
 				a => a.Course!,
@@ -87,23 +112,35 @@ namespace UniSportUAQ_API.Controllers
 				a => a.Course!.Instructor!
 			);
 
-            var Data = new List<Dictionary<string, object>>();
+            var data = new List<AttendanceDTO>();
 
-            foreach (var item in result) Data.Add(item.Dictionary);
+            foreach (var item in result)
+            {
+                var attendanceDTO = new AttendanceDTO
+                {
+                    Id = item.Id,
+                    StudentId = item.StudentId,
+                    CourseId = item.CourseId,
+                    Date = item.Date,
+                    AttendanceClass = item.AttendanceClass
+                };
+                data.Add(attendanceDTO);
+            }
 
-            if (result.Any()) return Ok(new DataResponse { Data = Data, ErrorMessage = null });
+            if (data.Any()) return Ok(new BaseResponse<List<AttendanceDTO>> { Data = data, Error = null });
 
-            return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+            return NotFound(new BaseResponse<List<AttendanceDTO>> { Data = null, Error = ResponseErrors.DataNotFound });
 
         }
+
         [HttpGet]
         [Route("course/{courseid}/day/{day}")]
         [Authorize]
         public async Task<IActionResult> GetAttendancesByCourseIdByDayAsync(string courseid, string day)
         {
-            if (!Guid.TryParse(courseid, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+            if (!Guid.TryParse(courseid, out _)) return BadRequest(new BaseResponse<List<AttendanceDTO>> { Data = null, Error = ResponseErrors.AttributeIdInvalidlFormat });
 
-            if (!DateTime.TryParse(day, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+            if (!DateTime.TryParse(day, out _)) return BadRequest(new BaseResponse<List<AttendanceDTO>> { Data = null, Error = ResponseErrors.AuthInvalidData });
 
             var result = await _atenndancesService.GetAllAsync(a => a.CourseId == courseid,
 				a => a.Course!,
@@ -113,16 +150,27 @@ namespace UniSportUAQ_API.Controllers
 
             DateTime dayDate = DateTime.Parse(day);
 
-            var Data = new List<Dictionary<string, object>>();
+            var data = new List<AttendanceDTO>();
 
-            foreach (var item in result) {
-
-                if (item.Date.Date == dayDate.Date) Data.Add(item.Dictionary);
+            foreach (var item in result)
+            {
+                if (item.Date.Date == dayDate.Date)
+                {
+                    var attendanceDTO = new AttendanceDTO
+                    {
+                        Id = item.Id,
+                        StudentId = item.StudentId,
+                        CourseId = courseid,
+                        Date = item.Date,
+                        AttendanceClass = item.AttendanceClass
+                    };
+                    data.Add(attendanceDTO);
+                }
             }
 
-            if (Data.Count > 0) return Ok(new DataResponse { Data = Data, ErrorMessage = null });
+            if (data.Any()) return Ok(new BaseResponse<List<AttendanceDTO>> { Data = data, Error = null });
 
-            return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+            return NotFound(new BaseResponse<List<AttendanceDTO>> { Data = null, Error = ResponseErrors.DataNotFound });
         }
 
         [HttpGet]
@@ -130,9 +178,9 @@ namespace UniSportUAQ_API.Controllers
         [Authorize]
         public async Task<IActionResult> GetAttendancesByCourseIdStudentIdAsync(string courseid, string studentid) {
 
-            if (!Guid.TryParse(courseid, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+            if (!Guid.TryParse(courseid, out _)) return BadRequest(new BaseResponse<List<AttendanceDTO>> { Data = null, Error = ResponseErrors.AttributeIdInvalidlFormat });
 
-            if (!Guid.TryParse(studentid, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+            if (!Guid.TryParse(studentid, out _)) return BadRequest(new BaseResponse<List<AttendanceDTO>> { Data = null, Error = ResponseErrors.AttributeIdInvalidlFormat });
 
             var result = await _atenndancesService.GetAllAsync(a => a.CourseId == courseid && a.StudentId == studentid,
 				a => a.Course!,
@@ -140,13 +188,24 @@ namespace UniSportUAQ_API.Controllers
 				a => a.Course!.Instructor!
 			);
 
-            var Data = new List<Dictionary<string, object>>();
+            var data = new List<AttendanceDTO>();
 
-            foreach (var item in result) Data.Add(item.Dictionary);
+            foreach (var item in result)
+            {
+                var attendanceDTO = new AttendanceDTO
+                {
+                    Id = item.Id,
+                    StudentId = item.StudentId,
+                    CourseId = courseid,
+                    Date = item.Date,
+                    AttendanceClass = item.AttendanceClass
+                };
+                data.Add(attendanceDTO);
+            }
 
-            if (Data.Count > 0) return Ok(new DataResponse { Data = Data, ErrorMessage = null });
+            if (data.Any()) return Ok(new BaseResponse<List<AttendanceDTO>> { Data = data, Error = null });
 
-            return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+            return NotFound(new BaseResponse<List<AttendanceDTO>> { Data = null, Error = ResponseErrors.DataNotFound });
         }
 
         [HttpGet]
@@ -154,11 +213,11 @@ namespace UniSportUAQ_API.Controllers
         [Authorize]
         public async Task<IActionResult> GetAttendancesByCourseTimeLapse(string courseId, string start, string end){
 
-            if (!Guid.TryParse(courseId, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = "error en curso" + ResponseMessages.BAD_REQUEST });
+            if (!Guid.TryParse(courseId, out _)) return BadRequest(new BaseResponse<List<AttendanceDTO>> { Data = null, Error = ResponseErrors.AttributeIdInvalidlFormat });
 
-            if (!DateTime.TryParse(start, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = "error en fecha inicio" + ResponseMessages.BAD_REQUEST });
+            if (!DateTime.TryParse(start, out _)) return BadRequest(new BaseResponse<List<AttendanceDTO>> { Data = null, Error = ResponseErrors.AttributeEmptyOrNull });
 
-            if (!DateTime.TryParse(end, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = "error en fecha final" + ResponseMessages.BAD_REQUEST });
+            if (!DateTime.TryParse(end, out _)) return BadRequest(new BaseResponse<List<AttendanceDTO>> { Data = null, Error = ResponseErrors.AttributeEmptyOrNull });
 
             DateTime dateStart = DateTime.Parse(start).Date;
             DateTime dateEnd = DateTime.Parse(end).Date;
@@ -169,15 +228,24 @@ namespace UniSportUAQ_API.Controllers
 				a => a.Course!.Instructor!
 			);
 
-            if (result == null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+            if (result == null || !result.Any()) return NotFound(new BaseResponse<List<AttendanceDTO>> { Data = null, Error = ResponseErrors.DataNotFound });
 
-            var data = new List<Dictionary<string, object>>();
+            var data = new List<AttendanceDTO>();
 
-            foreach (var element in result) data.Add(element.Dictionary);
+            foreach (var element in result)
+            {
+                var attendanceDTO = new AttendanceDTO
+                {
+                    Id = element.Id,
+                    StudentId = element.StudentId,
+                    CourseId = courseId,
+                    Date = element.Date,
+                    AttendanceClass = element.AttendanceClass
+                };
+                data.Add(attendanceDTO);
+            }
 
-            if (data.Count > 0) return Ok(new DataResponse { Data = data, ErrorMessage = null });
-
-            return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+            return Ok(new BaseResponse<List<AttendanceDTO>> { Data = data, Error = null });
         }
 
 
@@ -188,13 +256,13 @@ namespace UniSportUAQ_API.Controllers
         public async Task<IActionResult> GetAttendancesByCourseStudentTimeLapse(string courseId, string studentId, string start, string end)
         {
 
-            if (!Guid.TryParse(courseId, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = "error en curso" + ResponseMessages.BAD_REQUEST });
+            if (!Guid.TryParse(courseId, out _)) return BadRequest(new BaseResponse<List<AttendanceDTO>> { Data = null, Error = ResponseErrors.AttributeIdInvalidlFormat });
 
-            if (!Guid.TryParse(studentId, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = "error en student" + ResponseMessages.BAD_REQUEST });
+            if (!Guid.TryParse(studentId, out _)) return BadRequest(new BaseResponse<List<AttendanceDTO>> { Data = null, Error = ResponseErrors.AttributeIdInvalidlFormat });
 
-            if (!DateTime.TryParse(start, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = "error en fecha inicio" + ResponseMessages.BAD_REQUEST });
+            if (!DateTime.TryParse(start, out _)) return BadRequest(new BaseResponse<List<AttendanceDTO>> { Data = null, Error = ResponseErrors.AttributeEmptyOrNull });
 
-            if (!DateTime.TryParse(end, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = "error en fecha final" + ResponseMessages.BAD_REQUEST });
+            if (!DateTime.TryParse(end, out _)) return BadRequest(new BaseResponse<List<AttendanceDTO>> { Data = null, Error = ResponseErrors.AttributeEmptyOrNull });
 
             DateTime dateStart = DateTime.Parse(start).Date;
             DateTime dateEnd = DateTime.Parse(end).Date;
@@ -205,30 +273,39 @@ namespace UniSportUAQ_API.Controllers
 				a => a.Course!.Instructor!
 			);
 
-            if (result == null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+            if (result == null) return NotFound(new BaseResponse<List<AttendanceDTO>> { Data = null, Error = ResponseErrors.DataNotFound });
 
-            var data = new List<Dictionary<string, object>>();
+            var data = new List<AttendanceDTO>();
 
-            foreach (var element in result) data.Add(element.Dictionary);
+            foreach (var element in result)
+            {
+                var attendanceDTO = new AttendanceDTO
+                {
+                    Id = element.Id,
+                    StudentId = element.StudentId,
+                    CourseId = courseId,
+                    Date = element.Date,
+                    AttendanceClass = element.AttendanceClass
+                };
+                data.Add(attendanceDTO);
+            }
 
-            if (data.Count > 0) return Ok(new DataResponse { Data = data, ErrorMessage = null });
-
-            return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+            return Ok(new BaseResponse<List<AttendanceDTO>> { Data = data, Error = null });
         }
 
 
-
+        //checar
         [HttpGet]
         [Route("course/{courseid}/student/{studentid}/day/{day}")]
         [Authorize]
         public async Task<IActionResult> GetAttendanceByDayAsync(string courseId, string studentId, string day)
         {
 
-            if (!Guid.TryParse(courseId, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = "error en curso" + ResponseMessages.BAD_REQUEST });
+            if (!Guid.TryParse(courseId, out _)) return BadRequest(new BaseResponse<AttendanceDTO> { Data = null, Error = ResponseErrors.AttributeIdInvalidlFormat });
 
-            if (!Guid.TryParse(studentId, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = "error en student" + ResponseMessages.BAD_REQUEST });
+            if (!Guid.TryParse(studentId, out _)) return BadRequest(new BaseResponse<AttendanceDTO> { Data = null, Error = ResponseErrors.AttributeIdInvalidlFormat });
 
-            if (!DateTime.TryParse(day, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = "error en fecha" + ResponseMessages.BAD_REQUEST });
+            if (!DateTime.TryParse(day, out _)) return BadRequest(new BaseResponse<AttendanceDTO> { Data = null, Error = ResponseErrors.AttributeEmptyOrNull });
 
             var result = await _atenndancesService.GetAllAsync(a => a.CourseId == courseId && a.StudentId == studentId,
 				a => a.Course!,
@@ -240,42 +317,50 @@ namespace UniSportUAQ_API.Controllers
 
             if (result is not null) foreach (var attendance in result)
                 {
-                    if (attendance.Date == date) return Ok(new DataResponse { Data = attendance.Dictionary, ErrorMessage = null });
+                    if (attendance.Date == date)
+                    {
+                        var attendanceDTO = new AttendanceDTO
+                        {
+                            Id = attendance.Id,
+                            StudentId = attendance.StudentId,
+                            CourseId = attendance.CourseId,
+                            Date = attendance.Date,
+                            AttendanceClass = attendance.AttendanceClass
+                        };
 
-
+                        return Ok(new BaseResponse<AttendanceDTO> { Data = attendanceDTO, Error = null });
+                    }                  
                 }
 
-
-
-            return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+            return NotFound(new BaseResponse<AttendanceDTO> { Data = null, Error = ResponseErrors.DataNotFound });
         }
 
         
 
-
+        //yifflkuygvlyuvkg
         [HttpPost]
         [Route("create")]
         [Authorize]
 
         public async Task<IActionResult> CreateAttendanceAsync([FromBody] AttendanceSchema attendanceSchema) {
 
-            if(!Guid.TryParse(attendanceSchema.StudentId, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST});
-            if (!Guid.TryParse(attendanceSchema.CourseId, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+            if (!Guid.TryParse(attendanceSchema.StudentId, out _)) return BadRequest(new BaseResponse<AttendanceDTO> { Data = null, Error = ResponseErrors.AttributeIdInvalidlFormat });
+            if (!Guid.TryParse(attendanceSchema.CourseId, out _)) return BadRequest(new BaseResponse<AttendanceDTO> { Data = null, Error = ResponseErrors.AttributeIdInvalidlFormat });
 
-            if (await _studentsService.GetByIdAsync(attendanceSchema.StudentId) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
-            if (await _coursesService.GetByIdAsync(attendanceSchema.CourseId) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
-            
+            if (await _studentsService.GetByIdAsync(attendanceSchema.StudentId) is null) return BadRequest(new BaseResponse<AttendanceDTO> { Data = null, Error = ResponseErrors.DataNotFound });
+            if (await _coursesService.GetByIdAsync(attendanceSchema.CourseId) is null) return BadRequest(new BaseResponse<AttendanceDTO> { Data = null, Error = ResponseErrors.DataNotFound });
+
             //check if student is in course
             var studentEnrolled = await _inscriptionsService.GetAllAsync(i => 
             i.CourseId == attendanceSchema.CourseId &&
             i.StudentId == attendanceSchema.StudentId);
 
-            if (!studentEnrolled.Any()) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.NOT_FOUND_IN_COURSE });
+            if (!studentEnrolled.Any()) return BadRequest(new BaseResponse<AttendanceDTO> { Data = null, Error = ResponseErrors.CourseNotFoundInscription });
 
             //get the course and 
             var course = await _coursesService.GetByIdAsync(attendanceSchema.CourseId);
 
-            if (course == null) return NotFound(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+            if (course == null) return NotFound(new BaseResponse<AttendanceDTO> { Data = null, Error = ResponseErrors.DataNotFound });
 
 
             var dateServ =  _utilsService.GetServerDateAsync();
@@ -304,8 +389,8 @@ namespace UniSportUAQ_API.Controllers
                 
 
             }
-
-            if (CorrectDay is false) return BadRequest(new DataResponse { Data = null , ErrorMessage = ResponseMessages.BAD_COURSE_DAY });
+            //aqui
+            if (CorrectDay is false) return BadRequest(new BaseResponse<AttendanceDTO> { Data = null, Error = ResponseErrors.CourseBadDay });
 
 
             var result = await _atenndancesService.GetAllAsync(a => a.CourseId == attendanceSchema.CourseId && a.StudentId == attendanceSchema.StudentId);
@@ -331,9 +416,18 @@ namespace UniSportUAQ_API.Controllers
 
             var attendanceRegister = await _atenndancesService.CreateAttendanceAsync(attendance);
 
-            if(attendanceRegister is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.ATTENDANCE_ENTITY_EXISTS});
+            if(attendanceRegister is null) return BadRequest(new BaseResponse<AttendanceDTO> { Data = null, Error = ResponseErrors.AttendanceEntityExists });
 
-            return Ok(new DataResponse { Data = attendanceRegister.Dictionary, ErrorMessage = null });
+            var attendanceDTO = new AttendanceDTO
+            {
+                Id = attendanceRegister.Id,
+                StudentId = attendanceRegister.StudentId,
+                CourseId = attendanceRegister.CourseId,
+                Date = attendanceRegister.Date,
+                AttendanceClass = attendanceRegister.AttendanceClass
+            };
+
+            return Ok(new BaseResponse<AttendanceDTO> { Data = attendanceDTO, Error = null });
         }
 
 
@@ -342,14 +436,14 @@ namespace UniSportUAQ_API.Controllers
         [Authorize]
         public async Task<IActionResult> UpdateAttendanceAsync([FromBody] AttendanceSchema attendanceSchema) {
 
-            if (attendanceSchema.Id is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
-            if (attendanceSchema.CourseId is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
-            if (attendanceSchema.StudentId is null) return  BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
-            if (attendanceSchema.Date == DateTime.MinValue) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+            if (attendanceSchema.Id is null) return BadRequest(new BaseResponse<AttendanceDTO> { Data = null, Error = ResponseErrors.AttributeEmptyOrNull });
+            if (attendanceSchema.CourseId is null) return BadRequest(new BaseResponse<AttendanceDTO> { Data = null, Error = ResponseErrors.AttributeEmptyOrNull });
+            if (attendanceSchema.StudentId is null) return BadRequest(new BaseResponse<AttendanceDTO> { Data = null, Error = ResponseErrors.AttributeEmptyOrNull });
+            if (attendanceSchema.Date == DateTime.MinValue) return BadRequest(new BaseResponse<AttendanceDTO> { Data = null, Error = ResponseErrors.AttributeEmptyOrNull });
 
             var oldAttendance = await _atenndancesService.GetByIdAsync(attendanceSchema.Id);
 
-            if (oldAttendance == null) return  BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.ENTITY_EXISTS });
+            if (oldAttendance == null) return NotFound(new BaseResponse<AttendanceDTO> { Data = null, Error = ResponseErrors.EntityNotExist });
 
 
             oldAttendance.AttendanceClass = attendanceSchema.AttendanceClass;
@@ -357,10 +451,21 @@ namespace UniSportUAQ_API.Controllers
 
             var result = await _atenndancesService.UpdateAsync(oldAttendance);
 
-            if (result is not null) return Ok(new DataResponse { Data = result.Dictionary, ErrorMessage = null });
+            if (result is not null)
+            {
+                var updatedAttendanceDTO = new AttendanceDTO
+                {
+                    Id = result.Id,
+                    StudentId = result.StudentId,
+                    CourseId = result.CourseId,
+                    Date = result.Date,
+                    AttendanceClass = result.AttendanceClass
+                };
 
+                return Ok(new BaseResponse<AttendanceDTO> { Data = updatedAttendanceDTO, Error = null });
+            }
 
-            return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+            return BadRequest(new BaseResponse<AttendanceDTO> { Data = null, Error = ResponseErrors.ServerDataBaseErrorUpdating });
         }
     }
 }

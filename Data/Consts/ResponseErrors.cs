@@ -62,10 +62,11 @@ namespace UniSportUAQ_API.Data.Consts
         public static ErrorBase CourseCanNotEnd = new ErrorBase { Code = "COU005", Description = "Can not end this course, please provide info to solve this problem" };
         public static ErrorBase CourseExceedMaxUsers = new ErrorBase { Code = "COU006", Description = "This user cannot be enrolled due to max users already registered on this course." };
         public static ErrorBase CourseHorarioConfict= new ErrorBase { Code = "COU007", Description = "One or many horarios share day and the active hours are in conflict, try uncrossed hours" };
-		public static ErrorBase CourseEndInscriptionProblem = new ErrorBase { Code = "COU008", Description = "Cpurses ended BUT Could not end inscriptions for the folowing users id" };
+		public static ErrorBase CourseEndInscriptionProblem = new ErrorBase { Code = "COU008", Description = "Courses ended BUT Could not end inscriptions for the folowing users id" };
         public static ErrorBase CourseInscriptionAttendanceProblemUpdate = new ErrorBase { Code = "COU009", Description = "Can not update the following attendance(s) please provide this identifiers" };
         public static ErrorBase CourseHasEnded = new ErrorBase { Code = "COU010", Description = "This course has already ended" };
         public static ErrorBase CourseHasNotEnded = new ErrorBase { Code = "COU011", Description = "This course has NOT ended" };
+        public static ErrorBase CourseBadDay = new ErrorBase { Code = "COU012", Description = "This day is invalid" };
 
         //inscriptions
         public static ErrorBase InscriptionNotAecredit= new ErrorBase { Code = "INS001", Description = "Not possible to accredit this course to this inscription, please check asistence quantity" };
@@ -77,6 +78,9 @@ namespace UniSportUAQ_API.Data.Consts
         //carta
         public static ErrorBase CartasErrorGenerating = new ErrorBase { Code = "CART001", Description = "Not possible to generate cartas for the following Expedientes, please provide us this expedienst and course Id" };
         public static ErrorBase CartasAlreadyExist= new ErrorBase { Code = "CART002", Description = "Not possible to generate cartas because there is alreadya a carta for this inscription" };
+
+        //attendance
+        public static ErrorBase AttendanceEntityExists = new ErrorBase { Code = "ATT001", Description = "Attendance entry already exists for the specified date." };
 
     }
 }
