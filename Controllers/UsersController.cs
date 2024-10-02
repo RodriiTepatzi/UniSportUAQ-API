@@ -312,110 +312,123 @@ namespace UniSportUAQ_API.Controllers
 
         }
 
-        //**********************************PROFILE-PICTURE**********************************//
-        [HttpPut]
-        [Route("update/image")]
-        [Authorize]
-        public async Task<IActionResult> UpdateImage([FromBody] ImageProfile Data)
-        {
-            if (Data == null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
-            if (string.IsNullOrEmpty(Data!.Base64Image)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
-            if (string.IsNullOrEmpty(Data.FileFormat)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
+		[HttpPut]
+		[Route("update/image")]
+		[Authorize]
+		public async Task<IActionResult> UpdateImage([FromBody] ImageProfile Data)
+		{
+			if (Data == null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
+			if (string.IsNullOrEmpty(Data!.Base64Image)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
+			if (string.IsNullOrEmpty(Data.FileFormat)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
 
-            //get current user
-            var userEmail = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (userEmail == null)
-            {
-                return Unauthorized(new BaseResponse<ApplicationUser>
-                {
-                    Error = ResponseErrors.AuthInvalidToken
-                });
-            }
+			var userEmail = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            var user = await _userManager.FindByEmailAsync(userEmail);
+			if (userEmail == null)
+			{
+				return Unauthorized(new BaseResponse<ApplicationUser>
+				{
+					Error = ResponseErrors.AuthInvalidToken
+				});
+			}
 
-            if (user == null)
-            {
-                return BadRequest(new BaseResponse<ApplicationUser>
-                {
-                    Error = ResponseErrors.AuthUserNotFound
-                });
-            }
-            var currentUserPicture = user.PictureUrl;
-            //if current user has a photo delete it
+			var user = await _userManager.FindByEmailAsync(userEmail);
 
+			if (user == null)
+			{
+				return BadRequest(new BaseResponse<ApplicationUser>
+				{
+					Error = ResponseErrors.AuthUserNotFound
+				});
+			}
 
-            try
-            {
-                if (string.IsNullOrWhiteSpace(Data.Base64Image) || string.IsNullOrWhiteSpace(Data.FileFormat))
-                {
-                    return BadRequest(new BaseResponse<bool> { Data = false });
-                }
+			var currentUserPicture = user.PictureUrl;
 
-                byte[] imageBytes;
-                try
-                {
-                    imageBytes = Convert.FromBase64String(Data.Base64Image);
-                }
-                catch (FormatException)
-                {
-                    return BadRequest(new BaseResponse<bool> { Data = false });
-                }
+			if (currentUserPicture != null && !string.IsNullOrEmpty(currentUserPicture))
+			{
+				var currentFileName = Path.GetFileName(currentUserPicture);
+				var deletePath = Directory.GetCurrentDirectory();
+				var deleteWwwroot = Path.Combine(deletePath, "wwwroot");
+				var deleteUsersFolder = Path.Combine(deleteWwwroot, "users");
+				var deleteProfileFolder = Path.Combine(deleteUsersFolder, "profile");
+				var deleteConcretePath = Path.Combine(deleteProfileFolder, currentFileName);
 
-                string baseDirectory = _hostingEnvironment.WebRootPath ?? throw new InvalidOperationException("WebRootPath is not set.");
+				if (System.IO.File.Exists(deleteConcretePath))
+				{
+					System.IO.File.Delete(deleteConcretePath);
+				}
+			}
 
-                string folderPath = Path.Combine(baseDirectory, "users");
-                string concretePath = Path.Combine(folderPath, "profile");
-                string guidName = Guid.NewGuid().ToString();
+			try
+			{
+				if (string.IsNullOrWhiteSpace(Data.Base64Image) || string.IsNullOrWhiteSpace(Data.FileFormat))
+				{
+					return BadRequest(new BaseResponse<bool> { Data = false });
+				}
 
+				byte[] imageBytes;
+				try
+				{
+					imageBytes = Convert.FromBase64String(Data.Base64Image);
+				}
+				catch (FormatException)
+				{
+					return BadRequest(new BaseResponse<bool> { Data = false });
+				}
 
-                if (!Directory.Exists(concretePath))
-                {
-                    Directory.CreateDirectory(concretePath);
-                }
+				string baseDirectory = _hostingEnvironment.WebRootPath ?? throw new InvalidOperationException("WebRootPath is not set.");
 
-                string filePath = Path.Combine(concretePath, $"{guidName}.{Data.FileFormat}");
-
-                if (currentUserPicture != null)
-                {
-
-                    var deleted = await DeleteFileAsync(currentUserPicture);
-
-                    if (deleted == false) return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.DeleteFileError });
-
-                }
-
-                using (var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None, 4096, useAsync: true))
-                {
-                    await fileStream.WriteAsync(imageBytes, 0, imageBytes.Length);
-                    await fileStream.FlushAsync();
-                }
+				string folderPath = Path.Combine(baseDirectory, "users");
+				string concretePath = Path.Combine(folderPath, "profile");
+				string guidName = Guid.NewGuid().ToString();
 
 
-                var url = $"/users/profile/{guidName}.{Data.FileFormat}";
+				if (!Directory.Exists(concretePath))
+				{
+					Directory.CreateDirectory(concretePath);
+				}
 
-                await _context.Entry(user).ReloadAsync();
+				string filePath = Path.Combine(concretePath, $"{guidName}.{Data.FileFormat}");
 
-                var entry = _context.Entry(user);
+				if (currentUserPicture != null)
+				{
 
-                entry.Entity.PictureUrl = url;
+					var deleted = await DeleteFileAsync(currentUserPicture);
 
-                _context.Entry(user).Property(e => e.PictureUrl).IsModified = true;
+					if (deleted == false) return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.DeleteFileError });
 
-                await _context.SaveChangesAsync();
+				}
+
+				using (var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None, 4096, useAsync: true))
+				{
+					await fileStream.WriteAsync(imageBytes, 0, imageBytes.Length);
+					await fileStream.FlushAsync();
+				}
 
 
-                return Ok(new BaseResponse<bool> { Data = true });
+				var url = $"/users/profile/{guidName}.{Data.FileFormat}";
+
+				await _context.Entry(user).ReloadAsync();
+
+				var entry = _context.Entry(user);
+
+				entry.Entity.PictureUrl = url;
+
+				_context.Entry(user).Property(e => e.PictureUrl).IsModified = true;
+
+				await _context.SaveChangesAsync();
 
 
-            }
-            catch
-            {
+				return Ok(new BaseResponse<bool> { Data = true });
 
-                return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.ConvertImageError });
-            }
 
-        }
+			}
+			catch
+			{
+
+				return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.ConvertImageError });
+			}
+
+		}
 
         private async Task<bool> DeleteFileAsync(string filePath)
         {
