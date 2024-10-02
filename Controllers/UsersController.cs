@@ -12,7 +12,6 @@ using UniSportUAQ_API.Data.Models;
 using UniSportUAQ_API.Data.Schemas;
 using System.IO;
 using System.Security.Claims;
-using static iTextSharp.text.pdf.events.IndexEvents;
 using UniSportUAQ_API.Data;
 
 
@@ -389,14 +388,7 @@ namespace UniSportUAQ_API.Controllers
 
 				string filePath = Path.Combine(concretePath, $"{guidName}.{Data.FileFormat}");
 
-				if (currentUserPicture != null)
-				{
-
-					var deleted = await DeleteFileAsync(currentUserPicture);
-
-					if (deleted == false) return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.DeleteFileError });
-
-				}
+				
 
 				using (var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None, 4096, useAsync: true))
 				{

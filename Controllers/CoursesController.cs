@@ -1206,13 +1206,7 @@ namespace UniSportUAQ_API.Controllers
             //assistancecheck recurrent job
             try
             {
-                // Obtener la zona horaria de Ciudad de México
-                TimeZoneInfo cdmxTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Central Standard Time");
-
-                // Obtener la fecha y hora actual en la zona horaria de Ciudad de México
-                DateTime cdmxDateTime = TimeZoneInfo.ConvertTime(DateTimeOffset.Now.Date, cdmxTimeZone);
-
-                DateTime datenow= DateTime.Now.Date;
+                
 
                 //para cada horario
                 foreach (var horario in horarios)
@@ -1220,20 +1214,14 @@ namespace UniSportUAQ_API.Controllers
                     var day = horario.Day;
                     TimeSpan checkHour = horario.EndHour.Add(TimeSpan.FromHours(1));
                     string? cronExpresion = GetCronExpressionForDayAndTime(day!, checkHour.ToString(@"hh\:mm"));
-                    Console.WriteLine($"cdmxDateTime {cdmxDateTime}");
 
                     if (cronExpresion != null)
                     {
-                        var options = new RecurringJobOptions
-                        {
-                            TimeZone = cdmxTimeZone
-                        };
 
                         RecurringJob.AddOrUpdate(
                             $"job-{day+"-"+course.Id!}",
-                            () => CheckTodayAttendance(datenow, course.Id!, day!.ToLower(), course.StartDate, course.EndDate),
-                            cronExpresion,
-                            options
+                            () => CheckTodayAttendance(DateTime.Now.Date, course.Id!, day!.ToLower(), course.StartDate, course.EndDate),
+                            cronExpresion
                         );
                     }
                     else
