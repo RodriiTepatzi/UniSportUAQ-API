@@ -172,7 +172,7 @@ namespace UniSportUAQ_API.Controllers
             if (registSubject == null) return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.ServerDataBaseError });
 
 
-            
+            if(url == null) Ok(new BaseResponse<bool> { Data = true , Error = ResponseErrors.ConvertImageError});
 
             return Ok(new BaseResponse<bool> { Data = true });
         }
