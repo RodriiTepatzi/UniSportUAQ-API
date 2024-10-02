@@ -88,7 +88,6 @@ namespace UniSportUAQ_API.Controllers
 
             //attrib validations
             if(string.IsNullOrEmpty(subject.Name)) return BadRequest(new DataResponse { Data = null, ErrorMessage ="name: " + ResponseMessages.BAD_REQUEST });
-            if(string.IsNullOrEmpty(subject.CoursePictureUrl)) return BadRequest(new DataResponse { Data = null, ErrorMessage = "urlpicture: "+ResponseMessages.BAD_REQUEST });
             
             //name existence
             var courseNameCheck = await _subjectsService.GetAllAsync(i => i.Name!.ToLower() == subject.Name!.ToLower());

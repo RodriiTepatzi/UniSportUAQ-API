@@ -14,7 +14,7 @@ namespace UniSportUAQ_API.Data.Models
         [Required]
         public string? Name { get; set; }
         
-        [Required]
+        
         public string? CoursePictureUrl { get; set; }
 
 
