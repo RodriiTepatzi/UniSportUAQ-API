@@ -142,10 +142,10 @@ namespace UniSportUAQ_API.Controllers
 
                     url = $"/subject/picture/{guidName}.{subject.imageModel.FileFormat}";
                 }
-                catch
+                catch(Exception ex)
                 {
+                    Console.WriteLine(ex.ToString());
 
-                    return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.ConvertImageError });
                 }
 
             }
@@ -172,7 +172,9 @@ namespace UniSportUAQ_API.Controllers
             if (registSubject == null) return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.ServerDataBaseError });
 
 
-            return Ok(new DataResponse { Data = true });
+            
+
+            return Ok(new BaseResponse<bool> { Data = true });
         }
 
         [HttpPut]
