@@ -96,6 +96,7 @@ namespace UniSportUAQ_API.Controllers
             return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 
         }
+
         [HttpGet]
         [Route("course/{courseid}/day/{day}")]
         [Authorize]
