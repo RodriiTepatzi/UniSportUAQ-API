@@ -1,10 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using UniSportUAQ_API.Data.Models;
 
 namespace UniSportUAQ_API.Data
 {
-    public class AppDbContext : DbContext
+    public class AppDbContext : IdentityDbContext<ApplicationUser>
 	{
 		public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
 		{
@@ -75,8 +76,6 @@ namespace UniSportUAQ_API.Data
 
 
 		}
-
-		public DbSet<ApplicationUser> ApplicationUsers { get; set; }
 
 		public DbSet<Course> Courses { get; set; }
 

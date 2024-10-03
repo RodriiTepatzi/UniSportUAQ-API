@@ -9,9 +9,8 @@ namespace UniSportUAQ_API.Data.Schemas
 		public string? Id { get; set; }
 
 		public string? Name { get; set; }
-
-        
-        public string? CoursePictureUrl { get; set; }
+		public string? CoursePictureUrl { get; set; }
+		public ImageProfile? imageModel{ get; set; }
 
     }
 }

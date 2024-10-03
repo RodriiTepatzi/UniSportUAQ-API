@@ -2,6 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using UniSportUAQ_API.Data.Base;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace UniSportUAQ_API.Data.Models
 {
@@ -13,8 +14,8 @@ namespace UniSportUAQ_API.Data.Models
 		public string? Id { get; set; }
         [Required]
         public string? Name { get; set; }
-        
-        [Required]
+
+        [AllowNull]
         public string? CoursePictureUrl { get; set; }
 
 

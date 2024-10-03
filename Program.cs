@@ -44,7 +44,12 @@ namespace UniSportUAQ_API
                 .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<AppDbContext>();
 
-            builder.Services.AddAuthentication(options =>
+			builder.Services.AddMemoryCache();
+
+
+
+
+			builder.Services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;

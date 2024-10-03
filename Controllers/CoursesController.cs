@@ -1,19 +1,14 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.FileSystemGlobbing.Internal.PathSegments;
 using UniSportUAQ_API.Data.Base;
 using UniSportUAQ_API.Data.Consts;
 using UniSportUAQ_API.Data.Interfaces;
 using UniSportUAQ_API.Data.Models;
 using UniSportUAQ_API.Data.Schemas;
 using UniSportUAQ_API.Data.DTO;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-using Org.BouncyCastle.Bcpg;
-using System.Reflection.Metadata.Ecma335;
+
 using Hangfire;
-using UniSportUAQ_API.Data.Services;
-using iTextSharp.text;
+using System.Globalization;
 
 namespace UniSportUAQ_API.Controllers
 {
@@ -28,8 +23,9 @@ namespace UniSportUAQ_API.Controllers
         private readonly IHorariosService _horariosService;
         private readonly IAttendancesService _attendancesService;
         private readonly IHangfireJobsService _hangfireJobsService;
+        private readonly ISubjectsService _subjectsService;
 
-        public CoursesController(IHangfireJobsService hangfireJobsService, IAttendancesService attendancesService, ICoursesService coursesService, IInscriptionsService inscriptionsService, IUsersService userService, IHorariosService horariosService)
+        public CoursesController(ISubjectsService subjectsService, IHangfireJobsService hangfireJobsService, IAttendancesService attendancesService, ICoursesService coursesService, IInscriptionsService inscriptionsService, IUsersService userService, IHorariosService horariosService)
         {
             _coursesService = coursesService;
             _inscriptionsService = inscriptionsService;
@@ -37,6 +33,7 @@ namespace UniSportUAQ_API.Controllers
             _horariosService = horariosService;
             _attendancesService = attendancesService;
             _hangfireJobsService = hangfireJobsService;
+            _subjectsService = subjectsService;
         }
 
         [HttpGet]
@@ -86,12 +83,9 @@ namespace UniSportUAQ_API.Controllers
                     InstructorName = result.Instructor!.FullName,
                     InstructorPicture = result.Instructor!.PictureUrl,
                     InstructorId = result.InstructorId,
-                    Day = result.Day,
                     MaxUsers = result.MaxUsers,
                     CurrentUsers = result.CurrentUsers,
                     Horarios = horariosDTO,
-                    StartHour = result.StartHour,
-                    EndHour = result.EndHour,
                     Description = result.Description,
                     Link = result.Link,
                     Location = result.Location,
@@ -112,7 +106,7 @@ namespace UniSportUAQ_API.Controllers
         [Authorize]
         public async Task<IActionResult> GetAllCourses()
         {
-            var result = await _coursesService.GetAllAsync(c => c.IsActive == true, c => c.Instructor!);
+            var result = await _coursesService.GetAllAsync(c => c.IsActive == true, c => c.Instructor!, c => c.Horarios!);
 
             if (result != null)
             {
@@ -122,6 +116,22 @@ namespace UniSportUAQ_API.Controllers
                 foreach (var item in result)
                 {
 
+                    List<HorarioDTO> horariosDTO = new List<HorarioDTO>();
+
+                    foreach (var horario in item.Horarios!) 
+                    {
+
+                        var horariosCourse = new HorarioDTO
+                        {
+                            Day = horario.Day,
+                            StartHour = horario.StartHour,
+                            EndHour = horario.EndHour,
+                            CourseId = horario.CourseId,
+                        };
+
+                        horariosDTO.Add(horariosCourse);
+                    }
+
                     var course = new CourseDTO
                     {
 
@@ -130,12 +140,9 @@ namespace UniSportUAQ_API.Controllers
                         InstructorName = item.Instructor!.FullName,
                         InstructorPicture = item.Instructor!.PictureUrl,
                         InstructorId = item.InstructorId,
-                        Day = item.Day,
                         MaxUsers = item.MaxUsers,
                         CurrentUsers = item.CurrentUsers,
-                        //Horarios = item.Horarios,
-                        StartHour = item.StartHour,
-                        EndHour = item.EndHour,
+                        Horarios = horariosDTO,
                         Description = item.Description,
                         Link = item.Link,
                         Location = item.Location,
@@ -167,6 +174,22 @@ namespace UniSportUAQ_API.Controllers
             foreach (var item in result)
             {
 
+                List<HorarioDTO> horariosDTO = new List<HorarioDTO>();
+
+                foreach (var horario in item.Horarios!)
+                {
+
+                    var horariosCourse = new HorarioDTO
+                    {
+                        Day = horario.Day,
+                        StartHour = horario.StartHour,
+                        EndHour = horario.EndHour,
+                        CourseId = horario.CourseId,
+                    };
+
+                    horariosDTO.Add(horariosCourse);
+                }
+
                 var course = new CourseDTO
                 {
 
@@ -175,12 +198,9 @@ namespace UniSportUAQ_API.Controllers
                     InstructorName = item.Instructor!.FullName,
                     InstructorPicture = item.Instructor!.PictureUrl,
                     InstructorId = item.InstructorId,
-                    Day = item.Day,
                     MaxUsers = item.MaxUsers,
                     CurrentUsers = item.CurrentUsers,
-                    //Horarios = item.Horarios,
-                    StartHour = item.StartHour,
-                    EndHour = item.EndHour,
+                    Horarios = horariosDTO,
                     Description = item.Description,
                     Link = item.Link,
                     Location = item.Location,
@@ -216,6 +236,22 @@ namespace UniSportUAQ_API.Controllers
             foreach (var item in courseInRange)
             {
 
+                List<HorarioDTO> horariosDTO = new List<HorarioDTO>();
+
+                foreach (var horario in item.Horarios!)
+                {
+
+                    var horariosCourse = new HorarioDTO
+                    {
+                        Day = horario.Day,
+                        StartHour = horario.StartHour,
+                        EndHour = horario.EndHour,
+                        CourseId = horario.CourseId,
+                    };
+
+                    horariosDTO.Add(horariosCourse);
+                }
+
                 var course = new CourseDTO
                 {
 
@@ -224,12 +260,9 @@ namespace UniSportUAQ_API.Controllers
                     InstructorName = item.Instructor!.FullName,
                     InstructorPicture = item.Instructor!.PictureUrl,
                     InstructorId = item.InstructorId,
-                    Day = item.Day,
                     MaxUsers = item.MaxUsers,
                     CurrentUsers = item.CurrentUsers,
-                    //Horarios = item.Horarios,
-                    StartHour = item.StartHour,
-                    EndHour = item.EndHour,
+                    Horarios = horariosDTO,
                     Description = item.Description,
                     Link = item.Link,
                     Location = item.Location,
@@ -250,6 +283,7 @@ namespace UniSportUAQ_API.Controllers
         public async Task<IActionResult> GetCoursesByInstructorId(string instructorid)
         {
 
+
             if (string.IsNullOrEmpty(instructorid)) return BadRequest(new BaseResponse<List<CourseDTO>> { Error = ResponseErrors.AttributeIdInvalidlFormat });
 
             var result = await _coursesService.GetAllAsync(c => c.InstructorId == instructorid, c => c.Instructor!);
@@ -260,6 +294,22 @@ namespace UniSportUAQ_API.Controllers
 
             foreach (var item in result)
             {
+                List<HorarioDTO> horariosDTO = new List<HorarioDTO>();
+
+                foreach (var horario in item.Horarios!)
+                {
+
+                    var horariosCourse = new HorarioDTO
+                    {
+                        Day = horario.Day,
+                        StartHour = horario.StartHour,
+                        EndHour = horario.EndHour,
+                        CourseId = horario.CourseId,
+                    };
+
+                    horariosDTO.Add(horariosCourse);
+                }
+
 
                 var course = new CourseDTO
                 {
@@ -269,12 +319,9 @@ namespace UniSportUAQ_API.Controllers
                     InstructorName = item.Instructor!.FullName,
                     InstructorPicture = item.Instructor!.PictureUrl,
                     InstructorId = item.InstructorId,
-                    Day = item.Day,
                     MaxUsers = item.MaxUsers,
                     CurrentUsers = item.CurrentUsers,
-                    //Horarios = item.Horarios,
-                    StartHour = item.StartHour,
-                    EndHour = item.EndHour,
+                    Horarios = horariosDTO,
                     Description = item.Description,
                     Link = item.Link,
                     Location = item.Location,
@@ -306,6 +353,22 @@ namespace UniSportUAQ_API.Controllers
 
             foreach (var item in result)
             {
+                List<HorarioDTO> horariosDTO = new List<HorarioDTO>();
+
+                foreach (var horario in item.Horarios!)
+                {
+
+                    var horariosCourse = new HorarioDTO
+                    {
+                        Day = horario.Day,
+                        StartHour = horario.StartHour,
+                        EndHour = horario.EndHour,
+                        CourseId = horario.CourseId,
+                    };
+
+                    horariosDTO.Add(horariosCourse);
+                }
+
 
                 var course = new CourseDTO
                 {
@@ -315,12 +378,9 @@ namespace UniSportUAQ_API.Controllers
                     InstructorName = item.Instructor!.FullName,
                     InstructorPicture = item.Instructor!.PictureUrl,
                     InstructorId = item.InstructorId,
-                    Day = item.Day,
                     MaxUsers = item.MaxUsers,
                     CurrentUsers = item.CurrentUsers,
-                    //Horarios = item.Horarios,
-                    StartHour = item.StartHour,
-                    EndHour = item.EndHour,
+                    Horarios = horariosDTO,
                     Description = item.Description,
                     Link = item.Link,
                     Location = item.Location,
@@ -352,6 +412,22 @@ namespace UniSportUAQ_API.Controllers
 
             foreach (var item in result)
             {
+                List<HorarioDTO> horariosDTO = new List<HorarioDTO>();
+
+                foreach (var horario in item.Horarios!)
+                {
+
+                    var horariosCourse = new HorarioDTO
+                    {
+                        Day = horario.Day,
+                        StartHour = horario.StartHour,
+                        EndHour = horario.EndHour,
+                        CourseId = horario.CourseId,
+                    };
+
+                    horariosDTO.Add(horariosCourse);
+                }
+
                 var course = new CourseDTO
                 {
 
@@ -360,12 +436,9 @@ namespace UniSportUAQ_API.Controllers
                     InstructorName = item.Instructor!.FullName,
                     InstructorPicture = item.Instructor!.PictureUrl,
                     InstructorId = item.InstructorId,
-                    Day = item.Day,
                     MaxUsers = item.MaxUsers,
                     CurrentUsers = item.CurrentUsers,
-                    //Horarios = item.Horarios,
-                    StartHour = item.StartHour,
-                    EndHour = item.EndHour,
+                    Horarios = horariosDTO,
                     Description = item.Description,
                     Link = item.Link,
                     Location = item.Location,
@@ -392,8 +465,8 @@ namespace UniSportUAQ_API.Controllers
 
             var result = await _coursesService.GetAllAsync(i =>
                 ((i.CourseName != null && i.CourseName.ToLower().Contains(searchTerm)) ||
-                    (i.Description != null && i.Description.ToLower().Contains(searchTerm)) ||
-                    (i.Day != null && i.Day.ToLower().Contains(searchTerm))
+                 (i.Description != null && i.Description.ToLower().Contains(searchTerm)) ||
+                 (i.Horarios != null && i.Horarios.Any(h => h.Day != null && h.Day.ToLower().Contains(searchTerm)))
                 )
                 &&
                 i.IsActive == true, c => c.Instructor!
@@ -406,6 +479,22 @@ namespace UniSportUAQ_API.Controllers
             foreach (var item in distinctResult)
             {
 
+                List<HorarioDTO> horariosDTO = new List<HorarioDTO>();
+
+                foreach (var horario in item.Horarios!)
+                {
+
+                    var horariosCourse = new HorarioDTO
+                    {
+                        Day = horario.Day,
+                        StartHour = horario.StartHour,
+                        EndHour = horario.EndHour,
+                        CourseId = horario.CourseId,
+                    };
+
+                    horariosDTO.Add(horariosCourse);
+                }
+
                 var course = new CourseDTO
                 {
 
@@ -414,12 +503,9 @@ namespace UniSportUAQ_API.Controllers
                     InstructorName = item.Instructor!.FullName,
                     InstructorPicture = item.Instructor!.PictureUrl,
                     InstructorId = item.InstructorId,
-                    Day = item.Day,
                     MaxUsers = item.MaxUsers,
                     CurrentUsers = item.CurrentUsers,
-                    //Horarios = item.Horarios,
-                    StartHour = item.StartHour,
-                    EndHour = item.EndHour,
+                    Horarios = horariosDTO,
                     Description = item.Description,
                     Link = item.Link,
                     Location = item.Location,
@@ -474,6 +560,8 @@ namespace UniSportUAQ_API.Controllers
             if (courseSchema == null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeSchemaEmpty });
             if (courseSchema.CourseName is null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeNameEmpty });
             if (courseSchema.InstructorId is null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull});
+            if (courseSchema.SubjectId is null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
+            if (await _subjectsService.GetByIdAsync(courseSchema.SubjectId) == null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.DataNotFound});
 
             if ((await _userService.GetAllAsync(i => i.Id == courseSchema.InstructorId && i.IsInstructor == true)).Count() < 1) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeIsInstructorFalse });
 
@@ -650,10 +738,7 @@ namespace UniSportUAQ_API.Controllers
             return NotFound(new BaseResponse<bool> { Data = false });
         }
 
-
-
-
-        /*******************************inscriptions*******************************/
+        /**************************************************************inscriptions**************************************************************/
 
         [HttpPost]
         [Route("inscription/{courseId}/{studentId}")]
@@ -1121,11 +1206,7 @@ namespace UniSportUAQ_API.Controllers
             //assistancecheck recurrent job
             try
             {
-                // Obtener la zona horaria de Ciudad de México
-                TimeZoneInfo cdmxTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Central Standard Time");
-
-                // Obtener la fecha y hora actual en la zona horaria de Ciudad de México
-                DateTime cdmxDateTime = TimeZoneInfo.ConvertTime(DateTimeOffset.Now.Date, cdmxTimeZone);
+                
 
                 //para cada horario
                 foreach (var horario in horarios)
@@ -1133,20 +1214,14 @@ namespace UniSportUAQ_API.Controllers
                     var day = horario.Day;
                     TimeSpan checkHour = horario.EndHour.Add(TimeSpan.FromHours(1));
                     string? cronExpresion = GetCronExpressionForDayAndTime(day!, checkHour.ToString(@"hh\:mm"));
-                    Console.WriteLine($"cdmxDateTime {cdmxDateTime}");
 
                     if (cronExpresion != null)
                     {
-                        var options = new RecurringJobOptions
-                        {
-                            TimeZone = cdmxTimeZone
-                        };
 
                         RecurringJob.AddOrUpdate(
-                            $"job-{day}",
-                            () => CheckTodayAttendance(cdmxDateTime, course.Id!, day!.ToLower(), course.StartDate, course.EndDate),
-                            cronExpresion,
-                            options
+                            $"job-{day+"-"+course.Id!}",
+                            () => CheckTodayAttendance(DateTime.Now.Date, course.Id!, day!.ToLower(), course.StartDate, course.EndDate),
+                            cronExpresion
                         );
                     }
                     else
