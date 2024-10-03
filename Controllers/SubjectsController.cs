@@ -10,6 +10,8 @@ using UniSportUAQ_API.Data.DTO;
 using Firebase.Auth;
 using Microsoft.EntityFrameworkCore;
 using UniSportUAQ_API.Data;
+using Microsoft.AspNetCore.Identity;
+using System;
 
 namespace UniSportUAQ_API.Controllers
 {
@@ -149,18 +151,17 @@ namespace UniSportUAQ_API.Controllers
                 }
 
             }
-
+            //create new Subject object
             var newSubject = new Subject
             {
                 Id = Guid.NewGuid().ToString(),
                 Name = subject.Name,
-                CoursePictureUrl = subject.CoursePictureUrl,
             };
 
             if (url != null)
             {
 
-                //create new Subject object
+                
                 newSubject.CoursePictureUrl = url;
 
 
@@ -287,6 +288,74 @@ namespace UniSportUAQ_API.Controllers
             {
 
                 return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.ConvertImageError });
+            }
+        }
+
+        [HttpPut]
+        [Route("remove/picture/{id}")]
+        [Authorize]
+        public async Task<IActionResult> DeleteSubjectPictureAsync(string id) 
+        {
+            if (string.IsNullOrEmpty(id) || string.IsNullOrWhiteSpace(id)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeIdInvalidlFormat});
+
+
+            var subject = await _subjectsService.GetByIdAsync(id);
+            if (subject == null) return NotFound();
+
+            string? currentUserPicture = subject.CoursePictureUrl;
+
+
+            if (currentUserPicture != null && !string.IsNullOrEmpty(currentUserPicture))
+            {
+                var currentFileName = Path.GetFileName(currentUserPicture);
+                var deletePath = Directory.GetCurrentDirectory();
+                var deleteWwwroot = Path.Combine(deletePath, "wwwroot");
+                var deleteUsersFolder = Path.Combine(deleteWwwroot, "subject");
+                var deleteProfileFolder = Path.Combine(deleteUsersFolder, "picture");
+                var deleteConcretePath = Path.Combine(deleteProfileFolder, currentFileName);
+
+                bool deleted = await DeleteFileAsync(deleteConcretePath);
+
+                if (deleted == true)
+                {
+                    subject.CoursePictureUrl = null;
+
+                    var updated = await _subjectsService.UpdateAsync(subject);
+
+                    if (updated != null) return Ok(new BaseResponse<bool> { Data = true });
+
+                    return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.ServerDataBaseErrorUpdating });
+
+
+                }
+
+                if (deleted == false) return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.DeleteFileError });
+            }
+
+
+            return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.EntityNotExist }); ;
+
+            
+        
+        }
+
+        private async Task<bool> DeleteFileAsync(string filePath)
+        {
+            try
+            {
+                await Task.Run(() =>
+                {
+                    if (System.IO.File.Exists(filePath))
+                    {
+                        System.IO.File.Delete(filePath);
+                    }
+                });
+                return true;
+            }
+            catch (Exception ex)
+            {
+
+                return false;
             }
         }
 
