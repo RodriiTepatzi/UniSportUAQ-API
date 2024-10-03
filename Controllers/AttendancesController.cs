@@ -33,7 +33,6 @@ namespace UniSportUAQ_API.Controllers
             _horariosService = horariosService;
         }
 
-        //si
         [HttpGet]
         [Route("id/{id}")]
         [Authorize]
@@ -293,8 +292,6 @@ namespace UniSportUAQ_API.Controllers
             return Ok(new BaseResponse<List<AttendanceDTO>> { Data = data, Error = null });
         }
 
-
-        //checar
         [HttpGet]
         [Route("course/{courseid}/student/{studentid}/day/{day}")]
         [Authorize]
