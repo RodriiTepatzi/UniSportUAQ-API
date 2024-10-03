@@ -464,7 +464,13 @@ namespace UniSportUAQ_API.Controllers
 
                     user.PictureUrl = null;
 
-                    return Ok(new BaseResponse<bool> { Data = true });
+                    var updated = await _userManager.UpdateAsync(user);
+
+                    if(updated != null) return Ok(new BaseResponse<bool> { Data = true });
+
+                    return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.ServerDataBaseErrorUpdating });
+
+
                 }
 
                 if (deleted == false) return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.DeleteFileError});
