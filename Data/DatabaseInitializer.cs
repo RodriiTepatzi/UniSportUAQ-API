@@ -131,7 +131,7 @@ namespace UniSportUAQ_API.Data
 
                 if (instructorUser != null)
                 {
-                    var instructorFilled = context.ApplicationUsers.Single(
+                    var instructorFilled = context.Users.Single(
                         i => i.Email == instructorUser!.Email && i.IsInstructor == true
                     );
 
@@ -155,9 +155,6 @@ namespace UniSportUAQ_API.Data
                             Description = "Este curso ofrece a los participantes una introducción completa al lenguaje de programación Python",
                             MaxUsers = 30,
                             CurrentUsers = 0,
-                            Day = "Martes",
-                            StartHour = "12:00",
-                            EndHour = "14:00",
                             IsActive = true
                         },
 
@@ -189,10 +186,7 @@ namespace UniSportUAQ_API.Data
                 var courseCSharp = context.Courses.FirstOrDefault(c => c.CourseName == "Curso de C#");
                 var coursePython = context.Courses.FirstOrDefault(c => c.CourseName == "Curso de Python");
 
-                List<ApplicationUser> studentsList = await context.ApplicationUsers.Where(st => st.IsStudent).ToListAsync();
-
-
-
+                List<ApplicationUser> studentsList = await context.Users.Where(st => st.IsStudent).ToListAsync();
 
 
                 foreach (ApplicationUser student in studentsList)
@@ -241,7 +235,7 @@ namespace UniSportUAQ_API.Data
                 // Comprueba si ya existen asistencias en la base de datos
                 if (context!.Attendances.Any()) return;
 
-                List<ApplicationUser> studentsList = await context.ApplicationUsers.Where(st => st.IsStudent).ToListAsync();
+                List<ApplicationUser> studentsList = await context.Users.Where(st => st.IsStudent).ToListAsync();
 
                 // Busca a los usuarios que van a asistir a los cursos
 
