@@ -43,7 +43,7 @@ namespace UniSportUAQ_API.Controllers
         [Authorize]
         public async Task<IActionResult> DownloadPdf(string id)
         {
-            if (string.IsNullOrEmpty(id)) return BadRequest(new BaseResponse<CartaLiberacionDTO> { Error = ResponseErrors.AuthUserNotFound });
+            if (string.IsNullOrEmpty(id)) return BadRequest();
 
             var carta = await _cartasLiberacionService.GetByIdAsync(id);
 
@@ -59,7 +59,7 @@ namespace UniSportUAQ_API.Controllers
 
             }
 
-            return NotFound(new BaseResponse<CartaLiberacionDTO> { Error = ResponseErrors.DataNotFound });
+            return NotFound();
         }
 
         [HttpGet]
@@ -408,7 +408,7 @@ namespace UniSportUAQ_API.Controllers
                         var cartaRegister = await _cartasLiberacionService.AddAsync(carta);
 
                         //add to lits not poisbble generate carta
-                        if (cartaRegister == null) FailedExpedientes.Add(data.Expediente! + ": not posibble to save carta");
+                        if (cartaRegister == null) FailedExpedientes.Add(data.Expediente! + ": not posible to save carta");
 
                     }
                     catch
@@ -424,7 +424,6 @@ namespace UniSportUAQ_API.Controllers
             if (FailedExpedientes.Any()) return Ok(new BaseResponse<List<string>> { Data = FailedExpedientes, Error = ResponseErrors.CartasAlreadyExist });
 
             return Ok(new BaseResponse<bool> { Data = true });
-
 
         }
 
