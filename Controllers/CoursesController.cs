@@ -9,6 +9,7 @@ using UniSportUAQ_API.Data.DTO;
 
 using Hangfire;
 using System.Globalization;
+using UniSportUAQ_API.Migrations;
 
 namespace UniSportUAQ_API.Controllers
 {
@@ -67,6 +68,7 @@ namespace UniSportUAQ_API.Controllers
 
                     var horariosCourse = new HorarioDTO
                     {
+                        Id = horario.Id,
                         Day = horario.Day,
                         StartHour = horario.StartHour,
                         EndHour = horario.EndHour,
@@ -118,11 +120,12 @@ namespace UniSportUAQ_API.Controllers
 
                     List<HorarioDTO> horariosDTO = new List<HorarioDTO>();
 
-                    foreach (var horario in item.Horarios!) 
+                    foreach (var horario in item.Horarios!)
                     {
 
                         var horariosCourse = new HorarioDTO
                         {
+                            Id = horario.Id,
                             Day = horario.Day,
                             StartHour = horario.StartHour,
                             EndHour = horario.EndHour,
@@ -181,6 +184,7 @@ namespace UniSportUAQ_API.Controllers
 
                     var horariosCourse = new HorarioDTO
                     {
+                        Id = horario.Id,
                         Day = horario.Day,
                         StartHour = horario.StartHour,
                         EndHour = horario.EndHour,
@@ -243,6 +247,7 @@ namespace UniSportUAQ_API.Controllers
 
                     var horariosCourse = new HorarioDTO
                     {
+                        Id = horario.Id,
                         Day = horario.Day,
                         StartHour = horario.StartHour,
                         EndHour = horario.EndHour,
@@ -301,6 +306,7 @@ namespace UniSportUAQ_API.Controllers
 
                     var horariosCourse = new HorarioDTO
                     {
+                        Id = horario.Id,
                         Day = horario.Day,
                         StartHour = horario.StartHour,
                         EndHour = horario.EndHour,
@@ -360,6 +366,7 @@ namespace UniSportUAQ_API.Controllers
 
                     var horariosCourse = new HorarioDTO
                     {
+                        Id = horario.Id,
                         Day = horario.Day,
                         StartHour = horario.StartHour,
                         EndHour = horario.EndHour,
@@ -419,6 +426,7 @@ namespace UniSportUAQ_API.Controllers
 
                     var horariosCourse = new HorarioDTO
                     {
+                        Id = horario.Id,
                         Day = horario.Day,
                         StartHour = horario.StartHour,
                         EndHour = horario.EndHour,
@@ -486,6 +494,7 @@ namespace UniSportUAQ_API.Controllers
 
                     var horariosCourse = new HorarioDTO
                     {
+                        Id = horario.Id,
                         Day = horario.Day,
                         StartHour = horario.StartHour,
                         EndHour = horario.EndHour,
@@ -528,25 +537,73 @@ namespace UniSportUAQ_API.Controllers
         [Authorize]
         public async Task<IActionResult> UpdateCourse([FromBody] CourseSchema courseSchema)
         {
-            if (courseSchema.CourseName is null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
+            if (string.IsNullOrEmpty(courseSchema.Id) || string.IsNullOrWhiteSpace(courseSchema.Id)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
+            if (string.IsNullOrEmpty(courseSchema.CourseName) || string.IsNullOrWhiteSpace(courseSchema.CourseName)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
             if (courseSchema.InstructorId is null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
             if (courseSchema.MaxUsers <= 0) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
 
-            var course = new Course
+
+            var course = await _coursesService.GetByIdAsync(courseSchema.Id, i => i.Horarios!);
+
+            var horarios = await _horariosService.GetAllAsync(i => i.CourseId == courseSchema.Id);
+
+            if (course == null || horarios.Count() < 1) return NotFound();
+
+            List<string> failedHorarios = new List<string>();
+
+
+            course.CourseName = courseSchema.CourseName;
+            course.MaxUsers = courseSchema.MaxUsers;
+            course.Description = courseSchema.Description;
+            course.MinAttendances = courseSchema.MinAttendances;
+
+            if (courseSchema.Horarios?.Count() > 0)
             {
-                Id = courseSchema.Id,
-                CourseName = courseSchema.CourseName,
-                MaxUsers = courseSchema.MaxUsers,
-                Description = courseSchema.Description,
-                MinAttendances = courseSchema.MinAttendances,
-            };
+
+                foreach (var oldhorario in horarios)
+                {
+
+                    foreach (var newHorario in courseSchema.Horarios)
+                    {
+
+                        if (oldhorario.Id == newHorario.Id)
+                        {
+
+                            oldhorario.Day = newHorario.Day;
+                            oldhorario.StartHour = newHorario.StartHour;
+                            oldhorario.EndHour = newHorario.EndHour;
+
+                            var updatedHr = await _horariosService.UpdateAsync(oldhorario);
+
+                            if (updatedHr == null) failedHorarios.Add(oldhorario.Id! + ": couldnt update horario");
+
+                        }
+                    }
+
+                }
+
+            }
+
+            course.StartDate = courseSchema.StartDate;
+            course.EndDate = courseSchema.EndDate;
+            course.Description = courseSchema.Description;
+            course.MaxUsers = courseSchema.MaxUsers;
+            course.Location = courseSchema.location;
 
             var result = await _coursesService.UpdateAsync(course);
+            horarios = await _horariosService.GetAllAsync(i => i.CourseId == courseSchema.Id);
 
-            if (result is not null) return Ok(new BaseResponse<bool> { Data = true });
+            if (result is not null && horarios != null)
+            {
+                HangfireSetter(course, horarios.ToList());
+
+                return Ok(new BaseResponse<bool> { Data = true });
+            }
 
             return BadRequest(new BaseResponse<bool> { Data = false, Error = ResponseErrors.ServerDataBaseErrorUpdating });
         }
+
+
 
 
 
@@ -559,9 +616,9 @@ namespace UniSportUAQ_API.Controllers
         {
             if (courseSchema == null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeSchemaEmpty });
             if (courseSchema.CourseName is null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeNameEmpty });
-            if (courseSchema.InstructorId is null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull});
+            if (courseSchema.InstructorId is null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
             if (courseSchema.SubjectId is null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
-            if (await _subjectsService.GetByIdAsync(courseSchema.SubjectId) == null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.DataNotFound});
+            if (await _subjectsService.GetByIdAsync(courseSchema.SubjectId) == null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.DataNotFound });
 
             if ((await _userService.GetAllAsync(i => i.Id == courseSchema.InstructorId && i.IsInstructor == true)).Count() < 1) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeIsInstructorFalse });
 
@@ -658,7 +715,7 @@ namespace UniSportUAQ_API.Controllers
         public async Task<IActionResult> EndCourse(string Id)
         {
 
-            if (string.IsNullOrEmpty(Id)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeIdInvalidlFormat});
+            if (string.IsNullOrEmpty(Id)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeIdInvalidlFormat });
 
             //get course
             var endCourse = await _coursesService.GetByIdAsync(Id);
@@ -671,7 +728,7 @@ namespace UniSportUAQ_API.Controllers
             {
                 //get inscriptions related with course
                 var inscriptions = await _inscriptionsService.GetAllAsync(i =>
-                i.CourseId == Id && 
+                i.CourseId == Id &&
                 i.UnEnrolled == false);
 
                 //verify inscriptions related with course
@@ -1138,7 +1195,7 @@ namespace UniSportUAQ_API.Controllers
 
         //**********************************local use**********************************
 
-        
+
 
         [ApiExplorerSettings(IgnoreApi = true)]
         private bool IsScheduleConflict(IEnumerable<Horario> existingCourse, List<HorarioSchema> newCourse)
@@ -1201,27 +1258,37 @@ namespace UniSportUAQ_API.Controllers
         [ApiExplorerSettings(IgnoreApi = true)]
         private async void HangfireSetter(Course course, List<Horario> horarios)
         {
+            TimeZoneInfo timeZone = TimeZoneInfo.FindSystemTimeZoneById("Central Standard Time");
 
             Console.WriteLine($"horarios {horarios}");
             //assistancecheck recurrent job
             try
             {
-                
+
 
                 //para cada horario
                 foreach (var horario in horarios)
                 {
                     var day = horario.Day;
                     TimeSpan checkHour = horario.EndHour.Add(TimeSpan.FromHours(1));
+
+
                     string? cronExpresion = GetCronExpressionForDayAndTime(day!, checkHour.ToString(@"hh\:mm"));
+                    var utcMinus6Date = TimeZoneInfo.ConvertTime(DateTime.Now, timeZone);
+
 
                     if (cronExpresion != null)
                     {
 
                         RecurringJob.AddOrUpdate(
-                            $"job-{day+"-"+course.Id!}",
-                            () => CheckTodayAttendance(DateTime.Now.Date, course.Id!, day!.ToLower(), course.StartDate, course.EndDate),
+                            $"job-{day + "-" + course.Id!}",
+                            () => CheckTodayAttendance(utcMinus6Date, course.Id!, day!.ToLower(), course.StartDate, course.EndDate, horario.Id!),
                             cronExpresion
+                        );
+
+                        BackgroundJob.Schedule(
+                            () => RecurringJob.RemoveIfExists($"job-{day + "-" + course.Id!}")
+                            , course.EndDate
                         );
                     }
                     else
@@ -1271,75 +1338,86 @@ namespace UniSportUAQ_API.Controllers
 
         // Método sincrónico que llama al método asincrónico
         [ApiExplorerSettings(IgnoreApi = true)]
-        public void CheckTodayAttendance(DateTime date, string courseId, string day, DateTime startDate, DateTime endDate)
+        public void CheckTodayAttendance(DateTime date, string courseId, string day, DateTime startDate, DateTime endDate, string horarioId)
         {
-            CheckTodayAttendanceAsync(date, courseId, day, startDate, endDate).GetAwaiter().GetResult();
+            CheckTodayAttendanceAsync(date, courseId, day, startDate, endDate, horarioId).GetAwaiter().GetResult();
         }
 
         [ApiExplorerSettings(IgnoreApi = true)]
-        public async Task CheckTodayAttendanceAsync(DateTime date, string courseId, string day, DateTime startDate, DateTime endDate)
+        public async Task CheckTodayAttendanceAsync(DateTime date, string courseId, string day, DateTime startDate, DateTime endDate, string horarioId)
         {
 
             if (date > startDate && date < endDate)
             {
+                var course = await _coursesService.GetByIdAsync(courseId);
+                var horario = await _horariosService.GetByIdAsync(horarioId);
 
-                Console.WriteLine($"Executing VerifyAssistence to day: {day}");
-
-
-
-                var Attendances = await _attendancesService.GetAllAsync(i =>
-                    i.CourseId == courseId &&
-                    i.Date == date);
-
-                if (Attendances.Count() > 0)
-                {
-                    Console.WriteLine($"Intructor for course with {courseId} has taken attendances for day:{day}");
-                }
-                else
+                if (course != null && horario != null)
                 {
 
-                    Console.WriteLine($"Intructor for course with {courseId} has NOT TAKEN attendances for day:{day}");
+                    DateTime dateEndHour = DateTime.Now.Date.Date.AddHours(horario.EndHour.Ticks);
+                    DateTime dateStartHour = DateTime.Now.Date.Date.AddHours(horario.StartHour.Ticks);
 
-                    // Obtener inscripciones para el curso
-                    var inscriptions = await _inscriptionsService.GetAllAsync(i =>
-                        i.CourseId == courseId);
+                    Console.WriteLine($"Executing VerifyAssistence to day: {day}");
 
-                    if (!inscriptions.Any())
+
+                    var Attendances = await _attendancesService.GetAllAsync(i =>
+                        i.CourseId == courseId &&
+                        i.Date >= dateStartHour &&
+                        i.Date <= dateEndHour);
+
+                    
+
+                    if (Attendances.Count() > 0)
                     {
-                        Console.WriteLine($"this course {courseId} has NOT inscriptions");
+                        Console.WriteLine($"Intructor for course with Id {courseId} has taken attendances for day:{day}");
                     }
-
-                    // Generar asistencias
-                    foreach (var inscription in inscriptions)
+                    else
                     {
-                        var attendance = new Attendance
+
+                        Console.WriteLine($"Intructor for course with {courseId} has NOT TAKEN attendances for day:{day}");
+
+                        // Obtener inscripciones para el curso
+                        var inscriptions = await _inscriptionsService.GetAllAsync(i =>
+                            i.CourseId == courseId);
+
+                        if (!inscriptions.Any())
                         {
-                            Id = Guid.NewGuid().ToString(),
-                            CourseId = inscription.CourseId,
-                            StudentId = inscription.StudentId,
-                            Date = date,
-                            AttendanceClass = true,
-                        };
+                            Console.WriteLine($"this course {courseId} has NOT inscriptions");
+                        }
 
-
-                        var newattendance = await _attendancesService.AddAsync(attendance);
-
-                        var checkattendance = await _attendancesService.GetByIdAsync(attendance.Id);
-
-                        if (checkattendance is not null)
+                        // Generar asistencias
+                        foreach (var inscription in inscriptions)
                         {
-                            if (inscription.Student != null && inscription.Course != null)
+                            var attendance = new Attendance
                             {
-                                Console.WriteLine($"Generated attendance for student with exp {inscription.Student.Expediente} for course with id:{inscription.Course.Id}");
+                                Id = Guid.NewGuid().ToString(),
+                                CourseId = inscription.CourseId,
+                                StudentId = inscription.StudentId,
+                                Date = date,
+                                AttendanceClass = true,
+                            };
+
+
+                            var newattendance = await _attendancesService.AddAsync(attendance);
+
+                            var checkattendance = await _attendancesService.GetByIdAsync(attendance.Id);
+
+                            if (checkattendance is not null)
+                            {
+                                if (inscription.Student != null && inscription.Course != null)
+                                {
+                                    Console.WriteLine($"Generated attendance for student with exp {inscription.Student.Expediente} for course with id:{inscription.Course.Id}");
+                                }
+                                else
+                                {
+                                    Console.WriteLine($"Student or Course information is missing for inscription with CourseId: {inscription.CourseId}");
+                                }
                             }
                             else
                             {
-                                Console.WriteLine($"Student or Course information is missing for inscription with CourseId: {inscription.CourseId}");
+                                Console.WriteLine($"Can not generate attendance for student with exp {inscription.Student!.Expediente} for course with id:{inscription.Course!.Id}");
                             }
-                        }
-                        else
-                        {
-                            Console.WriteLine($"Can not generate attendance for student with exp {inscription.Student!.Expediente} for course with id:{inscription.Course!.Id}");
                         }
                     }
                 }
@@ -1358,7 +1436,7 @@ namespace UniSportUAQ_API.Controllers
         [ApiExplorerSettings(IgnoreApi = true)]
         public async Task EndCourseTask(string CourseId)
         {
-            
+
 
             //get course
             var endCourse = await _coursesService.GetByIdAsync(CourseId);
@@ -1370,8 +1448,8 @@ namespace UniSportUAQ_API.Controllers
             if (endCourse is not null)
             {
                 //get inscriptions related with course
-                var inscriptions = await _inscriptionsService.GetAllAsync(i => 
-                i.CourseId == CourseId && 
+                var inscriptions = await _inscriptionsService.GetAllAsync(i =>
+                i.CourseId == CourseId &&
                 i.UnEnrolled == false);
 
                 //verify inscriptions related with course
@@ -1433,7 +1511,8 @@ namespace UniSportUAQ_API.Controllers
                                 Console.WriteLine($"partial isncriptions ended, Can not end inscription for this user id: {element}");
                             }
                         }
-                        else {
+                        else
+                        {
                             Console.WriteLine($"all the inscriptions ended correctly");
                         }
 
@@ -1452,7 +1531,8 @@ namespace UniSportUAQ_API.Controllers
 
 
             }
-            else {
+            else
+            {
 
                 Console.WriteLine($"Can not find course with id provided");
 
