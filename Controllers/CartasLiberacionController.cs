@@ -288,9 +288,6 @@ namespace UniSportUAQ_API.Controllers
 
                     var cartaRegister = await _cartasLiberacionService.AddAsync(carta);
 
-                    ////
-                    ///
-
                     if (cartaRegister != null) return Ok(new BaseResponse<object> { Data = cartaRegister.Dictionary });
 
                     return BadRequest(new BaseResponse<CartaLiberacionDTO> { Error = ResponseErrors.ServerDataBaseError });
