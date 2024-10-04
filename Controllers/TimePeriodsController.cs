@@ -7,6 +7,8 @@ using System.Linq;
 using Microsoft.AspNetCore.Identity;
 using UniSportUAQ_API.Data.Schemas;
 using UniSportUAQ_API.Data.Services;
+using UniSportUAQ_API.Data.Base;
+using UniSportUAQ_API.Data.DTO;
 
 namespace UniSportUAQ_API.Controllers
 {
@@ -33,14 +35,23 @@ namespace UniSportUAQ_API.Controllers
 
         public async Task<IActionResult> GetTimePeriodById(string id) {
 
-            if (!Guid.TryParse(id, out _)) return BadRequest(new DataResponse {Data= null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+            if (!Guid.TryParse(id, out _)) return BadRequest(new BaseResponse<TimePeriodDTO> { Error = ResponseErrors.AttributeIdInvalidlFormat });
 
             var result = await _timePeriodsService.GetByIdAsync(id);
 
-            if(result == null) return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND});
+            if(result == null) return Ok(new BaseResponse<TimePeriodDTO> {  Error = ResponseErrors.DataNotFound });
+
+            var timePeriodDTO = new TimePeriodDTO
+            {
+                Id = result.Id,
+                Period = result.Period,
+                Type = result.Type,
+                DateStart = result.DateStart,
+                DateEnd = result.DateEnd,
+            };
 
             //change to dto
-            return Ok(new DataResponse { Data = result.Dictionary, ErrorMessage = null});
+            return Ok(new BaseResponse<TimePeriodDTO> { Data = timePeriodDTO });
         }
 
         //get period
@@ -49,19 +60,27 @@ namespace UniSportUAQ_API.Controllers
         [Authorize]
         public async Task<IActionResult> GetTimePeriodByPeriod(string period) { 
 
-            if(string.IsNullOrEmpty(period)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+            if(string.IsNullOrEmpty(period)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
 
             var result = await _timePeriodsService.GetAllAsync(a => a.Period == period);
 
 
-            var Data = new List<Dictionary<string, object>>();
+            var Data = new List<TimePeriodDTO>();
 
-            if (result.Count() < 1)  return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+            if (result.Count() < 1)  return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.EntityNotExist });
 
-            foreach (var kvp in result) {
+            foreach (var kvp in result) 
+            {
+                var timePeriodDTO = new TimePeriodDTO
+                {
+                    Id = kvp.Id,
+                    Period = kvp.Period,
+                    Type = kvp.Type,
+                    DateStart = kvp.DateStart,
+                    DateEnd = kvp.DateEnd,
+                };
 
-                Data.Add(kvp.Dictionary);
-
+                Data.Add(timePeriodDTO);
             }
 
             return Ok(new DataResponse { Data = Data, ErrorMessage = null });
