@@ -24,6 +24,7 @@ namespace UniSportUAQ_API.Data.Consts
 		public static ErrorBase UserNotAnAdmin = new ErrorBase { Code = "USR003", Description = "User founded but is not an Admin" };
 		//Entity
 		public static ErrorBase EntityNotExist = new ErrorBase { Code = "ENT001", Description = "Entity/Object Does not exist" };
+        public static ErrorBase EntityExist = new ErrorBase { Code = "ENT002", Description = "Entity/Object already exist" };
         //Files
 
         public static ErrorBase ConvertImageError = new ErrorBase { Code = "FIL001", Description = "Can not convert the data you provided into a image"};
