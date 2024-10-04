@@ -413,16 +413,7 @@ namespace UniSportUAQ_API.Controllers
 
             if(attendanceRegister is null) return BadRequest(new BaseResponse<AttendanceDTO> { Error = ResponseErrors.AttendanceEntityExists });
 
-            var attendanceDTO = new AttendanceDTO
-            {
-                Id = attendanceRegister.Id,
-                StudentId = attendanceRegister.StudentId,
-                CourseId = attendanceRegister.CourseId,
-                Date = attendanceRegister.Date,
-                AttendanceClass = attendanceRegister.AttendanceClass
-            };
-
-            return Ok(new BaseResponse<AttendanceDTO> { Data = attendanceDTO, Error = null });
+            return Ok(new DataResponse { Data = attendanceRegister.Dictionary, ErrorMessage = null });
         }
 
 
@@ -431,34 +422,20 @@ namespace UniSportUAQ_API.Controllers
         [Authorize]
         public async Task<IActionResult> UpdateAttendanceAsync([FromBody] AttendanceSchema attendanceSchema) {
 
-            if (attendanceSchema.Id is null) return BadRequest(new BaseResponse<AttendanceDTO> { Error = ResponseErrors.AttributeEmptyOrNull });
-            if (attendanceSchema.CourseId is null) return BadRequest(new BaseResponse<AttendanceDTO> { Error = ResponseErrors.AttributeEmptyOrNull });
-            if (attendanceSchema.StudentId is null) return BadRequest(new BaseResponse<AttendanceDTO> { Error = ResponseErrors.AttributeEmptyOrNull });
-            if (attendanceSchema.Date == DateTime.MinValue) return BadRequest(new BaseResponse<AttendanceDTO> {  Error = ResponseErrors.AttributeEmptyOrNull });
+            if (attendanceSchema.Id is null) return BadRequest(new BaseResponse<AttendanceDTO> { Data = null, Error = ResponseErrors.AttributeEmptyOrNull });
+            if (attendanceSchema.CourseId is null) return BadRequest(new BaseResponse<AttendanceDTO> { Data = null, Error = ResponseErrors.AttributeEmptyOrNull });
+            if (attendanceSchema.StudentId is null) return BadRequest(new BaseResponse<AttendanceDTO> { Data = null, Error = ResponseErrors.AttributeEmptyOrNull });
+            if (attendanceSchema.Date == DateTime.MinValue) return BadRequest(new BaseResponse<AttendanceDTO> { Data = null, Error = ResponseErrors.AttributeEmptyOrNull });
 
             var oldAttendance = await _atenndancesService.GetByIdAsync(attendanceSchema.Id);
 
-            if (oldAttendance == null) return NotFound(new BaseResponse<AttendanceDTO> {  Error = ResponseErrors.EntityNotExist });
-
+            if (oldAttendance == null) return NotFound(new BaseResponse<AttendanceDTO> { Data = null, Error = ResponseErrors.EntityNotExist });
 
             oldAttendance.AttendanceClass = attendanceSchema.AttendanceClass;
-            
-
+           
             var result = await _atenndancesService.UpdateAsync(oldAttendance);
 
-            if (result is not null)
-            {
-                var updatedAttendanceDTO = new AttendanceDTO
-                {
-                    Id = result.Id,
-                    StudentId = result.StudentId,
-                    CourseId = result.CourseId,
-                    Date = result.Date,
-                    AttendanceClass = result.AttendanceClass
-                };
-
-                return Ok(new BaseResponse<AttendanceDTO> { Data = updatedAttendanceDTO, Error = null });
-            }
+            if (result is not null) return Ok(new DataResponse { Data = result.Dictionary, ErrorMessage = null });
 
             return BadRequest(new BaseResponse<AttendanceDTO> { Data = null, Error = ResponseErrors.ServerDataBaseErrorUpdating });
         }
