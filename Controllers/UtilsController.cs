@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using UniSportUAQ_API.Data.Base;
 using UniSportUAQ_API.Data.Consts;
 using UniSportUAQ_API.Data.Interfaces;
 using UniSportUAQ_API.Data.Models;
@@ -26,7 +27,7 @@ namespace UniSportUAQ_API.Controllers
 
             var data = _utilsService.GetServerDateAsync();
 
-            return Ok(new DataResponse { Data = data.ToString("s"), ErrorMessage = null });
+            return Ok(new BaseResponse<string> { Data = data.ToString("s"), Error = null });
         
         }
     }
