@@ -28,7 +28,7 @@ namespace UniSportUAQ_API.Controllers
             var data = _utilsService.GetServerDateAsync();
 
             return Ok(new BaseResponse<string> { Data = data.ToString("s"), Error = null });
-        
+
         }
     }
 }
