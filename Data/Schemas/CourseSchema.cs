@@ -6,7 +6,7 @@
         public string? Id { get; set; }
         public string? CourseName { get; set; }
         public string? InstructorId { get; set; }
-        public List<HorarioSchema>? Horarios { get; set; }
+        public List<HorarioSchema>? Schedules { get; set; }
         public DateTime StartDate {get; set;}
         public DateTime EndDate {get; set;}
 		public string? Description { get; set; }
