@@ -1434,7 +1434,10 @@ namespace UniSportUAQ_API.Controllers
 
                         // Obtener inscripciones para el curso
                         var inscriptions = await _inscriptionsService.GetAllAsync(i =>
-                            i.CourseId == courseId, i=>i.Course!, i=>i.Student!);
+                            i.CourseId == courseId &&
+                            i.UnEnrolled == false,
+                            i=>i.Course!,
+                            i=>i.Student!);
 
                         if (!inscriptions.Any())
                         {
