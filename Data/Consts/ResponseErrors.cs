@@ -67,7 +67,8 @@ namespace UniSportUAQ_API.Data.Consts
         public static ErrorBase CourseInscriptionAttendanceProblemUpdate = new ErrorBase { Code = "COU009", Description = "Can not update the following attendance(s) please provide this identifiers" };
         public static ErrorBase CourseHasEnded = new ErrorBase { Code = "COU010", Description = "This course has already ended" };
         public static ErrorBase CourseHasNotEnded = new ErrorBase { Code = "COU011", Description = "This course has NOT ended" };
-        public static ErrorBase CourseBadDay = new ErrorBase { Code = "COU012", Description = "This day is invalid" };
+        public static ErrorBase CourseStartOrEndateError = new ErrorBase { Code = "COU012", Description = "The Start or endate are not in the correct fromat, verify if it is not empty or dates are not in contradiction" };
+
 
         //inscriptions
         public static ErrorBase InscriptionNotAccredit = new ErrorBase { Code = "INS001", Description = "Not possible to accredit this course to this inscription, please check asistence quantity" };

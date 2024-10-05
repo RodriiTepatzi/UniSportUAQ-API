@@ -10,6 +10,7 @@ using UniSportUAQ_API.Data.DTO;
 using Hangfire;
 using System.Globalization;
 using UniSportUAQ_API.Migrations;
+using Hangfire.Storage;
 
 namespace UniSportUAQ_API.Controllers
 {
@@ -541,6 +542,9 @@ namespace UniSportUAQ_API.Controllers
             if (string.IsNullOrEmpty(courseSchema.CourseName) || string.IsNullOrWhiteSpace(courseSchema.CourseName)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
             if (courseSchema.InstructorId is null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
             if (courseSchema.MaxUsers <= 0) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
+            if (courseSchema.EndDate == DateTime.MinValue) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.CourseStartOrEndateError });
+            if (courseSchema.StartDate == DateTime.MinValue) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.CourseStartOrEndateError });
+            if (courseSchema.StartDate >= courseSchema.EndDate) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.CourseStartOrEndateError });
 
 
             var course = await _coursesService.GetByIdAsync(courseSchema.Id, i => i.Horarios!);
@@ -556,6 +560,11 @@ namespace UniSportUAQ_API.Controllers
             course.MaxUsers = courseSchema.MaxUsers;
             course.Description = courseSchema.Description;
             course.MinAttendances = courseSchema.MinAttendances;
+            course.StartDate = courseSchema.StartDate;
+            course.EndDate = courseSchema.EndDate;
+            course.Description = courseSchema.Description;
+            course.MaxUsers = courseSchema.MaxUsers;
+            course.Location = courseSchema.location;
 
             if (courseSchema.Schedules?.Count() > 0)
             {
@@ -584,21 +593,13 @@ namespace UniSportUAQ_API.Controllers
 
             }
 
-            course.StartDate = courseSchema.StartDate;
-            course.EndDate = courseSchema.EndDate;
-            course.Description = courseSchema.Description;
-            course.MaxUsers = courseSchema.MaxUsers;
-            course.Location = courseSchema.location;
 
-            var result = await _coursesService.UpdateAsync(course);
             horarios = await _horariosService.GetAllAsync(i => i.CourseId == courseSchema.Id);
+            HangfireSetter(course, horarios.ToList());
+            var result = await _coursesService.UpdateAsync(course);
 
-            if (result is not null && horarios != null)
-            {
-                HangfireSetter(course, horarios.ToList());
+            if (result is not null && horarios != null) return Ok(new BaseResponse<bool> { Data = true });
 
-                return Ok(new BaseResponse<bool> { Data = true });
-            }
 
             return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.ServerDataBaseErrorUpdating });
         }
@@ -619,6 +620,9 @@ namespace UniSportUAQ_API.Controllers
             if (courseSchema.InstructorId is null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
             if (courseSchema.SubjectId is null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
             if (await _subjectsService.GetByIdAsync(courseSchema.SubjectId) == null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.DataNotFound });
+            if (courseSchema.EndDate == DateTime.MinValue) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.CourseStartOrEndateError });
+            if (courseSchema.StartDate == DateTime.MinValue) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.CourseStartOrEndateError });
+            if (courseSchema.StartDate >= courseSchema.EndDate) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.CourseStartOrEndateError });
 
             if ((await _userService.GetAllAsync(i => i.Id == courseSchema.InstructorId && i.IsInstructor == true)).Count() < 1) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeIsInstructorFalse });
 
@@ -1314,10 +1318,10 @@ namespace UniSportUAQ_API.Controllers
                         }
 
 
-                        //crea uno nuevo
+                        //crea uno nuevo para remover requrrent job
                         string UnsetAttenancesReccJob = BackgroundJob.Schedule(
-                            () => RecurringJob.RemoveIfExists($"job-{day + "-" + course.Id! + "-" + horario.EndHour}")
-                            , course.EndDate.AddMinutes(30)
+                            () => RemoveAllJobsForCourse(course.Id!),
+                            course.EndDate.AddMinutes(20)
                         );
                         course.UnsetAttenancesReccJob = UnsetAttenancesReccJob;
 
@@ -1371,7 +1375,7 @@ namespace UniSportUAQ_API.Controllers
 
                 string GenerateCartasIdJob = BackgroundJob.Schedule(
                  () => _hangfireJobsService.GenerateAllCartasAsync(course.Id!),
-                 course.EndDate.AddMinutes(20)
+                 course.EndDate.AddMinutes(15)
                  );
 
                 course.GenerateCartasIdJob = GenerateCartasIdJob;
@@ -1430,7 +1434,10 @@ namespace UniSportUAQ_API.Controllers
 
                         // Obtener inscripciones para el curso
                         var inscriptions = await _inscriptionsService.GetAllAsync(i =>
-                            i.CourseId == courseId);
+                            i.CourseId == courseId &&
+                            i.UnEnrolled == false,
+                            i=>i.Course!,
+                            i=>i.Student!);
 
                         if (!inscriptions.Any())
                         {
@@ -1616,6 +1623,17 @@ namespace UniSportUAQ_API.Controllers
                 Console.WriteLine($"Can not find a course with the id you provided \n");
             }
 
+        }
+
+        [ApiExplorerSettings(IgnoreApi = true)]
+        public void RemoveAllJobsForCourse(string courseId)
+        {
+            var recurringJobs = JobStorage.Current.GetConnection().GetRecurringJobs();
+
+            foreach (var job in recurringJobs.Where(j => j.Id.Contains(courseId)))
+            {
+                RecurringJob.RemoveIfExists(job.Id);
+            }
         }
 
         //
