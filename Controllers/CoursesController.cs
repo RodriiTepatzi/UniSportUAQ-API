@@ -557,13 +557,13 @@ namespace UniSportUAQ_API.Controllers
             course.Description = courseSchema.Description;
             course.MinAttendances = courseSchema.MinAttendances;
 
-            if (courseSchema.Horarios?.Count() > 0)
+            if (courseSchema.Schedules?.Count() > 0)
             {
 
                 foreach (var oldhorario in horarios)
                 {
 
-                    foreach (var newHorario in courseSchema.Horarios)
+                    foreach (var newHorario in courseSchema.Schedules)
                     {
 
                         if (oldhorario.Id == newHorario.Id)
