@@ -85,7 +85,7 @@ namespace UniSportUAQ_API.Controllers
                     InstructorId = result.InstructorId,
                     MaxUsers = result.MaxUsers,
                     CurrentUsers = result.CurrentUsers,
-                    Horarios = horariosDTO,
+                    Schedules = horariosDTO,
                     Description = result.Description,
                     Link = result.Link,
                     Location = result.Location,
@@ -142,7 +142,7 @@ namespace UniSportUAQ_API.Controllers
                         InstructorId = item.InstructorId,
                         MaxUsers = item.MaxUsers,
                         CurrentUsers = item.CurrentUsers,
-                        Horarios = horariosDTO,
+                        Schedules = horariosDTO,
                         Description = item.Description,
                         Link = item.Link,
                         Location = item.Location,
@@ -200,7 +200,7 @@ namespace UniSportUAQ_API.Controllers
                     InstructorId = item.InstructorId,
                     MaxUsers = item.MaxUsers,
                     CurrentUsers = item.CurrentUsers,
-                    Horarios = horariosDTO,
+                    Schedules = horariosDTO,
                     Description = item.Description,
                     Link = item.Link,
                     Location = item.Location,
@@ -262,7 +262,7 @@ namespace UniSportUAQ_API.Controllers
                     InstructorId = item.InstructorId,
                     MaxUsers = item.MaxUsers,
                     CurrentUsers = item.CurrentUsers,
-                    Horarios = horariosDTO,
+                    Schedules = horariosDTO,
                     Description = item.Description,
                     Link = item.Link,
                     Location = item.Location,
@@ -321,7 +321,7 @@ namespace UniSportUAQ_API.Controllers
                     InstructorId = item.InstructorId,
                     MaxUsers = item.MaxUsers,
                     CurrentUsers = item.CurrentUsers,
-                    Horarios = horariosDTO,
+                    Schedules = horariosDTO,
                     Description = item.Description,
                     Link = item.Link,
                     Location = item.Location,
@@ -380,7 +380,7 @@ namespace UniSportUAQ_API.Controllers
                     InstructorId = item.InstructorId,
                     MaxUsers = item.MaxUsers,
                     CurrentUsers = item.CurrentUsers,
-                    Horarios = horariosDTO,
+                    Schedules = horariosDTO,
                     Description = item.Description,
                     Link = item.Link,
                     Location = item.Location,
@@ -438,7 +438,7 @@ namespace UniSportUAQ_API.Controllers
                     InstructorId = item.InstructorId,
                     MaxUsers = item.MaxUsers,
                     CurrentUsers = item.CurrentUsers,
-                    Horarios = horariosDTO,
+                    Schedules = horariosDTO,
                     Description = item.Description,
                     Link = item.Link,
                     Location = item.Location,
@@ -505,7 +505,7 @@ namespace UniSportUAQ_API.Controllers
                     InstructorId = item.InstructorId,
                     MaxUsers = item.MaxUsers,
                     CurrentUsers = item.CurrentUsers,
-                    Horarios = horariosDTO,
+                    Schedules = horariosDTO,
                     Description = item.Description,
                     Link = item.Link,
                     Location = item.Location,
@@ -581,7 +581,7 @@ namespace UniSportUAQ_API.Controllers
 
                     //delete data in response
 
-                    if (IsScheduleConflict(findedHorarios, courseSchema.Horarios!)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.CourseInstructorHindered });
+                    if (IsScheduleConflict(findedHorarios, courseSchema.Schedules!)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.CourseInstructorHindered });
 
                 }
 
@@ -611,9 +611,9 @@ namespace UniSportUAQ_API.Controllers
             if (result != null)
             {
 
-                if (IsHorarioConflict(courseSchema.Horarios!)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.CourseHorarioConfict });
+                if (IsHorarioConflict(courseSchema.Schedules!)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.CourseHorarioConfict });
 
-                foreach (var horario in courseSchema.Horarios!)
+                foreach (var horario in courseSchema.Schedules!)
                 {
 
 
