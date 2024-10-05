@@ -37,7 +37,7 @@ namespace UniSportUAQ_API
 
 			builder.Services.AddDbContext<AppDbContext>(
 				options => options.UseSqlServer(
-					Configuration.GetConnectionString("DefaultConnectionString"),
+					Configuration.GetConnectionString("DevelopmentConnectionString"),
 					providerOptions => providerOptions.EnableRetryOnFailure()
 				));
 
