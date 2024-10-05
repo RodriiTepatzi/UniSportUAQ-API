@@ -34,10 +34,10 @@ namespace UniSportUAQ_API.Data.Models
 
 		[Required]
 		[StringLength(50)]
-        public string? Location { get; set; }
+		public string? Location { get; set; }
 
-        [AllowNull]
-        public string? Link { get; set; }
+		[AllowNull]
+		public string? Link { get; set; }
 
 
 		[Required]
@@ -45,7 +45,7 @@ namespace UniSportUAQ_API.Data.Models
 
 		[Required]
 		public DateTime EndDate { get; set; }
-        [Required]
+		[Required]
 		public int MaxUsers { get; set; }
 
 		[DefaultValue(0)]
@@ -54,7 +54,14 @@ namespace UniSportUAQ_API.Data.Models
 		[Required]
 		public int MinAttendances { get; set; }
 
-		[DefaultValue(true)]
+		[AllowNull]
+		public string? EndCourseIdJob { get; set; }
+        [AllowNull]
+        public string? GenerateCartasIdJob { get; set; }
+		[AllowNull]
+        public string? UnsetAttenancesReccJob { get; set; }
+
+        [DefaultValue(true)]
 		public bool IsActive { get; set; }
 
         [ForeignKey("InstructorId")]

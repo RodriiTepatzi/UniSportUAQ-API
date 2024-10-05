@@ -10,6 +10,8 @@ using UniSportUAQ_API.Data.DTO;
 using Firebase.Auth;
 using Microsoft.EntityFrameworkCore;
 using UniSportUAQ_API.Data;
+using Microsoft.AspNetCore.Identity;
+using System;
 
 namespace UniSportUAQ_API.Controllers
 {
@@ -99,80 +101,85 @@ namespace UniSportUAQ_API.Controllers
             if (string.IsNullOrEmpty(subject.Name)) return BadRequest(new DataResponse { Data = null, ErrorMessage = "name: " + ResponseMessages.BAD_REQUEST });
 
             //name existence
-            var courseNameCheck = await _subjectsService.GetAllAsync(i => i.Name!.ToLower() == subject.Name!.ToLower());
+            var courseNameCheck = await _subjectsService.GetAllAsync(i => i.Name!.ToLower() == subject.Name.ToLower());
 
             if (courseNameCheck.Count() < 0) return Ok(new DataResponse { Data = null, ErrorMessage = "subject name: " + ResponseMessages.ENTITY_EXISTS });
 
             //check picture
             string? url = null;
 
-            if (!string.IsNullOrEmpty(subject.imageModel!.Base64Image) && !string.IsNullOrEmpty(subject.imageModel!.FileFormat))
+            if (subject.imageModel != null)
             {
 
-                try
+                if (!string.IsNullOrEmpty(subject.imageModel.Base64Image) && !string.IsNullOrEmpty(subject.imageModel.FileFormat))
                 {
-                    byte[] imageBytes;
+
                     try
                     {
-                        imageBytes = Convert.FromBase64String(subject.imageModel.Base64Image);
+                        byte[] imageBytes;
+                        try
+                        {
+                            imageBytes = Convert.FromBase64String(subject.imageModel.Base64Image);
+                        }
+                        catch (FormatException)
+                        {
+                            return BadRequest(new BaseResponse<bool> { Data = false });
+                        }
+
+                        string baseDirectory = _hostingEnvironment.WebRootPath ?? throw new InvalidOperationException("WebRootPath is not set.");
+
+                        string folderPath = Path.Combine(baseDirectory, "subject");
+                        string concretePath = Path.Combine(folderPath, "picture");
+                        string guidName = Guid.NewGuid().ToString();
+
+                        if (!Directory.Exists(concretePath))
+                        {
+                            Directory.CreateDirectory(concretePath);
+                        }
+
+                        string filePath = Path.Combine(concretePath, $"{guidName}.{subject.imageModel.FileFormat}");
+
+                        using (var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None, 4096, useAsync: true))
+                        {
+                            await fileStream.WriteAsync(imageBytes, 0, imageBytes.Length);
+                            await fileStream.FlushAsync();
+                        }
+
+                        url = $"/subject/picture/{guidName}.{subject.imageModel.FileFormat}";
                     }
-                    catch (FormatException)
+                    catch (Exception ex)
                     {
-                        return BadRequest(new BaseResponse<bool> { Data = false });
+                        Console.WriteLine(ex.ToString());
+
                     }
-
-                    string baseDirectory = _hostingEnvironment.WebRootPath ?? throw new InvalidOperationException("WebRootPath is not set.");
-
-                    string folderPath = Path.Combine(baseDirectory, "subject");
-                    string concretePath = Path.Combine(folderPath, "picture");
-                    string guidName = Guid.NewGuid().ToString();
-
-                    if (!Directory.Exists(concretePath))
-                    {
-                        Directory.CreateDirectory(concretePath);
-                    }
-
-                    string filePath = Path.Combine(concretePath, $"{guidName}.{subject.imageModel.FileFormat}");
-
-                    using (var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None, 4096, useAsync: true))
-                    {
-                        await fileStream.WriteAsync(imageBytes, 0, imageBytes.Length);
-                        await fileStream.FlushAsync();
-                    }
-
-                    url = $"/subject/picture/{guidName}.{subject.imageModel.FileFormat}";
-                }
-                catch(Exception ex)
-                {
-                    Console.WriteLine(ex.ToString());
 
                 }
 
             }
 
+            //create new Subject object
             var newSubject = new Subject
             {
                 Id = Guid.NewGuid().ToString(),
                 Name = subject.Name,
-                CoursePictureUrl = subject.CoursePictureUrl,
             };
 
             if (url != null)
             {
 
-                //create new Subject object
+
                 newSubject.CoursePictureUrl = url;
 
 
             }
-            
+
             //add to EF database
             var registSubject = _subjectsService.AddAsync(newSubject);
 
             if (registSubject == null) return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.ServerDataBaseError });
 
 
-            
+            if (url == null) Ok(new BaseResponse<bool> { Data = true, Error = ResponseErrors.ConvertImageError });
 
             return Ok(new BaseResponse<bool> { Data = true });
         }
@@ -287,6 +294,74 @@ namespace UniSportUAQ_API.Controllers
             {
 
                 return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.ConvertImageError });
+            }
+        }
+
+        [HttpPut]
+        [Route("remove/picture/{id}")]
+        [Authorize]
+        public async Task<IActionResult> DeleteSubjectPictureAsync(string id)
+        {
+            if (string.IsNullOrEmpty(id) || string.IsNullOrWhiteSpace(id)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeIdInvalidlFormat });
+
+
+            var subject = await _subjectsService.GetByIdAsync(id);
+            if (subject == null) return NotFound();
+
+            string? currentUserPicture = subject.CoursePictureUrl;
+
+
+            if (currentUserPicture != null && !string.IsNullOrEmpty(currentUserPicture))
+            {
+                var currentFileName = Path.GetFileName(currentUserPicture);
+                var deletePath = Directory.GetCurrentDirectory();
+                var deleteWwwroot = Path.Combine(deletePath, "wwwroot");
+                var deleteUsersFolder = Path.Combine(deleteWwwroot, "subject");
+                var deleteProfileFolder = Path.Combine(deleteUsersFolder, "picture");
+                var deleteConcretePath = Path.Combine(deleteProfileFolder, currentFileName);
+
+                bool deleted = await DeleteFileAsync(deleteConcretePath);
+
+                if (deleted == true)
+                {
+                    subject.CoursePictureUrl = null;
+
+                    var updated = await _subjectsService.UpdateAsync(subject);
+
+                    if (updated != null) return Ok(new BaseResponse<bool> { Data = true });
+
+                    return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.ServerDataBaseErrorUpdating });
+
+
+                }
+
+                if (deleted == false) return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.DeleteFileError });
+            }
+
+
+            return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.EntityNotExist }); ;
+
+
+
+        }
+
+        private async Task<bool> DeleteFileAsync(string filePath)
+        {
+            try
+            {
+                await Task.Run(() =>
+                {
+                    if (System.IO.File.Exists(filePath))
+                    {
+                        System.IO.File.Delete(filePath);
+                    }
+                });
+                return true;
+            }
+            catch (Exception ex)
+            {
+
+                return false;
             }
         }
 
