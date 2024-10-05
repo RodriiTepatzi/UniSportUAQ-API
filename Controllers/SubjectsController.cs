@@ -101,56 +101,62 @@ namespace UniSportUAQ_API.Controllers
             if (string.IsNullOrEmpty(subject.Name)) return BadRequest(new DataResponse { Data = null, ErrorMessage = "name: " + ResponseMessages.BAD_REQUEST });
 
             //name existence
-            var courseNameCheck = await _subjectsService.GetAllAsync(i => i.Name!.ToLower() == subject.Name!.ToLower());
+            var courseNameCheck = await _subjectsService.GetAllAsync(i => i.Name!.ToLower() == subject.Name.ToLower());
 
             if (courseNameCheck.Count() < 0) return Ok(new DataResponse { Data = null, ErrorMessage = "subject name: " + ResponseMessages.ENTITY_EXISTS });
 
             //check picture
             string? url = null;
 
-            if (!string.IsNullOrEmpty(subject.imageModel!.Base64Image) && !string.IsNullOrEmpty(subject.imageModel!.FileFormat))
+            if (subject.imageModel != null)
             {
 
-                try
+                if (!string.IsNullOrEmpty(subject.imageModel.Base64Image) && !string.IsNullOrEmpty(subject.imageModel.FileFormat))
                 {
-                    byte[] imageBytes;
+
                     try
                     {
-                        imageBytes = Convert.FromBase64String(subject.imageModel.Base64Image);
+                        byte[] imageBytes;
+                        try
+                        {
+                            imageBytes = Convert.FromBase64String(subject.imageModel.Base64Image);
+                        }
+                        catch (FormatException)
+                        {
+                            return BadRequest(new BaseResponse<bool> { Data = false });
+                        }
+
+                        string baseDirectory = _hostingEnvironment.WebRootPath ?? throw new InvalidOperationException("WebRootPath is not set.");
+
+                        string folderPath = Path.Combine(baseDirectory, "subject");
+                        string concretePath = Path.Combine(folderPath, "picture");
+                        string guidName = Guid.NewGuid().ToString();
+
+                        if (!Directory.Exists(concretePath))
+                        {
+                            Directory.CreateDirectory(concretePath);
+                        }
+
+                        string filePath = Path.Combine(concretePath, $"{guidName}.{subject.imageModel.FileFormat}");
+
+                        using (var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None, 4096, useAsync: true))
+                        {
+                            await fileStream.WriteAsync(imageBytes, 0, imageBytes.Length);
+                            await fileStream.FlushAsync();
+                        }
+
+                        url = $"/subject/picture/{guidName}.{subject.imageModel.FileFormat}";
                     }
-                    catch (FormatException)
+                    catch (Exception ex)
                     {
-                        return BadRequest(new BaseResponse<bool> { Data = false });
+                        Console.WriteLine(ex.ToString());
+
                     }
-
-                    string baseDirectory = _hostingEnvironment.WebRootPath ?? throw new InvalidOperationException("WebRootPath is not set.");
-
-                    string folderPath = Path.Combine(baseDirectory, "subject");
-                    string concretePath = Path.Combine(folderPath, "picture");
-                    string guidName = Guid.NewGuid().ToString();
-
-                    if (!Directory.Exists(concretePath))
-                    {
-                        Directory.CreateDirectory(concretePath);
-                    }
-
-                    string filePath = Path.Combine(concretePath, $"{guidName}.{subject.imageModel.FileFormat}");
-
-                    using (var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None, 4096, useAsync: true))
-                    {
-                        await fileStream.WriteAsync(imageBytes, 0, imageBytes.Length);
-                        await fileStream.FlushAsync();
-                    }
-
-                    url = $"/subject/picture/{guidName}.{subject.imageModel.FileFormat}";
-                }
-                catch(Exception ex)
-                {
-                    Console.WriteLine(ex.ToString());
 
                 }
 
             }
+
             //create new Subject object
             var newSubject = new Subject
             {
@@ -161,19 +167,19 @@ namespace UniSportUAQ_API.Controllers
             if (url != null)
             {
 
-                
+
                 newSubject.CoursePictureUrl = url;
 
 
             }
-            
+
             //add to EF database
             var registSubject = _subjectsService.AddAsync(newSubject);
 
             if (registSubject == null) return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.ServerDataBaseError });
 
 
-            if(url == null) Ok(new BaseResponse<bool> { Data = true , Error = ResponseErrors.ConvertImageError});
+            if (url == null) Ok(new BaseResponse<bool> { Data = true, Error = ResponseErrors.ConvertImageError });
 
             return Ok(new BaseResponse<bool> { Data = true });
         }
@@ -294,9 +300,9 @@ namespace UniSportUAQ_API.Controllers
         [HttpPut]
         [Route("remove/picture/{id}")]
         [Authorize]
-        public async Task<IActionResult> DeleteSubjectPictureAsync(string id) 
+        public async Task<IActionResult> DeleteSubjectPictureAsync(string id)
         {
-            if (string.IsNullOrEmpty(id) || string.IsNullOrWhiteSpace(id)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeIdInvalidlFormat});
+            if (string.IsNullOrEmpty(id) || string.IsNullOrWhiteSpace(id)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeIdInvalidlFormat });
 
 
             var subject = await _subjectsService.GetByIdAsync(id);
@@ -335,8 +341,8 @@ namespace UniSportUAQ_API.Controllers
 
             return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.EntityNotExist }); ;
 
-            
-        
+
+
         }
 
         private async Task<bool> DeleteFileAsync(string filePath)
