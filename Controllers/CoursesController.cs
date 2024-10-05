@@ -542,6 +542,9 @@ namespace UniSportUAQ_API.Controllers
             if (string.IsNullOrEmpty(courseSchema.CourseName) || string.IsNullOrWhiteSpace(courseSchema.CourseName)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
             if (courseSchema.InstructorId is null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
             if (courseSchema.MaxUsers <= 0) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
+            if (courseSchema.EndDate == DateTime.MinValue) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.CourseStartOrEndateError });
+            if (courseSchema.StartDate == DateTime.MinValue) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.CourseStartOrEndateError });
+            if (courseSchema.StartDate >= courseSchema.EndDate) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.CourseStartOrEndateError });
 
 
             var course = await _coursesService.GetByIdAsync(courseSchema.Id, i => i.Horarios!);
@@ -557,6 +560,11 @@ namespace UniSportUAQ_API.Controllers
             course.MaxUsers = courseSchema.MaxUsers;
             course.Description = courseSchema.Description;
             course.MinAttendances = courseSchema.MinAttendances;
+            course.StartDate = courseSchema.StartDate;
+            course.EndDate = courseSchema.EndDate;
+            course.Description = courseSchema.Description;
+            course.MaxUsers = courseSchema.MaxUsers;
+            course.Location = courseSchema.location;
 
             if (courseSchema.Schedules?.Count() > 0)
             {
@@ -585,21 +593,13 @@ namespace UniSportUAQ_API.Controllers
 
             }
 
-            course.StartDate = courseSchema.StartDate;
-            course.EndDate = courseSchema.EndDate;
-            course.Description = courseSchema.Description;
-            course.MaxUsers = courseSchema.MaxUsers;
-            course.Location = courseSchema.location;
 
-            var result = await _coursesService.UpdateAsync(course);
             horarios = await _horariosService.GetAllAsync(i => i.CourseId == courseSchema.Id);
+            HangfireSetter(course, horarios.ToList());
+            var result = await _coursesService.UpdateAsync(course);
 
-            if (result is not null && horarios != null)
-            {
-                HangfireSetter(course, horarios.ToList());
+            if (result is not null && horarios != null) return Ok(new BaseResponse<bool> { Data = true });
 
-                return Ok(new BaseResponse<bool> { Data = true });
-            }
 
             return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.ServerDataBaseErrorUpdating });
         }
