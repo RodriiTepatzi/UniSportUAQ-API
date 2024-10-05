@@ -421,6 +421,65 @@ namespace UniSportUAQ_API.Controllers
 			}
 
 		}
+        [HttpPut]
+        [Route("remove/image")]
+        [Authorize]
+
+        public async Task<IActionResult> RemoveCurrentUserProfilePictureAsyn() {
+
+            var userEmail = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (userEmail == null)
+            {
+                return Unauthorized(new BaseResponse<ApplicationUser>
+                {
+                    Error = ResponseErrors.AuthInvalidToken
+                });
+            }
+
+            var user = await _userManager.FindByEmailAsync(userEmail);
+
+            if (user == null)
+            {
+                return BadRequest(new BaseResponse<ApplicationUser>
+                {
+                    Error = ResponseErrors.AuthUserNotFound
+                });
+            }
+
+            var currentUserPicture = user.PictureUrl;
+
+            if (currentUserPicture != null && !string.IsNullOrEmpty(currentUserPicture))
+            {
+                var currentFileName = Path.GetFileName(currentUserPicture);
+                var deletePath = Directory.GetCurrentDirectory();
+                var deleteWwwroot = Path.Combine(deletePath, "wwwroot");
+                var deleteUsersFolder = Path.Combine(deleteWwwroot, "users");
+                var deleteProfileFolder = Path.Combine(deleteUsersFolder, "profile");
+                var deleteConcretePath = Path.Combine(deleteProfileFolder, currentFileName);
+
+                bool deleted = await DeleteFileAsync(deleteConcretePath);
+
+                if (deleted == true) {
+
+                    user.PictureUrl = null;
+
+                    var updated = await _userManager.UpdateAsync(user);
+
+                    if(updated != null) return Ok(new BaseResponse<bool> { Data = true });
+
+                    return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.ServerDataBaseErrorUpdating });
+
+
+                }
+
+                if (deleted == false) return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.DeleteFileError});
+            }
+
+
+            return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.EntityNotExist}); ;
+        }
+
 
         private async Task<bool> DeleteFileAsync(string filePath)
         {

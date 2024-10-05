@@ -392,7 +392,7 @@ namespace UniSportUAQ_API.Controllers
 
             if (result is not null) foreach (var att in result)
                 {
-                    if (att.Date == attendanceSchema.Date) return BadRequest(new DataResponse { ErrorMessage = ResponseMessages.ATTENDANCE_ENTITY_EXISTS });
+                    if (att.Date == attendanceSchema.Date) return BadRequest(new BaseResponse<object> { Error = ResponseErrors.AttendanceEntityExists });
 
                 }
 
@@ -413,7 +413,16 @@ namespace UniSportUAQ_API.Controllers
 
             if(attendanceRegister is null) return BadRequest(new BaseResponse<AttendanceDTO> { Error = ResponseErrors.AttendanceEntityExists });
 
-            return Ok(new DataResponse { Data = attendanceRegister.Dictionary, ErrorMessage = null });
+            var attendanceDTO = new AttendanceDTO
+            {
+                Id = attendanceRegister.Id,
+                StudentId = attendanceRegister.StudentId,
+                CourseId = attendanceRegister.CourseId,
+                Date = attendanceRegister.Date,
+                AttendanceClass = attendanceRegister.AttendanceClass
+            };
+
+            return Ok(new BaseResponse<AttendanceDTO> { Data = attendanceDTO, Error = null });
         }
 
 
@@ -435,7 +444,19 @@ namespace UniSportUAQ_API.Controllers
            
             var result = await _atenndancesService.UpdateAsync(oldAttendance);
 
-            if (result is not null) return Ok(new DataResponse { Data = result.Dictionary, ErrorMessage = null });
+            if (result is not null)
+            {
+                var attendanceDTO = new AttendanceDTO
+                {
+                    Id = result.Id,
+                    StudentId = result.StudentId,
+                    CourseId = result.CourseId,
+                    Date = result.Date,
+                    AttendanceClass = result.AttendanceClass
+                };
+
+                return Ok(new BaseResponse<AttendanceDTO> { Data = attendanceDTO, Error = null });
+            }
 
             return BadRequest(new BaseResponse<AttendanceDTO> { Data = null, Error = ResponseErrors.ServerDataBaseErrorUpdating });
         }
