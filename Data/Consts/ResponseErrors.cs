@@ -63,10 +63,12 @@ namespace UniSportUAQ_API.Data.Consts
         public static ErrorBase CourseCanNotEnd = new ErrorBase { Code = "COU005", Description = "Can not end this course, please provide info to solve this problem" };
         public static ErrorBase CourseExceedMaxUsers = new ErrorBase { Code = "COU006", Description = "This user cannot be enrolled due to max users already registered on this course." };
         public static ErrorBase CourseHorarioConfict= new ErrorBase { Code = "COU007", Description = "One or many horarios share day and the active hours are in conflict, try uncrossed hours" };
-		public static ErrorBase CourseEndInscriptionProblem = new ErrorBase { Code = "COU008", Description = "Cpurses ended BUT Could not end inscriptions for the folowing users id" };
+		public static ErrorBase CourseEndInscriptionProblem = new ErrorBase { Code = "COU008", Description = "Courses ended BUT Could not end inscriptions for the folowing users id" };
         public static ErrorBase CourseInscriptionAttendanceProblemUpdate = new ErrorBase { Code = "COU009", Description = "Can not update the following attendance(s) please provide this identifiers" };
         public static ErrorBase CourseHasEnded = new ErrorBase { Code = "COU010", Description = "This course has already ended" };
         public static ErrorBase CourseHasNotEnded = new ErrorBase { Code = "COU011", Description = "This course has NOT ended" };
+        public static ErrorBase CourseStartOrEndateError = new ErrorBase { Code = "COU012", Description = "The Start or endate are not in the correct fromat, verify if it is not empty or dates are not in contradiction" };
+
 
         //inscriptions
         public static ErrorBase InscriptionNotAecredit= new ErrorBase { Code = "INS001", Description = "Not possible to accredit this course to this inscription, please check asistence quantity" };
