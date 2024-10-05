@@ -69,7 +69,7 @@ namespace UniSportUAQ_API.Controllers
         public async Task<IActionResult> GetCartaByIdAsync(string id)
         {
 
-            if (!Guid.TryParse(id, out _)) return BadRequest(new BaseResponse<CartaLiberacionDTO> { Error = ResponseErrors.AttributeIdInvalidlFormat });
+            if (!Guid.TryParse(id, out _)) return BadRequest(new BaseResponse<CartaLiberacionDTO> { Error = ResponseErrors.AttributeIdInvalidFormat });
 
             var result = await _cartasLiberacionService.GetByIdAsync(id, c => c.Course!, c => c.Student!);
 
@@ -101,7 +101,7 @@ namespace UniSportUAQ_API.Controllers
         public async Task<IActionResult> GetCartaByCourseIdAsync(string courseId)
         {
 
-            if (!Guid.TryParse(courseId, out _)) return BadRequest(new BaseResponse<CartaLiberacionDTO> { Error = ResponseErrors.AttributeIdInvalidlFormat });
+            if (!Guid.TryParse(courseId, out _)) return BadRequest(new BaseResponse<CartaLiberacionDTO> { Error = ResponseErrors.AttributeIdInvalidFormat });
 
             var result = await _cartasLiberacionService.GetAllAsync(c => c.CourseId == courseId, c => c.Course!, c => c.Student!);
 
@@ -127,7 +127,7 @@ namespace UniSportUAQ_API.Controllers
 
             if (data.Count() > 0) return Ok(new BaseResponse<List<CartaLiberacionDTO>> { Data = data, Error = null });
 
-            return NotFound(new BaseResponse<CartaLiberacionDTO> { Data = null, Error = ResponseErrors.DataNotFound });
+            return NotFound(new BaseResponse<object> { Data = null, Error = ResponseErrors.DataNotFound });
         }
 
         [HttpGet]
@@ -136,7 +136,7 @@ namespace UniSportUAQ_API.Controllers
         public async Task<IActionResult> GetCartaByStudentIdAsync(string studentid)
         {
 
-            if (!Guid.TryParse(studentid, out _)) return BadRequest(new BaseResponse<CartaLiberacionDTO> { Error = ResponseErrors.AttributeIdInvalidlFormat });
+            if (!Guid.TryParse(studentid, out _)) return BadRequest(new BaseResponse<CartaLiberacionDTO> { Error = ResponseErrors.AttributeIdInvalidFormat });
 
             var result = await _cartasLiberacionService.GetAllAsync(c => c.StudentId == studentid, c => c.Course!, c => c.Student!);
 
@@ -162,7 +162,7 @@ namespace UniSportUAQ_API.Controllers
 
             if (result.Count() > 0) return Ok(new BaseResponse<List<CartaLiberacionDTO>> { Data = Data, Error = null });
 
-            return NotFound(new BaseResponse<List<CartaLiberacionDTO>> { Data = null, Error = ResponseErrors.DataNotFound });
+            return NotFound(new BaseResponse<object> { Data = null, Error = ResponseErrors.DataNotFound });
 
         }
 
@@ -216,7 +216,7 @@ namespace UniSportUAQ_API.Controllers
                 i => i.Student!,
                 i => i.Course!
             );
-            if (course == null) return BadRequest(new BaseResponse<CartaLiberacionDTO> { Error = ResponseErrors.InscriptionNotAecredit });
+            if (course == null) return BadRequest(new BaseResponse<CartaLiberacionDTO> { Error = ResponseErrors.InscriptionNotAccredit });
 
             var inscript = inscriptions.FirstOrDefault();
 
@@ -224,8 +224,8 @@ namespace UniSportUAQ_API.Controllers
 
             if (inscript != null)
             {
-                if (inscript!.IsFinished is false) return BadRequest(new BaseResponse<CartaLiberacionDTO> { Error = ResponseErrors.InscriptionNotAecredit });
-                if (inscript!.Accredit is false) return BadRequest(new BaseResponse<CartaLiberacionDTO> { Error = ResponseErrors.InscriptionNotAecredit });
+                if (inscript!.IsFinished is false) return BadRequest(new BaseResponse<CartaLiberacionDTO> { Error = ResponseErrors.InscriptionNotAccredit });
+                if (inscript!.Accredit is false) return BadRequest(new BaseResponse<CartaLiberacionDTO> { Error = ResponseErrors.InscriptionNotAccredit });
 
                 try
                 {
