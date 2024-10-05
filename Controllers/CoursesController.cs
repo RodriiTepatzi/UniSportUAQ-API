@@ -10,6 +10,7 @@ using UniSportUAQ_API.Data.DTO;
 using Hangfire;
 using System.Globalization;
 using UniSportUAQ_API.Migrations;
+using Hangfire.Storage;
 
 namespace UniSportUAQ_API.Controllers
 {
@@ -1314,10 +1315,10 @@ namespace UniSportUAQ_API.Controllers
                         }
 
 
-                        //crea uno nuevo
+                        //crea uno nuevo para remover requrrent job
                         string UnsetAttenancesReccJob = BackgroundJob.Schedule(
-                            () => RecurringJob.RemoveIfExists($"job-{day + "-" + course.Id! + "-" + horario.EndHour}")
-                            , course.EndDate.AddMinutes(30)
+                            () => RemoveAllJobsForCourse(course.Id!),
+                            course.EndDate.AddMinutes(20)
                         );
                         course.UnsetAttenancesReccJob = UnsetAttenancesReccJob;
 
@@ -1371,7 +1372,7 @@ namespace UniSportUAQ_API.Controllers
 
                 string GenerateCartasIdJob = BackgroundJob.Schedule(
                  () => _hangfireJobsService.GenerateAllCartasAsync(course.Id!),
-                 course.EndDate.AddMinutes(20)
+                 course.EndDate.AddMinutes(15)
                  );
 
                 course.GenerateCartasIdJob = GenerateCartasIdJob;
@@ -1430,7 +1431,7 @@ namespace UniSportUAQ_API.Controllers
 
                         // Obtener inscripciones para el curso
                         var inscriptions = await _inscriptionsService.GetAllAsync(i =>
-                            i.CourseId == courseId);
+                            i.CourseId == courseId, i=>i.Course!, i=>i.Student!);
 
                         if (!inscriptions.Any())
                         {
@@ -1616,6 +1617,17 @@ namespace UniSportUAQ_API.Controllers
                 Console.WriteLine($"Can not find a course with the id you provided \n");
             }
 
+        }
+
+        [ApiExplorerSettings(IgnoreApi = true)]
+        public void RemoveAllJobsForCourse(string courseId)
+        {
+            var recurringJobs = JobStorage.Current.GetConnection().GetRecurringJobs();
+
+            foreach (var job in recurringJobs.Where(j => j.Id.Contains(courseId)))
+            {
+                RecurringJob.RemoveIfExists(job.Id);
+            }
         }
 
         //
