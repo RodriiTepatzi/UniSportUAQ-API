@@ -28,7 +28,7 @@ namespace UniSportUAQ_API.Data.Consts
         //Files
 
         public static ErrorBase ConvertImageError = new ErrorBase { Code = "FIL001", Description = "Can not convert the data you provided into a image"};
-        public static ErrorBase DeleteFileError = new ErrorBase { Code = "FIL002", Description = "Can not delete the data you provided not founded in our system" };
+        public static ErrorBase DeleteFileError = new ErrorBase { Code = "FIL002", Description = "Can not delete the data you provided OR not founded in our system" };
         //Attributes
         public static ErrorBase AttributeEmaiInvalidlFormat = new ErrorBase { Code = "ATTR001", Description = "Invalid Email format" };
 		public static ErrorBase AttributeIdInvalidlFormat = new ErrorBase { Code = "ATTR002", Description = "Invalid Id format" };
