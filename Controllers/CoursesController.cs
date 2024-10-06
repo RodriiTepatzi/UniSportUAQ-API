@@ -161,7 +161,7 @@ namespace UniSportUAQ_API.Controllers
                 return Ok(new BaseResponse<List<CourseDTO>> { Data = data });
             }
 
-            return NotFound(new BaseResponse<List<CourseDTO>> { Data = null });
+            return NotFound(new BaseResponse<List<CourseDTO>> { Data = new List<CourseDTO>() });
         }
 
         [HttpGet]
@@ -171,7 +171,7 @@ namespace UniSportUAQ_API.Controllers
         {
             var result = await _coursesService.GetAllAsync(c => c.IsActive == false, c => c.Instructor!);
 
-            if (result.Count() < 1) return NotFound(new BaseResponse<List<CourseDTO>> { Data = null });
+            if (result.Count() < 1) return NotFound(new BaseResponse<List<CourseDTO>> { Data = new List<CourseDTO>() });
 
             var data = new List<CourseDTO>();
 
@@ -228,11 +228,11 @@ namespace UniSportUAQ_API.Controllers
         [Authorize]
         public async Task<IActionResult> GetAllCourses(int start, int end)
         {
-            if (start < 0 || end < start) return BadRequest(new BaseResponse<List<UserDTO>> { Data = null, Error = ResponseErrors.FilterStartEndContradiction });
+            if (start < 0 || end < start) return BadRequest(new BaseResponse<List<CourseDTO>> { Data = null, Error = ResponseErrors.FilterStartEndContradiction });
 
             var result = await _coursesService.GetAllAsync(c => c.IsActive == true, c => c.Instructor!, c => c.Horarios!);
 
-            if (result.Count() < 1) return NotFound(new BaseResponse<List<UserDTO>> { Data = null });
+            if (result.Count() < 1) return NotFound(new BaseResponse<List<CourseDTO>> { Data = new List<CourseDTO>() });
 
             var courseInRange = result.Skip(start).Take(end - start + 1).ToList();
 
@@ -294,7 +294,7 @@ namespace UniSportUAQ_API.Controllers
 
             var result = await _coursesService.GetAllAsync(c => c.InstructorId == instructorid, c => c.Instructor!);
 
-            if (!result.Any()) return NotFound(new BaseResponse<List<CourseDTO>> { Data = null });
+            if (!result.Any()) return NotFound(new BaseResponse<List<CourseDTO>> { Data = new List<CourseDTO>() });
 
             var data = new List<CourseDTO>();
 
@@ -354,7 +354,7 @@ namespace UniSportUAQ_API.Controllers
 
             var result = await _coursesService.GetAllAsync(c => c.InstructorId == instructorid && c.IsActive == true, c => c.Instructor!);
 
-            if (!result.Any()) return NotFound(new BaseResponse<List<CourseDTO>> { Error = ResponseErrors.EntityNotExist });
+            if (!result.Any()) return NotFound(new BaseResponse<List<CourseDTO>> { Data = new List<CourseDTO>() });
 
             var data = new List<CourseDTO>();
 
@@ -461,7 +461,7 @@ namespace UniSportUAQ_API.Controllers
 
             if (result.Any()) return Ok(new BaseResponse<List<CourseDTO>> { Data = data });
 
-            return NotFound(new BaseResponse<List<CourseDTO>> { Error = ResponseErrors.EntityNotExist });
+            return NotFound(new BaseResponse<List<CourseDTO>> { Data = data });
         }
 
 
@@ -527,9 +527,7 @@ namespace UniSportUAQ_API.Controllers
                 data.Add(course);
             }
 
-            if (distinctResult.Any()) return Ok(new BaseResponse<List<CourseDTO>> { Data = data });
-
-            return NotFound(new BaseResponse<List<CourseDTO>> { Error = ResponseErrors.EntityNotExist });
+            return Ok(new BaseResponse<List<CourseDTO>> { Data = data });
         }
 
 
@@ -702,15 +700,15 @@ namespace UniSportUAQ_API.Controllers
 
                 //get course to set hangfire
                 var course = await _coursesService.GetByIdAsync(NewCourse.Id);
-                if (course == null) return NotFound();
-                if (horarios == null) return NotFound();
+
+                if (course != null)
+                {
+                    HangfireSetter(course, horarios);
 
 
-                HangfireSetter(course, horarios);
-
-                var hangfiresetted = await _coursesService.UpdateAsync(course);
-                if (hangfiresetted == null) return Ok(new BaseResponse<bool> { Data = true, Error = ResponseErrors.ServerDataBaseErrorUpdating });
-
+                    var hangfiresetted = await _coursesService.UpdateAsync(course);
+                    if (hangfiresetted == null) return Ok(new BaseResponse<bool> { Data = true, Error = ResponseErrors.ServerDataBaseErrorUpdating });
+                }
                 return Ok((new BaseResponse<bool> { Data = true }));
             }
 
@@ -934,9 +932,7 @@ namespace UniSportUAQ_API.Controllers
                 data.Add(inscription);
             }
 
-            if (result.Any()) return Ok(new BaseResponse<List<InscriptionDTO>> { Data = data });
-
-            return NotFound(new BaseResponse<InscriptionDTO> { Data = null });
+            return Ok(new BaseResponse<List<InscriptionDTO>> { Data = data });
         }
 
         [HttpPut]
@@ -1075,11 +1071,7 @@ namespace UniSportUAQ_API.Controllers
                 data.Add(inscription);
             }
 
-            if (result.Any()) return Ok(new BaseResponse<List<InscriptionDTO>> { Data = data });
-
-
-
-            return NotFound(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.EntityNotExist });
+             return Ok(new BaseResponse<List<InscriptionDTO>> { Data = data });
         }
 
         [HttpGet]
@@ -1089,11 +1081,11 @@ namespace UniSportUAQ_API.Controllers
         public async Task<IActionResult> GetInscriptionsByCourseAsync(string courseId)
         {
 
-            if (!Guid.TryParse(courseId, out _)) return BadRequest(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.AttributeIdInvalidlFormat });
+            if (!Guid.TryParse(courseId, out _)) return BadRequest(new BaseResponse<List<InscriptionDTO>> { Error = ResponseErrors.AttributeIdInvalidlFormat });
 
             var course = await _coursesService.GetByIdAsync(courseId);
 
-            if (course == null) return NotFound(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.EntityNotExist });
+            if (course == null) return NotFound(new BaseResponse<List<InscriptionDTO>> { Data = new List<InscriptionDTO>() });
 
             var result = await _inscriptionsService.GetAllAsync(i => i.CourseId == courseId,
                 i => i.Student!,
@@ -1101,7 +1093,7 @@ namespace UniSportUAQ_API.Controllers
                 i => i.Course!.Instructor!
             );
 
-            if (!result.Any()) return NotFound(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.CourseNoneInscription });
+            if (!result.Any()) return NotFound(new BaseResponse<List<InscriptionDTO>> { Data = new List<InscriptionDTO>() });
 
             var data = new List<InscriptionDTO>();
 
