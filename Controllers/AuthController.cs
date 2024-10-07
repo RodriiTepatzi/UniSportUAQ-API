@@ -11,11 +11,11 @@ using UniSportUAQ_API.Data.Consts;
 using UniSportUAQ_API.Data.DTO;
 using UniSportUAQ_API.Data.Models;
 using UniSportUAQ_API.Data.Schemas;
-using static UniSportUAQ_API.Data.Models.Authentication;
+using static UniSportUAQ_API.Data.Schemas.Authentication;
 
 namespace UniSportUAQ_API.Controllers
 {
-	[Route("api/v1/[controller]")]
+    [Route("api/v1/[controller]")]
 	[ApiController]
 	public class AuthController : ControllerBase
 	{
@@ -78,7 +78,7 @@ namespace UniSportUAQ_API.Controllers
 				var refreshToken = GenerateRefreshToken();
 
 				if (model.RememberMe) user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(180);
-				else user.RefreshTokenExpiryTime = DateTime.UtcNow.AddMinutes(15);
+				else user.RefreshTokenExpiryTime = DateTime.UtcNow.AddMinutes(30);
 				
 
 				user.RefreshToken = refreshToken;

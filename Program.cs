@@ -19,6 +19,9 @@ using Hangfire.SqlServer;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using UniSportUAQ_API.Controllers;
+using UniSportUAQ_API.Hubs;
+using Hangfire.Dashboard;
+using Microsoft.Extensions.Options;
 
 namespace UniSportUAQ_API
 {
@@ -41,13 +44,24 @@ namespace UniSportUAQ_API
 					providerOptions => providerOptions.EnableRetryOnFailure()
 				));
 
+			builder.Services.AddCors(options =>
+			{
+				options.AddPolicy("AllowAll",
+					builder =>
+					{
+						builder.WithOrigins("https://localhost:port", "https://deportetroyanos.azurewebsites.net")
+							   .AllowAnyHeader()
+							   .AllowAnyMethod()
+							   .AllowCredentials();  // Importante para SignalR
+					});
+			});
+
+			builder.Services.AddSignalR();
+
 			builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
 				.AddEntityFrameworkStores<AppDbContext>();
 
 			builder.Services.AddMemoryCache();
-
-
-
 
 			builder.Services.AddAuthentication(options =>
             {
@@ -67,8 +81,8 @@ namespace UniSportUAQ_API
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
                     ClockSkew = TimeSpan.Zero,
-                };
-            });
+				};
+			});
 
             builder.Services.AddControllers().AddJsonOptions(options =>
             {
@@ -99,53 +113,59 @@ namespace UniSportUAQ_API
             builder.Services.AddHttpContextAccessor();
             builder.Services.AddSwaggerGen();
 
-            //hangfire
             builder.Services.AddHangfire((sp, config) => {
                 var connectionHangfire = sp.GetRequiredService<IConfiguration>().GetConnectionString("DefaultConnectionString");
-                config.UseSqlServerStorage(connectionHangfire); 
-            
+                config.UseSqlServerStorage(connectionHangfire);
             });
+
             builder.Services.AddHangfireServer();
-            //
-            
-
-            //
-
-            var app = builder.Build();
-
-            // Configure the HTTP request pipeline.
-            if (!app.Environment.IsDevelopment())
-            {
-                app.UseExceptionHandler("/Home/Error");
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-                app.UseHsts();
-            }
-
-            app.UseHttpsRedirection();
-            app.UseStaticFiles();
-
-            app.UseRouting();
-
-            app.UseSwagger();
-            app.UseSwaggerUI();
-
-            app.UseAuthentication();
-            app.UseAuthorization();
-
-            app.MapControllerRoute(
-                name: "default",
-                pattern: "{controller=Home}/{action=Index}/{id?}"
-            );
-
-            app.UseHangfireDashboard("/hangfire");
 
 
-            //DatabaseInitializer.FeedUsersAndRoles(app);
-            //DatabaseInitializer.FeedDatabase(app);
-            //DatabaseInitializer.FeedInscriptions(app);
-            //DatabaseInitializer.FeedAttendances(app);
 
-            app.Run();
-        }
+
+			var app = builder.Build();
+
+			// Configure the HTTP request pipeline.
+			if (!app.Environment.IsDevelopment())
+			{
+				app.UseExceptionHandler("/Home/Error");
+				app.UseHsts();
+			}
+
+			app.UseHttpsRedirection();
+			app.UseStaticFiles();
+
+			app.UseRouting(); // Setup routing
+
+			app.UseCors("AllowAll");
+
+			app.UseSwagger(); // Swagger documentation
+			app.UseSwaggerUI();
+
+			// JWT Authentication middleware
+			app.UseAuthentication(); // Handle JWT tokens
+			app.UseAuthorization();  // Authorization middleware
+
+			// Map SignalR Hub after authentication is configured
+			app.MapHub<LessonHub>("/hubs/lessons"); // SignalR
+
+			// Map default route
+			app.MapControllerRoute(
+				name: "default",
+				pattern: "{controller=Home}/{action=Index}/{id?}");
+
+			// Configure Hangfire dashboard
+			app.UseHangfireDashboard("/hangfire", new DashboardOptions
+			{
+				Authorization = new IDashboardAuthorizationFilter[] { }
+			});
+
+			// DatabaseInitializer.FeedUsersAndRoles(app);
+			// DatabaseInitializer.FeedDatabase(app);
+			// DatabaseInitializer.FeedInscriptions(app);
+			// DatabaseInitializer.FeedAttendances(app);
+
+			app.Run();
+		}
     }
 }

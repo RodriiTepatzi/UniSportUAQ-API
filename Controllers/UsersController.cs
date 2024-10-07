@@ -105,11 +105,11 @@ namespace UniSportUAQ_API.Controllers
                 (!student.HasValue || u.IsStudent == student.Value) &&
                 (!instructor.HasValue || u.IsInstructor == instructor.Value) &&
                 (string.IsNullOrEmpty(q) ||
-                 u.Name!.Contains(q) ||
-                 u.LastName!.Contains(q) ||
-                 u.Expediente!.Contains(q) ||
-                 u.Email!.Contains(q) ||
-                 u.PhoneNumber!.Contains(q))
+                 u.FullName!.ToLower().Contains(q.ToLower()) ||
+                 u.LastName!.ToLower().Contains(q.ToLower()) ||
+                 u.Expediente!.ToLower().Contains(q.ToLower()) ||
+                 u.Email!.ToLower().Contains(q.ToLower()) ||
+                 u.PhoneNumber!.ToLower().Contains(q.ToLower()))
             );
 
             foreach (var item in result)
@@ -200,116 +200,6 @@ namespace UniSportUAQ_API.Controllers
             return Ok(new BaseResponse<List<UserDTO>> { Data = data });
         }
 
-        [HttpGet]
-        [Route("admins/search/{searchTerm}")]
-        [Authorize]
-        public async Task<IActionResult> GetAdminSeacrhAsync(string searchTerm)
-        {
-            if (string.IsNullOrWhiteSpace(searchTerm)) return BadRequest(new BaseResponse<List<UserDTO>> { Data = null, Error = ResponseErrors.FilterInvalidSearchTerm });
-
-            var search = searchTerm.ToLower();
-            var result = new List<ApplicationUser>();
-
-            try
-            {
-                var users = await _usersService.GetAllAsync(i => i.IsAdmin == true &&
-                ((i.Expediente!.ToLower().Contains(search)) ||
-                (i.Name!.ToLower().Contains(search)) ||
-                (i.LastName!.ToLower().Contains(search)) ||
-                (i.Email!.ToLower().Contains(search)) ||
-                (i.PhoneNumber!.Contains(search))
-                ));
-                result = users.ToList();
-            }
-            catch
-            {
-                return StatusCode(500, new BaseResponse<List<UserDTO>> { Data = null, Error = ResponseErrors.ServerDataBaseError });
-            }
-
-            if (result.Count() < 1) return NotFound(new BaseResponse<object> { Data = result });
-
-            var admins = result.ToList();
-
-            if (admins.Count() < 1) NotFound(new BaseResponse<object> { Data = admins });
-
-            var data = new List<UserDTO>();
-
-            foreach (var item in admins)
-            {
-
-                var admns = new UserDTO
-                {
-
-                    Id = item.Id,
-                    Expediente = item.Expediente,
-                    PictureUrl = item.PictureUrl,
-                    Name = item.Name,
-                    LastName = item.LastName,
-                    IsAdmin = item.IsAdmin,
-                    IsInstructor = item.IsInstructor,
-                    IsStudent = item.IsStudent,
-
-                };
-
-                data.Add(admns);
-            }
-
-            return Ok(new BaseResponse<List<UserDTO>> { Data = data });
-
-        }
-
-
-
-        [HttpPost]
-        [Route("admins/create")]
-        [Authorize]
-
-        public async Task<IActionResult> CreateAdmin([FromBody] AdminSchema admin)
-        {
-
-            //validate register attrributes
-
-            if (admin.Expediente == null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
-            if (admin.Name == null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
-            if (admin.LastName == null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
-            if (admin.Email == null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
-            if (admin.PhoneNumber == null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
-            if (admin.Password == null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
-
-
-            //check existence 
-            var result = await _usersService.GetAllAsync(i =>
-            ((i.Expediente != null && i.Expediente.ToLower() == admin.Expediente.ToLower()) ||
-            (i.Email != null && i.Email.ToLower() == admin.Email.ToLower()) ||
-            (i.PhoneNumber != null && i.PhoneNumber == admin.PhoneNumber.ToLower())
-            ));
-
-            if (result.Any()) return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.ENTITY_EXISTS });
-
-            var newAdmin = new ApplicationUser
-            {
-
-                Id = Guid.NewGuid().ToString(),
-                Name = admin.Name,
-                LastName = admin.LastName,
-                Email = admin.Email,
-                PhoneNumber = admin.PhoneNumber,
-                Expediente = admin.Expediente,
-                IsAdmin = true,
-                IsActive = true,
-            };
-
-            await _userManager.CreateAsync(newAdmin, admin.Password!);
-
-            var adminAdded = await _usersService.AddAsync(newAdmin);
-
-            if (adminAdded is not null) return Ok(new DataResponse { Data = adminAdded.ToDictionary, ErrorMessage = null });
-
-            return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.INTERNAL_ERROR });
-
-
-
-        }
 
 		[HttpPut]
 		[Route("update/image")]

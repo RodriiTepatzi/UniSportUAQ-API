@@ -11,6 +11,10 @@ using Hangfire;
 using System.Globalization;
 using UniSportUAQ_API.Migrations;
 using Hangfire.Storage;
+using Microsoft.AspNetCore.SignalR;
+using UniSportUAQ_API.Hubs;
+using Newtonsoft.Json;
+using UniSportUAQ_API.Data.Services;
 
 namespace UniSportUAQ_API.Controllers
 {
@@ -26,16 +30,26 @@ namespace UniSportUAQ_API.Controllers
         private readonly IAttendancesService _attendancesService;
         private readonly IHangfireJobsService _hangfireJobsService;
         private readonly ISubjectsService _subjectsService;
+		private readonly IHubContext<LessonHub> _hubContext;
 
-        public CoursesController(ISubjectsService subjectsService, IHangfireJobsService hangfireJobsService, IAttendancesService attendancesService, ICoursesService coursesService, IInscriptionsService inscriptionsService, IUsersService userService, IHorariosService horariosService)
-        {
-            _coursesService = coursesService;
-            _inscriptionsService = inscriptionsService;
-            _userService = userService;
-            _horariosService = horariosService;
-            _attendancesService = attendancesService;
-            _hangfireJobsService = hangfireJobsService;
-            _subjectsService = subjectsService;
+		public CoursesController(
+			ISubjectsService subjectsService, 
+			IHangfireJobsService hangfireJobsService, 
+			IAttendancesService attendancesService, 
+			ICoursesService coursesService, 
+			IInscriptionsService inscriptionsService, 
+			IUsersService userService, 
+			IHorariosService horariosService,
+			IHubContext<LessonHub> hubContext
+		){
+			_coursesService = coursesService;
+			_inscriptionsService = inscriptionsService;
+			_userService = userService;
+			_horariosService = horariosService;
+			_attendancesService = attendancesService;
+			_hangfireJobsService = hangfireJobsService;
+			_subjectsService = subjectsService;
+			_hubContext = hubContext;
         }
 
         [HttpGet]
@@ -104,431 +118,64 @@ namespace UniSportUAQ_API.Controllers
 
         }
 
-        [HttpGet]
-        [Route("all")]
-        [Authorize]
-        public async Task<IActionResult> GetAllCourses()
-        {
-            var result = await _coursesService.GetAllAsync(c => c.IsActive == true, c => c.Instructor!, c => c.Horarios!);
+		[HttpGet]
+		[Route("filter")]
+		[Authorize]
+		public async Task<IActionResult> GetCoursesByFilter(
+			[FromQuery] string? q,
+			[FromQuery] string? id,
+			[FromQuery] string? instructorId,
+			[FromQuery] int? start,
+			[FromQuery] int? end,
+			[FromQuery] bool? isActive
+		)
+		{
+			var courses = new List<CourseDTO>();
 
-            if (result != null)
+			var result = await _coursesService.GetAllAsync(u =>
+				(string.IsNullOrEmpty(instructorId) || u.InstructorId == instructorId) &&
+				(string.IsNullOrEmpty(id) || u.Id == id) &&
+				(string.IsNullOrEmpty(q) ||
+				 u.CourseName!.ToLower().Contains(q.ToLower()) ||
+				 u.Description!.ToLower().Contains(q.ToLower())) &&
+				(!isActive.HasValue || u.IsActive == isActive.Value),
+				start,
+				end,
+				c => c.Instructor!,
+				c => c.Horarios!
+			);
+
+			foreach (var item in result)
             {
-
-                var data = new List<CourseDTO>();
-
-                foreach (var item in result)
-                {
-
-                    List<HorarioDTO> horariosDTO = new List<HorarioDTO>();
-
-                    foreach (var horario in item.Horarios!)
-                    {
-
-                        var horariosCourse = new HorarioDTO
-                        {
-                            Id = horario.Id,
-                            Day = horario.Day,
-                            StartHour = horario.StartHour,
-                            EndHour = horario.EndHour,
-                            CourseId = horario.CourseId,
-                        };
-
-                        horariosDTO.Add(horariosCourse);
-                    }
-
-                    var course = new CourseDTO
-                    {
-
-                        Id = item.Id,
-                        CourseName = item.CourseName,
-                        InstructorName = item.Instructor!.FullName,
-                        InstructorPicture = item.Instructor!.PictureUrl,
-                        InstructorId = item.InstructorId,
-                        MaxUsers = item.MaxUsers,
-                        CurrentUsers = item.CurrentUsers,
-                        Schedules = horariosDTO,
-                        Description = item.Description,
-                        Link = item.Link,
-                        Location = item.Location,
-                        IsVirtual = item.VirtualOrHybrid,
-                        CoursePictureUrl = item.CoursePictureUrl,
-
-                    };
-
-                    data.Add(course);
-                }
-
-                return Ok(new BaseResponse<List<CourseDTO>> { Data = data });
+				courses.Add(new CourseDTO
+				{
+					Id = item.Id,
+					CourseName = item.CourseName,
+					InstructorName = item.Instructor!.FullName,
+					InstructorPicture = item.Instructor.PictureUrl,
+					InstructorId = item.InstructorId,
+					MaxUsers = item.MaxUsers,
+					CurrentUsers = item.CurrentUsers,
+					Schedules = item.Horarios!.Select(h => new HorarioDTO
+					{
+						Id = h.Id,
+						Day = h.Day,
+						StartHour = h.StartHour,
+						EndHour = h.EndHour,
+						CourseId = h.CourseId,
+					}).ToList(),
+					Description = item.Description,
+					Link = item.Link,
+					Location = item.Location,
+					IsVirtual = item.VirtualOrHybrid,
+					CoursePictureUrl = item.CoursePictureUrl,
+				});
             }
 
-            return NotFound(new BaseResponse<List<CourseDTO>> { Data = new List<CourseDTO>() });
-        }
 
-        [HttpGet]
-        [Route("all/inactive")]
-        [Authorize]
-        public async Task<IActionResult> GetAllInactiveCourses()
-        {
-            var result = await _coursesService.GetAllAsync(c => c.IsActive == false, c => c.Instructor!);
-
-            if (result.Count() < 1) return NotFound(new BaseResponse<List<CourseDTO>> { Data = new List<CourseDTO>() });
-
-            var data = new List<CourseDTO>();
-
-            foreach (var item in result)
-            {
-
-                List<HorarioDTO> horariosDTO = new List<HorarioDTO>();
-
-                foreach (var horario in item.Horarios!)
-                {
-
-                    var horariosCourse = new HorarioDTO
-                    {
-                        Id = horario.Id,
-                        Day = horario.Day,
-                        StartHour = horario.StartHour,
-                        EndHour = horario.EndHour,
-                        CourseId = horario.CourseId,
-                    };
-
-                    horariosDTO.Add(horariosCourse);
-                }
-
-                var course = new CourseDTO
-                {
-
-                    Id = item.Id,
-                    CourseName = item.CourseName,
-                    InstructorName = item.Instructor!.FullName,
-                    InstructorPicture = item.Instructor!.PictureUrl,
-                    InstructorId = item.InstructorId,
-                    MaxUsers = item.MaxUsers,
-                    CurrentUsers = item.CurrentUsers,
-                    Schedules = horariosDTO,
-                    Description = item.Description,
-                    Link = item.Link,
-                    Location = item.Location,
-                    IsVirtual = item.VirtualOrHybrid,
-                    CoursePictureUrl = item.CoursePictureUrl,
-
-                };
-
-                data.Add(course);
-
-            }
-
-            return Ok(new BaseResponse<List<CourseDTO>> { Data = data });
-
-
-        }
-
-        [HttpGet]
-        [Route("all/range/{start}/{end}")]
-        [Authorize]
-        public async Task<IActionResult> GetAllCourses(int start, int end)
-        {
-            if (start < 0 || end < start) return BadRequest(new BaseResponse<List<CourseDTO>> { Data = null, Error = ResponseErrors.FilterStartEndContradiction });
-
-            var result = await _coursesService.GetAllAsync(c => c.IsActive == true, c => c.Instructor!, c => c.Horarios!);
-
-            if (result.Count() < 1) return NotFound(new BaseResponse<List<CourseDTO>> { Data = new List<CourseDTO>() });
-
-            var courseInRange = result.Skip(start).Take(end - start + 1).ToList();
-
-            var data = new List<CourseDTO>();
-
-            foreach (var item in courseInRange)
-            {
-
-                List<HorarioDTO> horariosDTO = new List<HorarioDTO>();
-
-                foreach (var horario in item.Horarios!)
-                {
-
-                    var horariosCourse = new HorarioDTO
-                    {
-                        Id = horario.Id,
-                        Day = horario.Day,
-                        StartHour = horario.StartHour,
-                        EndHour = horario.EndHour,
-                        CourseId = horario.CourseId,
-                    };
-
-                    horariosDTO.Add(horariosCourse);
-                }
-
-                var course = new CourseDTO
-                {
-
-                    Id = item.Id,
-                    CourseName = item.CourseName,
-                    InstructorName = item.Instructor!.FullName,
-                    InstructorPicture = item.Instructor!.PictureUrl,
-                    InstructorId = item.InstructorId,
-                    MaxUsers = item.MaxUsers,
-                    CurrentUsers = item.CurrentUsers,
-                    Schedules = horariosDTO,
-                    Description = item.Description,
-                    Link = item.Link,
-                    Location = item.Location,
-                    IsVirtual = item.VirtualOrHybrid,
-                    CoursePictureUrl = item.CoursePictureUrl,
-
-                };
-
-                data.Add(course);
-            }
-
-            return Ok(new BaseResponse<List<CourseDTO>> { Data = data });
-        }
-
-        [HttpGet]
-        [Route("instructorid/{instructorid}")]
-        [Authorize]
-        public async Task<IActionResult> GetCoursesByInstructorId(string instructorid)
-        {
-
-
-            if (string.IsNullOrEmpty(instructorid)) return BadRequest(new BaseResponse<List<CourseDTO>> { Error = ResponseErrors.AttributeIdInvalidlFormat });
-
-            var result = await _coursesService.GetAllAsync(c => c.InstructorId == instructorid, c => c.Instructor!);
-
-            if (!result.Any()) return NotFound(new BaseResponse<List<CourseDTO>> { Data = new List<CourseDTO>() });
-
-            var data = new List<CourseDTO>();
-
-            foreach (var item in result)
-            {
-                List<HorarioDTO> horariosDTO = new List<HorarioDTO>();
-
-                foreach (var horario in item.Horarios!)
-                {
-
-                    var horariosCourse = new HorarioDTO
-                    {
-                        Id = horario.Id,
-                        Day = horario.Day,
-                        StartHour = horario.StartHour,
-                        EndHour = horario.EndHour,
-                        CourseId = horario.CourseId,
-                    };
-
-                    horariosDTO.Add(horariosCourse);
-                }
-
-
-                var course = new CourseDTO
-                {
-
-                    Id = item.Id,
-                    CourseName = item.CourseName,
-                    InstructorName = item.Instructor!.FullName,
-                    InstructorPicture = item.Instructor!.PictureUrl,
-                    InstructorId = item.InstructorId,
-                    MaxUsers = item.MaxUsers,
-                    CurrentUsers = item.CurrentUsers,
-                    Schedules = horariosDTO,
-                    Description = item.Description,
-                    Link = item.Link,
-                    Location = item.Location,
-                    IsVirtual = item.VirtualOrHybrid,
-                    CoursePictureUrl = item.CoursePictureUrl,
-
-                };
-
-                data.Add(course);
-
-            }
-
-            return Ok(new BaseResponse<List<CourseDTO>> { Data = data });
-        }
-
-        [HttpGet]
-        [Route("instructorid/{instructorid}/active")]
-        [Authorize]
-        public async Task<IActionResult> GetActiveCoursesByInstructorId(string instructorid)
-        {
-
-            if (string.IsNullOrEmpty(instructorid)) return BadRequest(new BaseResponse<List<CourseDTO>> { Error = ResponseErrors.AttributeIdInvalidlFormat });
-
-            var result = await _coursesService.GetAllAsync(c => c.InstructorId == instructorid && c.IsActive == true, c => c.Instructor!);
-
-            if (!result.Any()) return NotFound(new BaseResponse<List<CourseDTO>> { Data = new List<CourseDTO>() });
-
-            var data = new List<CourseDTO>();
-
-            foreach (var item in result)
-            {
-                List<HorarioDTO> horariosDTO = new List<HorarioDTO>();
-
-                foreach (var horario in item.Horarios!)
-                {
-
-                    var horariosCourse = new HorarioDTO
-                    {
-                        Id = horario.Id,
-                        Day = horario.Day,
-                        StartHour = horario.StartHour,
-                        EndHour = horario.EndHour,
-                        CourseId = horario.CourseId,
-                    };
-
-                    horariosDTO.Add(horariosCourse);
-                }
-
-
-                var course = new CourseDTO
-                {
-
-                    Id = item.Id,
-                    CourseName = item.CourseName,
-                    InstructorName = item.Instructor!.FullName,
-                    InstructorPicture = item.Instructor!.PictureUrl,
-                    InstructorId = item.InstructorId,
-                    MaxUsers = item.MaxUsers,
-                    CurrentUsers = item.CurrentUsers,
-                    Schedules = horariosDTO,
-                    Description = item.Description,
-                    Link = item.Link,
-                    Location = item.Location,
-                    IsVirtual = item.VirtualOrHybrid,
-                    CoursePictureUrl = item.CoursePictureUrl,
-
-                };
-
-                data.Add(course);
-
-            }
-
-            return Ok(new BaseResponse<List<CourseDTO>> { Data = data });
-
-
-        }
-
-        [HttpGet]
-        [Route("instructorid/{instructorid}/inactive")]
-        [Authorize]
-        public async Task<IActionResult> GetInactiveCoursesByInstructorId(string instructorid)
-        {
-
-            if (string.IsNullOrEmpty(instructorid)) return BadRequest(new BaseResponse<List<CourseDTO>> { Error = ResponseErrors.AttributeIdInvalidlFormat });
-
-            var result = await _coursesService.GetAllAsync(c => c.InstructorId == instructorid && c.IsActive == false, c => c.Instructor!);
-
-            var data = new List<CourseDTO>();
-
-            foreach (var item in result)
-            {
-                List<HorarioDTO> horariosDTO = new List<HorarioDTO>();
-
-                foreach (var horario in item.Horarios!)
-                {
-
-                    var horariosCourse = new HorarioDTO
-                    {
-                        Id = horario.Id,
-                        Day = horario.Day,
-                        StartHour = horario.StartHour,
-                        EndHour = horario.EndHour,
-                        CourseId = horario.CourseId,
-                    };
-
-                    horariosDTO.Add(horariosCourse);
-                }
-
-                var course = new CourseDTO
-                {
-
-                    Id = item.Id,
-                    CourseName = item.CourseName,
-                    InstructorName = item.Instructor!.FullName,
-                    InstructorPicture = item.Instructor!.PictureUrl,
-                    InstructorId = item.InstructorId,
-                    MaxUsers = item.MaxUsers,
-                    CurrentUsers = item.CurrentUsers,
-                    Schedules = horariosDTO,
-                    Description = item.Description,
-                    Link = item.Link,
-                    Location = item.Location,
-                    IsVirtual = item.VirtualOrHybrid,
-                    CoursePictureUrl = item.CoursePictureUrl,
-
-                };
-
-                data.Add(course);
-            }
-
-            if (result.Any()) return Ok(new BaseResponse<List<CourseDTO>> { Data = data });
-
-            return NotFound(new BaseResponse<List<CourseDTO>> { Data = data });
-        }
-
-
-        [HttpGet]
-        [Route("search/{searchTerm}")]
-        [Authorize]
-        public async Task<IActionResult> GetCoursesSearch(string searchTerm)
-        {
-            if (string.IsNullOrWhiteSpace(searchTerm)) return BadRequest(new BaseResponse<List<CourseDTO>> { Data = null, Error = ResponseErrors.FilterInvalidSearchTerm });
-
-            var result = await _coursesService.GetAllAsync(i =>
-                ((i.CourseName != null && i.CourseName.ToLower().Contains(searchTerm)) ||
-                 (i.Description != null && i.Description.ToLower().Contains(searchTerm)) ||
-                 (i.Horarios != null && i.Horarios.Any(h => h.Day != null && h.Day.ToLower().Contains(searchTerm)))
-                )
-                &&
-                i.IsActive == true, c => c.Instructor!
-            );
-
-            var distinctResult = result.Distinct();
-
-            var data = new List<CourseDTO>();
-
-            foreach (var item in distinctResult)
-            {
-
-                List<HorarioDTO> horariosDTO = new List<HorarioDTO>();
-
-                foreach (var horario in item.Horarios!)
-                {
-
-                    var horariosCourse = new HorarioDTO
-                    {
-                        Id = horario.Id,
-                        Day = horario.Day,
-                        StartHour = horario.StartHour,
-                        EndHour = horario.EndHour,
-                        CourseId = horario.CourseId,
-                    };
-
-                    horariosDTO.Add(horariosCourse);
-                }
-
-                var course = new CourseDTO
-                {
-
-                    Id = item.Id,
-                    CourseName = item.CourseName,
-                    InstructorName = item.Instructor!.FullName,
-                    InstructorPicture = item.Instructor!.PictureUrl,
-                    InstructorId = item.InstructorId,
-                    MaxUsers = item.MaxUsers,
-                    CurrentUsers = item.CurrentUsers,
-                    Schedules = horariosDTO,
-                    Description = item.Description,
-                    Link = item.Link,
-                    Location = item.Location,
-                    IsVirtual = item.VirtualOrHybrid,
-                    CoursePictureUrl = item.CoursePictureUrl,
-
-                };
-
-                data.Add(course);
-            }
-
-            return Ok(new BaseResponse<List<CourseDTO>> { Data = data });
-        }
+            if (result == null) return Ok(new BaseResponse<List<UserDTO>> { Data = new List<UserDTO>() });
+			else return Ok(new BaseResponse<List<CourseDTO>> { Data = courses });
+		}
 
 
         [HttpPut]
@@ -840,7 +487,7 @@ namespace UniSportUAQ_API.Controllers
 
             if (checkIfInCourse.Any()) return BadRequest(new BaseResponse<bool> { Data = false, Error = ResponseErrors.InscriptionAlreadyExist });
 
-            var course = await _coursesService.GetByIdAsync(courseId);
+            var course = await _coursesService.GetByIdAsync(courseId, c => c.Horarios!, c => c.Instructor!);
 
             if (course == null) return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 
@@ -862,7 +509,31 @@ namespace UniSportUAQ_API.Controllers
 
             await _coursesService.UpdateAsync(course);
 
-            return Ok(new BaseResponse<bool> { Data = true });
+			var courseDto = new CourseDTO{
+				Id = course.Id,
+				CourseName = course.CourseName,
+				InstructorName = course.Instructor!.FullName,
+				InstructorPicture = course.Instructor!.PictureUrl,
+				InstructorId = course.InstructorId,
+				MaxUsers = course.MaxUsers,
+				CurrentUsers = course.CurrentUsers,
+				Description = course.Description,
+				Link = course.Link,
+				Location = course.Location,
+				Schedules = course.Horarios!.Select(h => new HorarioDTO{
+					Id = h.Id,
+					Day = h.Day,
+					StartHour = h.StartHour,
+					EndHour = h.EndHour,
+					CourseId = h.CourseId
+				}).ToList(),
+				CoursePictureUrl = course.CoursePictureUrl,
+				IsVirtual = course.VirtualOrHybrid,
+			};
+
+			await _hubContext.Clients.All.SendAsync("CourseUpdated", courseDto);
+
+			return Ok(new BaseResponse<bool> { Data = true });
         }
 
 
