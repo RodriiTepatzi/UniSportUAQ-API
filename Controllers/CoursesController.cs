@@ -619,7 +619,7 @@ namespace UniSportUAQ_API.Controllers
             //check inscription
             var result = await _inscriptionsService.GetAllAsync(i => i.CourseId == courseId && i.StudentId == studentId);
 
-            if (!result.Any()) return BadRequest(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.CourseNotFoundInscription });
+            if (!result.Any()) return BadRequest(new BaseResponse<InscriptionDTO> { Data = null});
 
             //update inscription
             var inscription = result.FirstOrDefault();
@@ -640,7 +640,7 @@ namespace UniSportUAQ_API.Controllers
                 return Ok(new BaseResponse<bool> { Data = true });
             }
 
-            return BadRequest(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.ServerDataBaseError });
+            return NotFound(new BaseResponse<bool> { Data = false });
         }
 
         [HttpPut]
