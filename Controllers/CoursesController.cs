@@ -589,7 +589,8 @@ namespace UniSportUAQ_API.Controllers
                     Id = item.Id,
                     CourseId = item.CourseId,
                     CourseName = item.Course!.CourseName,
-                    CourseDescription = item.Course!.Description
+                    CourseDescription = item.Course!.Description,
+                    Exp = item.Student!.Expediente
 
                 };
 
@@ -728,7 +729,8 @@ namespace UniSportUAQ_API.Controllers
                     CourseId = item.CourseId,
                     CourseName = item.Course!.CourseName,
                     CourseDescription = item.Course!.Description,
-                    Accredit = item.Accredit
+                    Accredit = item.Accredit,
+                    Exp = item.Student!.Expediente,
 
                 };
 
@@ -769,6 +771,7 @@ namespace UniSportUAQ_API.Controllers
                     Accredit = item.Accredit,
                     StudentName = item.Student!.FullName,
                     StudentId = item.StudentId,
+                    Exp = item.Student.Expediente
                 };
 
                 data.Add(inscription);
