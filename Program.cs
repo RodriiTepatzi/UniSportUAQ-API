@@ -40,7 +40,7 @@ namespace UniSportUAQ_API
 
 			builder.Services.AddDbContext<AppDbContext>(
 				options => options.UseSqlServer(
-					Configuration.GetConnectionString("DevelopmentConnectionString"),
+					Configuration.GetConnectionString("DefaultConnectionString"),
 					providerOptions => providerOptions.EnableRetryOnFailure()
 				));
 
@@ -114,7 +114,7 @@ namespace UniSportUAQ_API
             builder.Services.AddSwaggerGen();
 
             builder.Services.AddHangfire((sp, config) => {
-                var connectionHangfire = sp.GetRequiredService<IConfiguration>().GetConnectionString("DevelopmentConnectionString");
+                var connectionHangfire = sp.GetRequiredService<IConfiguration>().GetConnectionString("DefaultConnectionString");
                 config.UseSqlServerStorage(connectionHangfire);
             });
 
