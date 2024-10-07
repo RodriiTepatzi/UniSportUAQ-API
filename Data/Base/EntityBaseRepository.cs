@@ -52,6 +52,26 @@ namespace UniSportUAQ_API.Data.Base
 
 			return await query.ToListAsync();
 		}
+		public async Task<IEnumerable<T>> GetAllAsync(
+			Expression<Func<T, bool>> filter,
+			params Expression<Func<T, object>>[] includeProperties)
+		{
+			IQueryable<T> query = _context.Set<T>();
+
+			if (filter != null)
+			{
+				query = query.Where(filter);
+			}
+
+			if (includeProperties != null)
+			{
+				query = includeProperties.Aggregate(query, (current, includeProperty) => current.Include(includeProperty));
+			}
+
+
+			return await query.ToListAsync();
+		}
+
 
 		public async Task<IEnumerable<T>> GetAllAsync(
 			Expression<Func<T, bool>> filter,

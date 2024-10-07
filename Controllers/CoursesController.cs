@@ -249,12 +249,6 @@ namespace UniSportUAQ_API.Controllers
             return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.ServerDataBaseErrorUpdating });
         }
 
-
-
-
-
-
-
         [HttpPost]
         [Route("create")]
         [Authorize]
@@ -278,21 +272,13 @@ namespace UniSportUAQ_API.Controllers
 
             if (courses.Count() > 0)
             {
-
                 foreach (var course in courses)
                 {
-
                     var findedHorarios = await _horariosService.GetAllAsync(h => h.CourseId == course.Id);
 
-
-                    //delete data in response
-
                     if (IsScheduleConflict(findedHorarios, courseSchema.Schedules!)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.CourseInstructorHindered });
-
                 }
-
             }
-
 
             var NewCourse = new Course
             {
@@ -344,8 +330,6 @@ namespace UniSportUAQ_API.Controllers
                     horarios.Add(newHorario);
                 }
 
-
-                //get course to set hangfire
                 var course = await _coursesService.GetByIdAsync(NewCourse.Id);
 
                 if (course != null)
@@ -545,8 +529,8 @@ namespace UniSportUAQ_API.Controllers
         {
             // First we have to check if the courseId and studentId, both exist on our database. Otherwise we shall return an error.
 
-            if (await _userService.GetByIdAsync(studentId) is null) return NotFound(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.EntityNotExist });
-            if (await _coursesService.GetByIdAsync(courseId) is null) return NotFound(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.EntityNotExist });
+            if (await _userService.GetByIdAsync(studentId) is null) return BadRequest(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.AuthUserNotFound });
+            if (await _coursesService.GetByIdAsync(courseId) is null) return BadRequest(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.AuthUserNotFound });
 
             var checkIfInCourse = await _inscriptionsService.GetAllAsync(i => i.CourseId == courseId && i.StudentId == studentId);
 
@@ -746,47 +730,42 @@ namespace UniSportUAQ_API.Controllers
         }
 
         [HttpGet]
-        [Route("inscription/getbycourse/{courseId}")]
+        [Route("inscription/course/{courseId}")]
         [Authorize]
 
         public async Task<IActionResult> GetInscriptionsByCourseAsync(string courseId)
         {
-
-            if (!Guid.TryParse(courseId, out _)) return BadRequest(new BaseResponse<List<InscriptionDTO>> { Error = ResponseErrors.AttributeIdInvalidlFormat });
-
             var course = await _coursesService.GetByIdAsync(courseId);
 
-            if (course == null) return NotFound(new BaseResponse<List<InscriptionDTO>> { Data = new List<InscriptionDTO>() });
+            if (course == null) return BadRequest(new BaseResponse<List<InscriptionDTO>> { Error = ResponseErrors.CourseNotFound });
 
-            var result = await _inscriptionsService.GetAllAsync(i => i.CourseId == courseId,
+            var result = await _inscriptionsService.GetAllAsync(q => q.CourseId == courseId,
                 i => i.Student!,
                 i => i.Course!,
                 i => i.Course!.Instructor!
             );
 
-            if (!result.Any()) return NotFound(new BaseResponse<List<InscriptionDTO>> { Data = new List<InscriptionDTO>() });
+            if (!result.Any()) return Ok(new BaseResponse<List<InscriptionDTO>> { Data = new List<InscriptionDTO>() });
 
             var data = new List<InscriptionDTO>();
 
             foreach (var item in result)
             {
-
                 var inscription = new InscriptionDTO
                 {
                     Id = item.Id,
                     CourseId = item.CourseId,
                     CourseName = item.Course!.CourseName,
                     CourseDescription = item.Course!.Description,
-                    Accredit = item.Accredit
-
+                    Accredit = item.Accredit,
+					StudentName = item.Student!.FullName,
+					StudentId = item.StudentId,
                 };
 
                 data.Add(inscription);
             }
 
             return Ok(new BaseResponse<List<InscriptionDTO>> { Data = data });
-
-
         }
 
 
@@ -1152,20 +1131,14 @@ namespace UniSportUAQ_API.Controllers
                     Console.WriteLine($"Can not generate attendance for course: {course.Id}: It ended\n");
 
                 }
-
-
-
             }
 
         }
-        //add another task to end course automatically when cousre reach his cours enddate -done
+
 
         [ApiExplorerSettings(IgnoreApi = true)]
         public async Task EndCourseTask(string CourseId)
         {
-
-
-            //get course
             var endCourse = await _coursesService.GetByIdAsync(CourseId);
 
             List<string> list = new List<string>();
@@ -1255,31 +1228,16 @@ namespace UniSportUAQ_API.Controllers
                             Console.WriteLine($"COURSE ENDED but: There is no isncriptions for this course: {endCourse.Id}\n");
                         }
                         //return BadRequest(new BaseResponse<bool> { Data = false, Error = ResponseErrors.CourseCanNotEnd });
-
-
-
                     }
                     else
                     {
-
                         Console.WriteLine($"COURSE can not end error updating in database\n");
-
                     }
-
-
-
-
-
-
-
                 }
                 else
                 {
-
                     Console.WriteLine($"The course has already ended\n");
-
                 }
-
             }
             else
             {
@@ -1299,7 +1257,6 @@ namespace UniSportUAQ_API.Controllers
             }
         }
 
-        //
         private string? GetCronExpressionForDayAndTime(string day, string time)
         {
             var timeParts = time.Split(':');
@@ -1330,11 +1287,6 @@ namespace UniSportUAQ_API.Controllers
                 "domingo" => $"{minute} {hour} * * 0",
                 _ => null
             };
-
-
-
-
-
         }
     }
 }
