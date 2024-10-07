@@ -92,27 +92,31 @@ namespace UniSportUAQ_API.Controllers
         [HttpGet]
         [Route("filter")]
         [Authorize]
-        public async Task<IActionResult> GetUsersByFilter(
-            [FromQuery] string? q,
-            [FromQuery] bool? admin,
-            [FromQuery] bool? student,
-            [FromQuery] bool? instructor)
-        {
-            var users = new List<UserDTO>();
+		public async Task<IActionResult> GetUsersByFilter(
+			[FromQuery] string? q,
+			[FromQuery] bool? admin,
+			[FromQuery] bool? student,
+			[FromQuery] bool? instructor)
+		{
+			var users = new List<UserDTO>();
 
-            var result = await _usersService.GetAllAsync(u =>
-                (!admin.HasValue || u.IsAdmin == admin.Value) &&
-                (!student.HasValue || u.IsStudent == student.Value) &&
-                (!instructor.HasValue || u.IsInstructor == instructor.Value) &&
-                (string.IsNullOrEmpty(q) ||
-                 u.FullName!.ToLower().Contains(q.ToLower()) ||
-                 u.LastName!.ToLower().Contains(q.ToLower()) ||
-                 u.Expediente!.ToLower().Contains(q.ToLower()) ||
-                 u.Email!.ToLower().Contains(q.ToLower()) ||
-                 u.PhoneNumber!.ToLower().Contains(q.ToLower()))
-            );
+			var allUsers = await _usersService.GetAllAsync(u =>
+				(!admin.HasValue || u.IsAdmin == admin.Value) &&
+				(!student.HasValue || u.IsStudent == student.Value) &&
+				(!instructor.HasValue || u.IsInstructor == instructor.Value)
+			);
 
-            foreach (var item in result)
+			var result = allUsers.AsEnumerable().Where(u =>
+				string.IsNullOrEmpty(q) ||
+				u.FullName!.ToLower().Contains(q.ToLower()) ||
+				u.Name!.ToLower().Contains(q.ToLower()) ||
+				u.LastName!.ToLower().Contains(q.ToLower()) ||
+				u.Expediente!.ToLower().Contains(q.ToLower()) ||
+				u.Email!.ToLower().Contains(q.ToLower()) ||
+				u.PhoneNumber!.ToLower().Contains(q.ToLower())
+			).ToList();
+
+			foreach (var item in result)
             {
                 users.Add(new UserDTO
                 {
