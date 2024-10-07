@@ -18,6 +18,9 @@ namespace UniSportUAQ_API.Data.DTO
         public bool? IsVirtual { get; set; }
         public string? CoursePictureUrl { get; set; }
 
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+
         
     }
 }

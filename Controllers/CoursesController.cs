@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.SignalR;
 using UniSportUAQ_API.Hubs;
 using Newtonsoft.Json;
 using UniSportUAQ_API.Data.Services;
+using Hangfire.States;
 
 namespace UniSportUAQ_API.Controllers
 {
@@ -30,26 +31,30 @@ namespace UniSportUAQ_API.Controllers
         private readonly IAttendancesService _attendancesService;
         private readonly IHangfireJobsService _hangfireJobsService;
         private readonly ISubjectsService _subjectsService;
-		private readonly IHubContext<LessonHub> _hubContext;
+        private readonly IHubContext<LessonHub> _hubContext;
+        private readonly IBackgroundJobClient _backgroundJobClient;
 
-		public CoursesController(
-			ISubjectsService subjectsService, 
-			IHangfireJobsService hangfireJobsService, 
-			IAttendancesService attendancesService, 
-			ICoursesService coursesService, 
-			IInscriptionsService inscriptionsService, 
-			IUsersService userService, 
-			IHorariosService horariosService,
-			IHubContext<LessonHub> hubContext
-		){
-			_coursesService = coursesService;
-			_inscriptionsService = inscriptionsService;
-			_userService = userService;
-			_horariosService = horariosService;
-			_attendancesService = attendancesService;
-			_hangfireJobsService = hangfireJobsService;
-			_subjectsService = subjectsService;
-			_hubContext = hubContext;
+        public CoursesController(
+            IBackgroundJobClient backgroundJobs,
+            ISubjectsService subjectsService,
+            IHangfireJobsService hangfireJobsService,
+            IAttendancesService attendancesService,
+            ICoursesService coursesService,
+            IInscriptionsService inscriptionsService,
+            IUsersService userService,
+            IHorariosService horariosService,
+            IHubContext<LessonHub> hubContext
+        )
+        {
+            _backgroundJobClient = backgroundJobs;
+            _coursesService = coursesService;
+            _inscriptionsService = inscriptionsService;
+            _userService = userService;
+            _horariosService = horariosService;
+            _attendancesService = attendancesService;
+            _hangfireJobsService = hangfireJobsService;
+            _subjectsService = subjectsService;
+            _hubContext = hubContext;
         }
 
         [HttpGet]
@@ -108,6 +113,9 @@ namespace UniSportUAQ_API.Controllers
                     Location = result.Location,
                     IsVirtual = result.VirtualOrHybrid,
                     CoursePictureUrl = result.CoursePictureUrl,
+                    StartDate = result.StartDate,
+                    EndDate = result.EndDate
+
 
                 };
 
@@ -118,64 +126,66 @@ namespace UniSportUAQ_API.Controllers
 
         }
 
-		[HttpGet]
-		[Route("filter")]
-		[Authorize]
-		public async Task<IActionResult> GetCoursesByFilter(
-			[FromQuery] string? q,
-			[FromQuery] string? id,
-			[FromQuery] string? instructorId,
-			[FromQuery] int? start,
-			[FromQuery] int? end,
-			[FromQuery] bool? isActive
-		)
-		{
-			var courses = new List<CourseDTO>();
+        [HttpGet]
+        [Route("filter")]
+        [Authorize]
+        public async Task<IActionResult> GetCoursesByFilter(
+            [FromQuery] string? q,
+            [FromQuery] string? id,
+            [FromQuery] string? instructorId,
+            [FromQuery] int? start,
+            [FromQuery] int? end,
+            [FromQuery] bool? isActive
+        )
+        {
+            var courses = new List<CourseDTO>();
 
-			var result = await _coursesService.GetAllAsync(u =>
-				(string.IsNullOrEmpty(instructorId) || u.InstructorId == instructorId) &&
-				(string.IsNullOrEmpty(id) || u.Id == id) &&
-				(string.IsNullOrEmpty(q) ||
-				 u.CourseName!.ToLower().Contains(q.ToLower()) ||
-				 u.Description!.ToLower().Contains(q.ToLower())) &&
-				(!isActive.HasValue || u.IsActive == isActive.Value),
-				start,
-				end,
-				c => c.Instructor!,
-				c => c.Horarios!
-			);
+            var result = await _coursesService.GetAllAsync(u =>
+                (string.IsNullOrEmpty(instructorId) || u.InstructorId == instructorId) &&
+                (string.IsNullOrEmpty(id) || u.Id == id) &&
+                (string.IsNullOrEmpty(q) ||
+                 u.CourseName!.ToLower().Contains(q.ToLower()) ||
+                 u.Description!.ToLower().Contains(q.ToLower())) &&
+                (!isActive.HasValue || u.IsActive == isActive.Value),
+                start,
+                end,
+                c => c.Instructor!,
+                c => c.Horarios!
+            );
 
-			foreach (var item in result)
+            foreach (var item in result)
             {
-				courses.Add(new CourseDTO
-				{
-					Id = item.Id,
-					CourseName = item.CourseName,
-					InstructorName = item.Instructor!.FullName,
-					InstructorPicture = item.Instructor.PictureUrl,
-					InstructorId = item.InstructorId,
-					MaxUsers = item.MaxUsers,
-					CurrentUsers = item.CurrentUsers,
-					Schedules = item.Horarios!.Select(h => new HorarioDTO
-					{
-						Id = h.Id,
-						Day = h.Day,
-						StartHour = h.StartHour,
-						EndHour = h.EndHour,
-						CourseId = h.CourseId,
-					}).ToList(),
-					Description = item.Description,
-					Link = item.Link,
-					Location = item.Location,
-					IsVirtual = item.VirtualOrHybrid,
-					CoursePictureUrl = item.CoursePictureUrl,
-				});
+                courses.Add(new CourseDTO
+                {
+                    Id = item.Id,
+                    CourseName = item.CourseName,
+                    InstructorName = item.Instructor!.FullName,
+                    InstructorPicture = item.Instructor.PictureUrl,
+                    InstructorId = item.InstructorId,
+                    MaxUsers = item.MaxUsers,
+                    CurrentUsers = item.CurrentUsers,
+                    Schedules = item.Horarios!.Select(h => new HorarioDTO
+                    {
+                        Id = h.Id,
+                        Day = h.Day,
+                        StartHour = h.StartHour,
+                        EndHour = h.EndHour,
+                        CourseId = h.CourseId,
+                    }).ToList(),
+                    Description = item.Description,
+                    Link = item.Link,
+                    Location = item.Location,
+                    IsVirtual = item.VirtualOrHybrid,
+                    CoursePictureUrl = item.CoursePictureUrl,
+                    StartDate = item.StartDate,
+                    EndDate = item.EndDate
+                });
             }
 
 
             if (result == null) return Ok(new BaseResponse<List<UserDTO>> { Data = new List<UserDTO>() });
-			else return Ok(new BaseResponse<List<CourseDTO>> { Data = courses });
-		}
+            else return Ok(new BaseResponse<List<CourseDTO>> { Data = courses });
+        }
 
 
         [HttpPut]
@@ -187,9 +197,9 @@ namespace UniSportUAQ_API.Controllers
             if (string.IsNullOrEmpty(courseSchema.CourseName) || string.IsNullOrWhiteSpace(courseSchema.CourseName)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
             if (courseSchema.InstructorId is null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
             if (courseSchema.MaxUsers <= 0) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
-            if (courseSchema.EndDate == DateTime.MinValue) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.CourseStartOrEndateError });
-            if (courseSchema.StartDate == DateTime.MinValue) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.CourseStartOrEndateError });
-            if (courseSchema.StartDate >= courseSchema.EndDate) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.CourseStartOrEndateError });
+            if (courseSchema.EndDate == DateTime.MinValue || courseSchema.StartDate == DateTime.MinValue) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.CourseStartOrEndateMinValue });
+            if (courseSchema.StartDate >= courseSchema.EndDate) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.CourseStartEndateContradiction });
+
 
 
             var course = await _coursesService.GetByIdAsync(courseSchema.Id, i => i.Horarios!);
@@ -259,9 +269,8 @@ namespace UniSportUAQ_API.Controllers
             if (courseSchema.InstructorId is null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
             if (courseSchema.SubjectId is null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
             if (await _subjectsService.GetByIdAsync(courseSchema.SubjectId) == null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.DataNotFound });
-            if (courseSchema.EndDate == DateTime.MinValue) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.CourseStartOrEndateError });
-            if (courseSchema.StartDate == DateTime.MinValue) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.CourseStartOrEndateError });
-            if (courseSchema.StartDate >= courseSchema.EndDate) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.CourseStartOrEndateError });
+            if (courseSchema.EndDate == DateTime.MinValue || courseSchema.StartDate == DateTime.MinValue) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.CourseStartOrEndateMinValue });
+            if (courseSchema.StartDate >= courseSchema.EndDate) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.CourseStartEndateContradiction });
 
             if ((await _userService.GetAllAsync(i => i.Id == courseSchema.InstructorId && i.IsInstructor == true)).Count() < 1) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeIsInstructorFalse });
 
@@ -359,86 +368,84 @@ namespace UniSportUAQ_API.Controllers
 
             List<string> list = new List<string>();
 
+            if (endCourse == null) return NotFound(new BaseResponse<bool> { Data = false });
+
 
             //check course existence
-            if (endCourse != null)
+
+            if (endCourse.IsActive == true)
             {
-                if (endCourse.IsActive == true)
+                //get inscriptions related with course
+                var inscriptions = await _inscriptionsService.GetAllAsync(i =>
+                i.CourseId == Id &&
+                i.UnEnrolled == false);
+
+                //deactivate course
+                endCourse.IsActive = false;
+
+                //try to update course status
+                var endedResult = await _coursesService.UpdateAsync(endCourse);
+
+                if (endedResult == null) return BadRequest(new BaseResponse<bool> { Data = false, Error = ResponseErrors.CourseCanNotEnd });
+
+
+                //verify inscriptions related with course
+                if (inscriptions.Count() > 0)
                 {
-                    //get inscriptions related with course
-                    var inscriptions = await _inscriptionsService.GetAllAsync(i =>
-                    i.CourseId == Id &&
-                    i.UnEnrolled == false);
 
-                    //deactivate course
-                    endCourse.IsActive = false;
-
-                    //try to update course status
-                    var endedResult = await _coursesService.UpdateAsync(endCourse);
-
-                    if (endedResult == null) return BadRequest(new BaseResponse<bool> { Data = false, Error = ResponseErrors.CourseCanNotEnd });
-
-
-                    //verify inscriptions related with course
-                    if (inscriptions.Count() > 0)
+                    //End inscriptions related with that course
+                    foreach (var inscription in inscriptions)
                     {
+                        //if(inscription.unenroled == false)
+                        //execute next lines
 
-                        //End inscriptions related with that course
-                        foreach (var inscription in inscriptions)
+                        //count the assitance for that inscription 
+                        var assistance = await _attendancesService.GetAllAsync(i => i.StudentId == inscription.StudentId &&
+                        i.CourseId == inscription.CourseId &&
+                        i.AttendanceClass == true
+                        );
+
+                        var countAttendance = assistance.Count();
+
+                        //if have more or equal to the minimal attendances acrredit user
+                        if (countAttendance >= endCourse.MinAttendances)
                         {
-                            //if(inscription.unenroled == false)
-                            //execute next lines
-
-                            //count the assitance for that inscription 
-                            var assistance = await _attendancesService.GetAllAsync(i => i.StudentId == inscription.StudentId &&
-                            i.CourseId == inscription.CourseId &&
-                            i.AttendanceClass == true
-                            );
-
-                            var countAttendance = assistance.Count();
-
-                            //if have more or equal to the minimal attendances acrredit user
-                            if (countAttendance >= endCourse.MinAttendances)
-                            {
 
 
-                                inscription.Grade = 10;
-                                inscription.Accredit = true;
+                            inscription.Grade = 10;
+                            inscription.Accredit = true;
 
-                            }
-                            else
-                            {
+                        }
+                        else
+                        {
 
-                                inscription.Grade = 5;
-                                inscription.Accredit = false;
-                            }
-
-                            //end inscription
-                            inscription.IsFinished = true;
-
-                            var endedInscription = await _inscriptionsService.UpdateAsync(inscription);
-
-                            //in case ther is an error add user id to a list to provide info
-                            if (endedInscription == null) list.Add(inscription.StudentId!);
+                            inscription.Grade = 5;
+                            inscription.Accredit = false;
                         }
 
+                        //end inscription
+                        inscription.IsFinished = true;
 
+                        var endedInscription = await _inscriptionsService.UpdateAsync(inscription);
 
-                        if (list.Any()) return Ok(new BaseResponse<List<string>> { Data = list, Error = ResponseErrors.CourseEndInscriptionProblem });
-
-                        return Ok(new BaseResponse<bool> { Data = true });
-
+                        //in case ther is an error add user id to a list to provide info
+                        if (endedInscription == null) list.Add(inscription.StudentId!);
                     }
-                }
-                else
-                {
 
-                    return Ok(new BaseResponse<bool> { Data = true, Error = ResponseErrors.CourseHasEnded });
+
+
+                    if (list.Any()) return Ok(new BaseResponse<List<string>> { Data = list, Error = ResponseErrors.CourseEndInscriptionProblem });
+
+
 
                 }
             }
 
-            return NotFound(new BaseResponse<bool> { Data = false });
+            return Ok(new BaseResponse<bool> { Data = true });
+
+
+
+
         }
 
         /**************************************************************inscriptions**************************************************************/
@@ -493,31 +500,33 @@ namespace UniSportUAQ_API.Controllers
 
             await _coursesService.UpdateAsync(course);
 
-			var courseDto = new CourseDTO{
-				Id = course.Id,
-				CourseName = course.CourseName,
-				InstructorName = course.Instructor!.FullName,
-				InstructorPicture = course.Instructor!.PictureUrl,
-				InstructorId = course.InstructorId,
-				MaxUsers = course.MaxUsers,
-				CurrentUsers = course.CurrentUsers,
-				Description = course.Description,
-				Link = course.Link,
-				Location = course.Location,
-				Schedules = course.Horarios!.Select(h => new HorarioDTO{
-					Id = h.Id,
-					Day = h.Day,
-					StartHour = h.StartHour,
-					EndHour = h.EndHour,
-					CourseId = h.CourseId
-				}).ToList(),
-				CoursePictureUrl = course.CoursePictureUrl,
-				IsVirtual = course.VirtualOrHybrid,
-			};
+            var courseDto = new CourseDTO
+            {
+                Id = course.Id,
+                CourseName = course.CourseName,
+                InstructorName = course.Instructor!.FullName,
+                InstructorPicture = course.Instructor!.PictureUrl,
+                InstructorId = course.InstructorId,
+                MaxUsers = course.MaxUsers,
+                CurrentUsers = course.CurrentUsers,
+                Description = course.Description,
+                Link = course.Link,
+                Location = course.Location,
+                Schedules = course.Horarios!.Select(h => new HorarioDTO
+                {
+                    Id = h.Id,
+                    Day = h.Day,
+                    StartHour = h.StartHour,
+                    EndHour = h.EndHour,
+                    CourseId = h.CourseId
+                }).ToList(),
+                CoursePictureUrl = course.CoursePictureUrl,
+                IsVirtual = course.VirtualOrHybrid,
+            };
 
-			await _hubContext.Clients.All.SendAsync("CourseUpdated", courseDto);
+            await _hubContext.Clients.All.SendAsync("CourseUpdated", courseDto);
 
-			return Ok(new BaseResponse<bool> { Data = true });
+            return Ok(new BaseResponse<bool> { Data = true });
         }
 
 
@@ -603,7 +612,7 @@ namespace UniSportUAQ_API.Controllers
             //check inscription
             var result = await _inscriptionsService.GetAllAsync(i => i.CourseId == courseId && i.StudentId == studentId);
 
-            if (!result.Any()) return BadRequest(new BaseResponse<InscriptionDTO> { Data = null});
+            if (!result.Any()) return BadRequest(new BaseResponse<InscriptionDTO> { Data = null });
 
             //update inscription
             var inscription = result.FirstOrDefault();
@@ -726,7 +735,7 @@ namespace UniSportUAQ_API.Controllers
                 data.Add(inscription);
             }
 
-             return Ok(new BaseResponse<List<InscriptionDTO>> { Data = data });
+            return Ok(new BaseResponse<List<InscriptionDTO>> { Data = data });
         }
 
         [HttpGet]
@@ -758,8 +767,8 @@ namespace UniSportUAQ_API.Controllers
                     CourseName = item.Course!.CourseName,
                     CourseDescription = item.Course!.Description,
                     Accredit = item.Accredit,
-					StudentName = item.Student!.FullName,
-					StudentId = item.StudentId,
+                    StudentName = item.Student!.FullName,
+                    StudentId = item.StudentId,
                 };
 
                 data.Add(inscription);
@@ -889,7 +898,7 @@ namespace UniSportUAQ_API.Controllers
         private bool IsHorarioConflict(List<HorarioSchema> horarios)
         {
 
-            HorarioSchema lastHorario = null;
+            HorarioSchema? lastHorario = null;
 
             foreach (var horario in horarios)
             {
@@ -925,6 +934,20 @@ namespace UniSportUAQ_API.Controllers
             try
             {
 
+                //if it is updated delete previous recurring jobs
+                if (course.UnsetAttenancesReccJob != null)
+                {
+                    try
+                    {
+                        BackgroundJob.Delete(course.UnsetAttenancesReccJob);
+                        RemoveAllJobsForCourse(course.Id!);
+                        course.UnsetAttenancesReccJob = null;
+                    }
+                    catch (Exception ex){
+                        Console.WriteLine(ex.ToString()+"\n");
+                    }
+
+                }
 
                 //para cada horario
                 foreach (var horario in horarios)
@@ -940,6 +963,7 @@ namespace UniSportUAQ_API.Controllers
                     {
 
 
+                        //to create new ones
                         RecurringJob.AddOrUpdate(
                             $"job-{day + "-" + course.Id! + "-" + horario.EndHour}",
                             () => CheckTodayAttendance(DateTime.Now, course.Id!, day!.ToLower(), course.StartDate, course.EndDate, horario.Id!),
@@ -950,23 +974,17 @@ namespace UniSportUAQ_API.Controllers
                             }
                         );
 
-
-
-                        //si existe este job lo quita
-                        if (course.UnsetAttenancesReccJob != null)
+                        if (course.UnsetAttenancesReccJob == null)
                         {
 
-                            BackgroundJob.Delete(course.UnsetAttenancesReccJob);
+                            //create new scheduled job to delete the above recurring jobs
+                            string UnsetAttenancesReccJob = BackgroundJob.Schedule(
+                                () => RemoveAllJobsForCourse(course.Id!),
+                                course.EndDate.AddMinutes(20)
+                            );
+
+                            course.UnsetAttenancesReccJob = UnsetAttenancesReccJob;
                         }
-
-
-                        //crea uno nuevo para remover requrrent job
-                        string UnsetAttenancesReccJob = BackgroundJob.Schedule(
-                            () => RemoveAllJobsForCourse(course.Id!),
-                            course.EndDate.AddMinutes(20)
-                        );
-                        course.UnsetAttenancesReccJob = UnsetAttenancesReccJob;
-
 
                     }
                     else
@@ -1078,8 +1096,8 @@ namespace UniSportUAQ_API.Controllers
                         var inscriptions = await _inscriptionsService.GetAllAsync(i =>
                             i.CourseId == courseId &&
                             i.UnEnrolled == false,
-                            i=>i.Course!,
-                            i=>i.Student!);
+                            i => i.Course!,
+                            i => i.Student!);
 
                         if (!inscriptions.Any())
                         {
@@ -1256,6 +1274,10 @@ namespace UniSportUAQ_API.Controllers
                 RecurringJob.RemoveIfExists(job.Id);
             }
         }
+
+
+
+
 
         private string? GetCronExpressionForDayAndTime(string day, string time)
         {
