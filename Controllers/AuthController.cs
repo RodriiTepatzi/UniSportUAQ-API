@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json.Linq;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
@@ -76,8 +77,10 @@ namespace UniSportUAQ_API.Controllers
 			{
 				var accessToken = GenerateJwtToken(user);
 				var refreshToken = GenerateRefreshToken();
+				
 
-				if (model.RememberMe) user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(180);
+
+                if (model.RememberMe) user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(180);
 				else user.RefreshTokenExpiryTime = DateTime.UtcNow.AddMinutes(30);
 				
 
@@ -85,12 +88,13 @@ namespace UniSportUAQ_API.Controllers
 
 				await _userManager.UpdateAsync(user);
 
-				return Ok(new BaseResponse<TokenRefreshModel>
+                return Ok(new BaseResponse<TokenRefreshModel>
 				{
 					Data = new TokenRefreshModel
 					{
 						AccessToken = accessToken,
-						RefreshToken = refreshToken
+						RefreshToken = refreshToken,
+						ExpiryTime = user.RefreshTokenExpiryTime,
 					}
 				});
 			}

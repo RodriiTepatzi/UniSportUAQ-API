@@ -3,7 +3,7 @@
     public class InscriptionDTO
     {
         public string? Id { get; set; }
-        public string? Exp { get; set; }
+        public string? Expediente { get; set; }
         public string? CourseId { get; set; }
         public string? CourseName { get; set; }
         public string? CourseDescription { get; set; }
