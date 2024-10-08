@@ -52,7 +52,7 @@ namespace UniSportUAQ_API.Data.Schemas
             [Required]
             public string? RefreshToken { get; set; }
             [Required]
-            public DateTime? ExpiryTime{ get; set; }
+            public DateTime? ExpiryDate{ get; set; }
         }
     }
 }

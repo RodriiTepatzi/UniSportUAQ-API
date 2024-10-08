@@ -94,7 +94,7 @@ namespace UniSportUAQ_API.Controllers
 					{
 						AccessToken = accessToken,
 						RefreshToken = refreshToken,
-						ExpiryTime = user.RefreshTokenExpiryTime,
+						ExpiryDate = user.RefreshTokenExpiryTime,
 					}
 				});
 			}
