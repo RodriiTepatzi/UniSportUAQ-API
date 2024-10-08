@@ -28,6 +28,8 @@ namespace UniSportUAQ_API.Data.Consts
 
         public static ErrorBase ConvertImageError = new ErrorBase { Code = "FIL001", Description = "Can not convert the data you provided into a image"};
         public static ErrorBase DeleteFileError = new ErrorBase { Code = "FIL002", Description = "Can not delete the data you provided OR not founded in our system" };
+        public static ErrorBase FilterStartEndContradiction = new ErrorBase { Code = "FIL003", Description = "Incosnistent Start and End request" };
+        public static ErrorBase FilterInvalidSearchTerm = new ErrorBase { Code = "FIL004", Description = "Invalid Search term" };
         //Attributes
         public static ErrorBase AttributeEmaiInvalidlFormat = new ErrorBase { Code = "ATTR001", Description = "Invalid Email format" };
 		public static ErrorBase AttributeIdInvalidlFormat = new ErrorBase { Code = "ATTR002", Description = "Invalid Id format" };
@@ -35,12 +37,11 @@ namespace UniSportUAQ_API.Data.Consts
         public static ErrorBase AttributeIsInstructorFalse = new ErrorBase { Code = "ATTR004", Description = "this user Is not an instructor" };
         public static ErrorBase AttributeSchemaEmpty = new ErrorBase { Code = "ATTR005", Description = "schema Empty" };
         public static ErrorBase AttributeNameEmpty = new ErrorBase { Code = "ATTR006", Description = "Name Empty" };
-
         public static ErrorBase AttributeHorariosEmpty = new ErrorBase { Code = "ATTR007", Description = "horarios Empty" };
+        public static ErrorBase AttributeEmptyOrNull = new ErrorBase { Code = "ATTR008", Description = "Invalid attribute format, empty or null" };
 
         //Filters
-        public static ErrorBase FilterStartEndContradiction = new ErrorBase { Code = "FIL001", Description = "Incosnistent Start and End request" };
-		public static ErrorBase FilterInvalidSearchTerm = new ErrorBase { Code = "FIL002", Description = "Invalid Search term" };
+        
 		//server
 		public static ErrorBase ServerDataBaseError = new ErrorBase { Code = "DB001", Description = "Internal System Error" };
 		//system
@@ -49,7 +50,6 @@ namespace UniSportUAQ_API.Data.Consts
 
 		public static ErrorBase DataNotFound = new ErrorBase { Code = "ND001", Description = "No data was found." };
 
-		public static ErrorBase AttributeEmptyOrNull = new ErrorBase { Code = "ATTR004", Description = "Invalid attribute format, emp   ty or null" };
 
         public static ErrorBase SysErrorUserAlredyThisRole= new ErrorBase { Code = "SYS001", Description = "Only promote a student to either Instructor/Admin." };
 
