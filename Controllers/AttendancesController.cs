@@ -411,7 +411,43 @@ namespace UniSportUAQ_API.Controllers
             return Ok(new BaseResponse<bool> { Data = true});
         }
 
-         
+        [HttpPut]
+        [Route("attendance/aviable/course/{courseId}")]
+        public async Task<IActionResult> CheckCourseAviableAttendance(string courseId) {
+
+            //validate course id
+            if (string.IsNullOrEmpty(courseId) || string.IsNullOrWhiteSpace(courseId)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeIdInvalidlFormat });
+            //check course existence
+            var course = await _coursesService.GetByIdAsync(courseId, i => i.Horarios!);
+
+            if(course == null) return Ok(new BaseResponse<bool> { Error = ResponseErrors.EntityNotExist });
+
+            //check schedules to check if is class and hour day
+            var today = _utilsService.GetServerDateAsync();
+            var todayName = today.ToString("dddd", new CultureInfo("en-En")).ToLower();
+            var todayNameSpa = today.ToString("dddd", new CultureInfo("es-Es")).ToLower();
+            var currentTimeSpan = new TimeSpan(today.Hour, today.Minute, today.Second);
+
+            //check date course
+            foreach (var schedule in course.Horarios!)
+            {
+
+                var scheduleDay = schedule.Day!.ToLower();
+                var scheduleStart = schedule.StartHour;
+                var scheduleEnd = schedule.EndHour;
+
+                if (todayName != scheduleDay || todayNameSpa != scheduleDay) return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.CourseWrongScheduleAttendance });
+
+                if (currentTimeSpan < scheduleStart || currentTimeSpan > scheduleEnd) return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.CourseWrongScheduleAttendance });
+
+            }
+
+            //return true or false
+
+            return Ok(new BaseResponse<bool> { Data = true });
+        }
+
+
 
         [HttpPut]
         [Route("update")]
