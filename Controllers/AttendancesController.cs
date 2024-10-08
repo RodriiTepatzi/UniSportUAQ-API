@@ -381,7 +381,7 @@ namespace UniSportUAQ_API.Controllers
 
                 if(string.IsNullOrEmpty(attendance.CourseId) || string.IsNullOrWhiteSpace(attendance.CourseId)) return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.AttributeEmptyOrNull });
                 if (string.IsNullOrEmpty(attendance.StudentId) || string.IsNullOrWhiteSpace(attendance.CourseId)) return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.AttributeEmptyOrNull });
-                A
+                
                 var NewAttendance = new Attendance { 
 
                     Id = Guid.NewGuid().ToString(),
