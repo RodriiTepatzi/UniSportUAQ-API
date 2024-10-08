@@ -122,7 +122,7 @@ namespace UniSportUAQ_API.Controllers
                 return Ok(new BaseResponse<object> { Data = response });
             }
 
-            return NotFound(new BaseResponse<CourseDTO> { Data = null });
+            return Ok(new BaseResponse<CourseDTO> { Data = null });
 
         }
 
@@ -206,7 +206,7 @@ namespace UniSportUAQ_API.Controllers
 
             var horarios = await _horariosService.GetAllAsync(i => i.CourseId == courseSchema.Id);
 
-            if (course == null || horarios.Count() < 1) return NotFound();
+            if (course == null || horarios.Count() < 1) return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.EntityNotExist});
 
             List<string> failedHorarios = new List<string>();
 
@@ -368,7 +368,7 @@ namespace UniSportUAQ_API.Controllers
 
             List<string> list = new List<string>();
 
-            if (endCourse == null) return NotFound(new BaseResponse<bool> { Data = false });
+            if (endCourse == null) return Ok(new BaseResponse<bool> { Data = false , Error = ResponseErrors.EntityNotExist});
 
 
             //check course existence
@@ -457,8 +457,8 @@ namespace UniSportUAQ_API.Controllers
         {
             // First we have to check if the courseId and studentId, both exist on our database. Otherwise we shall return an error.
 
-            if (await _userService.GetByIdAsync(studentId) is null) return NotFound(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.EntityNotExist });
-            if (await _coursesService.GetByIdAsync(courseId) is null) return NotFound(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.EntityNotExist });
+            if (await _userService.GetByIdAsync(studentId) is null) return BadRequest(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.EntityNotExist });
+            if (await _coursesService.GetByIdAsync(courseId) is null) return BadRequest(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.EntityNotExist });
 
 
             var existingInscription = await _inscriptionsService.GetAllAsync(i => i.StudentId == studentId, i => i.Course!);
@@ -494,7 +494,7 @@ namespace UniSportUAQ_API.Controllers
 
             var inscriptionResult = await _inscriptionsService.AddAsync(entity);
 
-            if (inscriptionResult == null) return NotFound(new BaseResponse<bool> { Data = false, Error = ResponseErrors.ServerDataBaseErrorUpdating });
+            if (inscriptionResult == null) return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.ServerDataBaseErrorUpdating });
 
             course.CurrentUsers++;
 
@@ -545,7 +545,7 @@ namespace UniSportUAQ_API.Controllers
 
             if (checkIfInCourse.Any()) return Ok(new BaseResponse<bool> { Data = true });
 
-            return NotFound(new BaseResponse<bool> { Data = false, Error = ResponseErrors.EntityNotExist });
+            return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.EntityNotExist });
         }
 
         [HttpGet]
@@ -555,7 +555,7 @@ namespace UniSportUAQ_API.Controllers
         {
             // First we have to check if the courseId and studentId, both exist on our database. Otherwise we shall return an error.
 
-            if (await _userService.GetByIdAsync(studentId) is null) return NotFound(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.EntityNotExist });
+            if (await _userService.GetByIdAsync(studentId) is null) return BadRequest(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.EntityNotExist });
 
             var result = await _inscriptionsService.GetAllAsync(i => i.StudentId == studentId);
 
@@ -571,7 +571,7 @@ namespace UniSportUAQ_API.Controllers
         {
             // First we have to check if the courseId and studentId, both exist on our database. Otherwise we shall return an error.
 
-            if (await _userService.GetByIdAsync(studentId) is null) return NotFound(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.EntityNotExist });
+            if (await _userService.GetByIdAsync(studentId) is null) return BadRequest(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.EntityNotExist });
 
             var result = await _inscriptionsService.GetAllAsync(i => i.StudentId == studentId,
                 i => i.Student!,
@@ -606,9 +606,9 @@ namespace UniSportUAQ_API.Controllers
         public async Task<IActionResult> UnenrolledStudent(string courseId, string studentId)
         {
             //check exists
-            if (await _coursesService.GetByIdAsync(courseId) is null) return NotFound(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.EntityNotExist });
+            if (await _coursesService.GetByIdAsync(courseId) is null) return BadRequest(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.EntityNotExist });
 
-            if (await _userService.GetByIdAsync(studentId) is null) return NotFound(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.EntityNotExist });
+            if (await _userService.GetByIdAsync(studentId) is null) return BadRequest(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.EntityNotExist });
 
             //check inscription
             var result = await _inscriptionsService.GetAllAsync(i => i.CourseId == courseId && i.StudentId == studentId);
@@ -643,27 +643,27 @@ namespace UniSportUAQ_API.Controllers
         public async Task<IActionResult> TransferStudent(string inscription1, string inscription2)
         {
             //cehck format string
-            if (string.IsNullOrEmpty(inscription1)) return NotFound(new BaseResponse<bool> { Error = ResponseErrors.AttributeIdInvalidlFormat });
-            if (string.IsNullOrEmpty(inscription2)) return NotFound(new BaseResponse<bool> { Error = ResponseErrors.AttributeIdInvalidlFormat });
+            if (string.IsNullOrEmpty(inscription1)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeIdInvalidlFormat });
+            if (string.IsNullOrEmpty(inscription2)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeIdInvalidlFormat });
 
             //check exists
 
 
             //guardar en dos var ins1 y la 2
             var ins1 = await _inscriptionsService.GetByIdAsync(inscription1);
-            if (ins1 is null) return NotFound(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.EntityNotExist });
+            if (ins1 is null) return Ok(new BaseResponse<bool> { Error = ResponseErrors.EntityNotExist });
 
             var ins2 = await _inscriptionsService.GetByIdAsync(inscription2);
-            if (ins2 is null) return NotFound(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.EntityNotExist });
+            if (ins2 is null) return Ok(new BaseResponse<bool> { Error = ResponseErrors.EntityNotExist });
 
 
             //obtener todas las asistencias de ins1 por courso y alumno con attendances service getall(params)
             var ins1Attendances = await _attendancesService.GetAllAsync(a => a.StudentId == ins1.StudentId && a.CourseId == ins1.CourseId);
-            if (!ins1Attendances.Any()) return NotFound(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.EntityNotExist });
+            if (!ins1Attendances.Any()) return Ok(new BaseResponse<bool> { Error = ResponseErrors.EntityNotExist });
 
             //obtener todas las asistencias de ins2 por courso y alumno con attendances service getall(params)
             var ins2Attendances = await _attendancesService.GetAllAsync(i => i.StudentId == ins2.StudentId && i.CourseId == ins2.CourseId);
-            if (!ins1Attendances.Any()) return NotFound(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.EntityNotExist });
+            if (!ins1Attendances.Any()) return Ok(new BaseResponse<bool> { Error = ResponseErrors.EntityNotExist });
 
             //not posible to update list
             List<Attendance> notPossibleUpdt = new List<Attendance>();
@@ -710,7 +710,7 @@ namespace UniSportUAQ_API.Controllers
         {
             // First we have to check if the courseId and studentId, both exist on our database. Otherwise we shall return an error.
 
-            if (await _userService.GetByIdAsync(studentId) is null) return NotFound(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.EntityNotExist });
+            if (await _userService.GetByIdAsync(studentId) is null) return BadRequest(new BaseResponse<InscriptionDTO> { Error = ResponseErrors.EntityNotExist });
 
             var result = await _inscriptionsService.GetAllAsync(i => i.StudentId == studentId && i.IsFinished == false,
                 i => i.Student!,
@@ -827,13 +827,13 @@ namespace UniSportUAQ_API.Controllers
         {
             // First we have to check if the courseId and studentId, both exist on our database. Otherwise we shall return an error.
 
-            if (await _userService.GetByIdAsync(studentId) is null) return NotFound(new BaseResponse<bool> { Error = ResponseErrors.EntityNotExist });
+            if (await _userService.GetByIdAsync(studentId) is null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.EntityNotExist });
 
-            if (await _coursesService.GetByIdAsync(courseId) is null) return NotFound(new BaseResponse<bool> { Error = ResponseErrors.EntityNotExist });
+            if (await _coursesService.GetByIdAsync(courseId) is null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.EntityNotExist });
 
             var checkIfInCourse = await _inscriptionsService.GetAllAsync(i => i.CourseId == courseId && i.StudentId == studentId);
 
-            if (!checkIfInCourse.Any()) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.CourseNotFoundInscription });
+            if (!checkIfInCourse.Any()) return Ok(new BaseResponse<bool> { Error = ResponseErrors.CourseNotFoundInscription });
 
 
             var query = await _inscriptionsService.GetAllAsync(i => i.CourseId == courseId && i.StudentId == studentId);
