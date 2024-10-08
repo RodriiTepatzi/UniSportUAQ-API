@@ -6,6 +6,9 @@ using UniSportUAQ_API.Data.Interfaces;
 using UniSportUAQ_API.Data.Models;
 using UniSportUAQ_API.Data.Schemas;
 using UniSportUAQ_API.Data.Services;
+using UniSportUAQ_API.Data.Base;
+using UniSportUAQ_API.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace UniSportUAQ_API.Controllers
 {
@@ -20,8 +23,9 @@ namespace UniSportUAQ_API.Controllers
 		private readonly IUtilsService _utilsService;
         private readonly IHorariosService _horariosService;
         private readonly IInscriptionsService _inscriptionsService;
+        private readonly AppDbContext _context;
 
-        public AttendancesController(IInscriptionsService inscriptionsService ,IHorariosService horariosService, IAttendancesService attendancesService, ICoursesService coursesService, IStudentsService studentsService, IUtilsService utilsService)
+        public AttendancesController(AppDbContext context, IInscriptionsService inscriptionsService ,IHorariosService horariosService, IAttendancesService attendancesService, ICoursesService coursesService, IStudentsService studentsService, IUtilsService utilsService)
         {
             _inscriptionsService = inscriptionsService;
             _atenndancesService = attendancesService;
@@ -29,6 +33,7 @@ namespace UniSportUAQ_API.Controllers
             _studentsService = studentsService;
 			_utilsService = utilsService;
             _horariosService = horariosService;
+            _context = context;
         }
 
 
@@ -337,6 +342,76 @@ namespace UniSportUAQ_API.Controllers
             return Ok(new DataResponse { Data = attendanceRegister.Dictionary, ErrorMessage = null });
         }
 
+        [HttpPost]
+        [Route("register/All/{courseid}")]
+        [Authorize]
+        public async Task<IActionResult> RegisterAllAttendances([FromBody] List<AttendanceSchema> Attendances, string courseId) {
+
+
+            if (string.IsNullOrEmpty(courseId) || string.IsNullOrWhiteSpace(courseId)) return BadRequest(new BaseResponse<bool> { Data = false, Error = ResponseErrors.AttributeIdInvalidlFormat});
+            if (!Attendances.Any()) return BadRequest(new BaseResponse<bool> { Data = false, Error = ResponseErrors.AttributeSchemaEmpty });
+
+            var course = await _coursesService.GetByIdAsync(courseId);
+            var schedules = await _horariosService.GetAllAsync(i => i.CourseId == courseId);
+
+            if (course == null || schedules.Count() < 0 ) return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.CourseNotFound});
+
+            var today = _utilsService.GetServerDateAsync();
+            var todayName = today.ToString("dddd", new CultureInfo("en-En")).ToLower();
+            var todayNameSpa = today.ToString("dddd", new CultureInfo("es-Es")).ToLower();
+            var currentTimeSpan = new TimeSpan(today.Hour, today.Minute, today.Second);
+
+            List<Attendance> newAttendances = new List<Attendance>();
+
+
+            //check date course
+            foreach (var schedule in schedules) {
+
+                var scheduleDay = schedule.Day!.ToLower();
+                var scheduleStart = schedule.StartHour;
+                var scheduleEnd = schedule.EndHour;
+
+                if (todayName != scheduleDay || todayNameSpa != scheduleDay) return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.CourseWrongScheduleAttendance });
+
+                if(currentTimeSpan < scheduleStart || currentTimeSpan > scheduleEnd) return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.CourseWrongScheduleAttendance });
+
+            }
+
+            foreach (var attendance in Attendances) {
+
+                if(string.IsNullOrEmpty(attendance.CourseId) || string.IsNullOrWhiteSpace(attendance.CourseId)) return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.AttributeEmptyOrNull });
+                if (string.IsNullOrEmpty(attendance.StudentId) || string.IsNullOrWhiteSpace(attendance.CourseId)) return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.AttributeEmptyOrNull });
+                
+                var NewAttendance = new Attendance { 
+
+                    Id = Guid.NewGuid().ToString(),
+                    CourseId = courseId,
+                    StudentId = attendance.StudentId,
+                    Date = attendance.Date,
+                    AttendanceClass = attendance.AttendanceClass,
+                
+                };
+
+
+                newAttendances.Add(NewAttendance);
+            }
+
+            try 
+            {
+                await _context.AddRangeAsync(newAttendances);
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException)
+            {
+
+                return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.ServerDataBaseError });
+
+            }
+
+            return Ok(new BaseResponse<bool> { Data = true});
+        }
+
+         
 
         [HttpPut]
         [Route("update")]

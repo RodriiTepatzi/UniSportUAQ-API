@@ -69,6 +69,7 @@ namespace UniSportUAQ_API.Data.Consts
         public static ErrorBase CourseHasNotEnded = new ErrorBase { Code = "COU011", Description = "This course has NOT ended" };
         public static ErrorBase CourseStartOrEndateMinValue = new ErrorBase { Code = "COU012", Description = "The Start or endate are not in the correct format it is reciving in min value" };
         public static ErrorBase CourseStartEndateContradiction = new ErrorBase { Code = "COU013", Description = "The Start or endate are in contradiction verify if stardate < endate" };
+        public static ErrorBase CourseWrongScheduleAttendance = new ErrorBase { Code = "COU014", Description = "You can only register attendances in the course respective " };
 
         //inscriptions
         public static ErrorBase InscriptionNotAecredit= new ErrorBase { Code = "INS001", Description = "Not possible to accredit this course to this inscription, please check asistence quantity" };
