@@ -20,18 +20,18 @@ namespace UniSportUAQ_API.Controllers
         private readonly IAttendancesService _atenndancesService;
         private readonly ICoursesService _coursesService;
         private readonly IStudentsService _studentsService;
-		private readonly IUtilsService _utilsService;
+        private readonly IUtilsService _utilsService;
         private readonly IHorariosService _horariosService;
         private readonly IInscriptionsService _inscriptionsService;
         private readonly AppDbContext _context;
 
-        public AttendancesController(AppDbContext context, IInscriptionsService inscriptionsService ,IHorariosService horariosService, IAttendancesService attendancesService, ICoursesService coursesService, IStudentsService studentsService, IUtilsService utilsService)
+        public AttendancesController(AppDbContext context, IInscriptionsService inscriptionsService, IHorariosService horariosService, IAttendancesService attendancesService, ICoursesService coursesService, IStudentsService studentsService, IUtilsService utilsService)
         {
             _inscriptionsService = inscriptionsService;
             _atenndancesService = attendancesService;
             _coursesService = coursesService;
             _studentsService = studentsService;
-			_utilsService = utilsService;
+            _utilsService = utilsService;
             _horariosService = horariosService;
             _context = context;
         }
@@ -46,10 +46,10 @@ namespace UniSportUAQ_API.Controllers
             if (!Guid.TryParse(id, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
 
             var result = await _atenndancesService.GetByIdAsync(id,
-				a => a.Course!,
-				a => a.Student!,
-				a => a.Course!.Instructor!
-			);
+                a => a.Course!,
+                a => a.Student!,
+                a => a.Course!.Instructor!
+            );
 
             if (result is not null) return Ok(new DataResponse { Data = result.Dictionary, ErrorMessage = null });
 
@@ -65,10 +65,10 @@ namespace UniSportUAQ_API.Controllers
             if (!Guid.TryParse(courseid, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
 
             var result = await _atenndancesService.GetAllAsync(a => a.CourseId == courseid,
-				a => a.Course!,
-				a => a.Student!,
-				a => a.Course!.Instructor!
-			);
+                a => a.Course!,
+                a => a.Student!,
+                a => a.Course!.Instructor!
+            );
 
             var data = new List<Dictionary<string, object>>();
 
@@ -87,10 +87,10 @@ namespace UniSportUAQ_API.Controllers
             if (!Guid.TryParse(studentid, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
 
             var result = await _atenndancesService.GetAllAsync(a => a.StudentId == studentid,
-				a => a.Course!,
-				a => a.Student!,
-				a => a.Course!.Instructor!
-			);
+                a => a.Course!,
+                a => a.Student!,
+                a => a.Course!.Instructor!
+            );
 
             var Data = new List<Dictionary<string, object>>();
 
@@ -112,10 +112,10 @@ namespace UniSportUAQ_API.Controllers
             if (!DateTime.TryParse(day, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
 
             var result = await _atenndancesService.GetAllAsync(a => a.CourseId == courseid,
-				a => a.Course!,
-				a => a.Student!,
-				a => a.Course!.Instructor!
-			);
+                a => a.Course!,
+                a => a.Student!,
+                a => a.Course!.Instructor!
+            );
 
             DateTime dayDate = DateTime.Parse(day);
 
@@ -141,10 +141,10 @@ namespace UniSportUAQ_API.Controllers
             if (!Guid.TryParse(studentid, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
 
             var result = await _atenndancesService.GetAllAsync(a => a.CourseId == courseid && a.StudentId == studentid,
-				a => a.Course!,
-				a => a.Student!,
-				a => a.Course!.Instructor!
-			);
+                a => a.Course!,
+                a => a.Student!,
+                a => a.Course!.Instructor!
+            );
 
             var Data = new List<Dictionary<string, object>>();
 
@@ -158,7 +158,7 @@ namespace UniSportUAQ_API.Controllers
         [HttpGet]
         [Route("course/{courseid}/start/{start}/end/{end}")]
         [Authorize]
-        public async Task<IActionResult> GetAttendancesByCourseTimeLapse(string courseId, string start, string end){
+        public async Task<IActionResult> GetAttendancesByCourseTimeLapse(string courseId, string start, string end) {
 
             if (!Guid.TryParse(courseId, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = "error en curso" + ResponseMessages.BAD_REQUEST });
 
@@ -169,11 +169,11 @@ namespace UniSportUAQ_API.Controllers
             DateTime dateStart = DateTime.Parse(start).Date;
             DateTime dateEnd = DateTime.Parse(end).Date;
 
-            var result = await _atenndancesService.GetAllAsync(a =>	a.CourseId == courseId && a.Date >= dateStart && a.Date <= dateEnd,
-				a => a.Course!,
-				a => a.Student!,
-				a => a.Course!.Instructor!
-			);
+            var result = await _atenndancesService.GetAllAsync(a => a.CourseId == courseId && a.Date >= dateStart && a.Date <= dateEnd,
+                a => a.Course!,
+                a => a.Student!,
+                a => a.Course!.Instructor!
+            );
 
             if (result == null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 
@@ -206,10 +206,10 @@ namespace UniSportUAQ_API.Controllers
             DateTime dateEnd = DateTime.Parse(end).Date;
 
             var result = await _atenndancesService.GetAllAsync(a => a.CourseId == courseId && a.StudentId == studentId && a.Date >= dateStart && a.Date <= dateEnd,
-				a => a.Course!,
-				a => a.Student!,
-				a => a.Course!.Instructor!
-			);
+                a => a.Course!,
+                a => a.Student!,
+                a => a.Course!.Instructor!
+            );
 
             if (result == null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 
@@ -237,10 +237,10 @@ namespace UniSportUAQ_API.Controllers
             if (!DateTime.TryParse(day, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = "error en fecha" + ResponseMessages.BAD_REQUEST });
 
             var result = await _atenndancesService.GetAllAsync(a => a.CourseId == courseId && a.StudentId == studentId,
-				a => a.Course!,
-				a => a.Student!,
-				a => a.Course!.Instructor!
-			);
+                a => a.Course!,
+                a => a.Student!,
+                a => a.Course!.Instructor!
+            );
 
             DateTime date = DateTime.Parse(day).Date;
 
@@ -256,7 +256,7 @@ namespace UniSportUAQ_API.Controllers
             return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
         }
 
-        
+
 
 
         [HttpPost]
@@ -265,14 +265,14 @@ namespace UniSportUAQ_API.Controllers
 
         public async Task<IActionResult> CreateAttendanceAsync([FromBody] AttendanceSchema attendanceSchema) {
 
-            if(!Guid.TryParse(attendanceSchema.StudentId, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST});
+            if (!Guid.TryParse(attendanceSchema.StudentId, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
             if (!Guid.TryParse(attendanceSchema.CourseId, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
 
             if (await _studentsService.GetByIdAsync(attendanceSchema.StudentId) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
             if (await _coursesService.GetByIdAsync(attendanceSchema.CourseId) is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
-            
+
             //check if student is in course
-            var studentEnrolled = await _inscriptionsService.GetAllAsync(i => 
+            var studentEnrolled = await _inscriptionsService.GetAllAsync(i =>
             i.CourseId == attendanceSchema.CourseId &&
             i.StudentId == attendanceSchema.StudentId);
 
@@ -284,7 +284,7 @@ namespace UniSportUAQ_API.Controllers
             if (course == null) return NotFound(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 
 
-            var dateServ =  _utilsService.GetServerDateAsync();
+            var dateServ = _utilsService.GetServerDateAsync();
 
             attendanceSchema.Date = dateServ.Date;
 
@@ -305,13 +305,13 @@ namespace UniSportUAQ_API.Controllers
                 Console.WriteLine($"day = {day} newDateDayOfWeek = {newDateDayOfWeek}");
 
 
-                if ( day == newDateDayOfWeek ) CorrectDay = true; 
-                if ( day == newDateDayOfWeekSpanish ) CorrectDay = true;
-                
+                if (day == newDateDayOfWeek) CorrectDay = true;
+                if (day == newDateDayOfWeekSpanish) CorrectDay = true;
+
 
             }
 
-            if (CorrectDay is false) return BadRequest(new DataResponse { Data = null , ErrorMessage = ResponseMessages.BAD_COURSE_DAY });
+            if (CorrectDay is false) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_COURSE_DAY });
 
 
             var result = await _atenndancesService.GetAllAsync(a => a.CourseId == attendanceSchema.CourseId && a.StudentId == attendanceSchema.StudentId);
@@ -337,7 +337,7 @@ namespace UniSportUAQ_API.Controllers
 
             var attendanceRegister = await _atenndancesService.CreateAttendanceAsync(attendance);
 
-            if(attendanceRegister is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.ATTENDANCE_ENTITY_EXISTS});
+            if (attendanceRegister is null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.ATTENDANCE_ENTITY_EXISTS });
 
             return Ok(new DataResponse { Data = attendanceRegister.Dictionary, ErrorMessage = null });
         }
@@ -348,13 +348,13 @@ namespace UniSportUAQ_API.Controllers
         public async Task<IActionResult> RegisterAllAttendances([FromBody] List<AttendanceSchema> Attendances, string courseId) {
 
 
-            if (string.IsNullOrEmpty(courseId) || string.IsNullOrWhiteSpace(courseId)) return BadRequest(new BaseResponse<bool> { Data = false, Error = ResponseErrors.AttributeIdInvalidlFormat});
+            if (string.IsNullOrEmpty(courseId) || string.IsNullOrWhiteSpace(courseId)) return BadRequest(new BaseResponse<bool> { Data = false, Error = ResponseErrors.AttributeIdInvalidlFormat });
             if (!Attendances.Any()) return BadRequest(new BaseResponse<bool> { Data = false, Error = ResponseErrors.AttributeSchemaEmpty });
 
             var course = await _coursesService.GetByIdAsync(courseId);
             var schedules = await _horariosService.GetAllAsync(i => i.CourseId == courseId);
 
-            if (course == null || schedules.Count() < 0 ) return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.CourseNotFound});
+            if (course == null || schedules.Count() < 0) return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.CourseNotFound });
 
             var today = _utilsService.GetServerDateAsync();
             var todayName = today.ToString("dddd", new CultureInfo("en-En")).ToLower();
@@ -373,30 +373,30 @@ namespace UniSportUAQ_API.Controllers
 
                 if (todayName != scheduleDay || todayNameSpa != scheduleDay) return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.CourseWrongScheduleAttendance });
 
-                if(currentTimeSpan < scheduleStart || currentTimeSpan > scheduleEnd) return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.CourseWrongScheduleAttendance });
+                if (currentTimeSpan < scheduleStart || currentTimeSpan > scheduleEnd) return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.CourseWrongScheduleAttendance });
 
             }
 
             foreach (var attendance in Attendances) {
 
-                if(string.IsNullOrEmpty(attendance.CourseId) || string.IsNullOrWhiteSpace(attendance.CourseId)) return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.AttributeEmptyOrNull });
+                if (string.IsNullOrEmpty(attendance.CourseId) || string.IsNullOrWhiteSpace(attendance.CourseId)) return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.AttributeEmptyOrNull });
                 if (string.IsNullOrEmpty(attendance.StudentId) || string.IsNullOrWhiteSpace(attendance.CourseId)) return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.AttributeEmptyOrNull });
-                
-                var NewAttendance = new Attendance { 
+
+                var NewAttendance = new Attendance {
 
                     Id = Guid.NewGuid().ToString(),
                     CourseId = courseId,
                     StudentId = attendance.StudentId,
                     Date = attendance.Date,
                     AttendanceClass = attendance.AttendanceClass,
-                
+
                 };
 
 
                 newAttendances.Add(NewAttendance);
             }
 
-            try 
+            try
             {
                 await _context.AddRangeAsync(newAttendances);
                 await _context.SaveChangesAsync();
@@ -408,11 +408,12 @@ namespace UniSportUAQ_API.Controllers
 
             }
 
-            return Ok(new BaseResponse<bool> { Data = true});
+            return Ok(new BaseResponse<bool> { Data = true });
         }
 
-        [HttpPut]
-        [Route("attendance/aviable/course/{courseId}")]
+        [HttpGet]
+        [Route("available/course/{courseId}")]
+        [Authorize]
         public async Task<IActionResult> CheckCourseAviableAttendance(string courseId) {
 
             //validate course id

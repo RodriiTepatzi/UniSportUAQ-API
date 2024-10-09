@@ -872,6 +872,7 @@ namespace UniSportUAQ_API.Controllers
         private bool IsScheduleConflict(IEnumerable<Horario> existingCourse, List<HorarioSchema> newCourse)
         {
 
+            if(existingCourse == null) return false;
 
             if (existingCourse.Count() < 1 || newCourse.Count() < 1) return false;
 
