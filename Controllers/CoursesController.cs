@@ -221,18 +221,18 @@ namespace UniSportUAQ_API.Controllers
             course.MaxUsers = courseSchema.MaxUsers;
             course.Location = courseSchema.location;
 
-            if (courseSchema.Schedules?.Count() > 0)
+            if (courseSchema.Schedules!.Any())
             {
 
                 foreach (var oldhorario in horarios)
                 {
 
-                    foreach (var newHorario in courseSchema.Schedules)
+                    foreach (var newHorario in courseSchema.Schedules!)
                     {
 
                         if (oldhorario.Id == newHorario.Id)
                         {
-
+                            if (string.IsNullOrWhiteSpace(newHorario.Id)) return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.AttributeIdInvalidlFormat });
                             oldhorario.Day = newHorario.Day;
                             oldhorario.StartHour = newHorario.StartHour;
                             oldhorario.EndHour = newHorario.EndHour;
@@ -285,7 +285,12 @@ namespace UniSportUAQ_API.Controllers
                 {
                     var findedHorarios = await _horariosService.GetAllAsync(h => h.CourseId == course.Id);
 
-                    if (IsScheduleConflict(findedHorarios, courseSchema.Schedules!)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.CourseInstructorHindered });
+                    if (findedHorarios.Count() > 0) 
+                    {
+                        if (IsScheduleConflict(findedHorarios, courseSchema.Schedules!)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.CourseInstructorHindered });
+                    }
+
+                    
                 }
             }
 
@@ -872,7 +877,7 @@ namespace UniSportUAQ_API.Controllers
         private bool IsScheduleConflict(IEnumerable<Horario> existingCourse, List<HorarioSchema> newCourse)
         {
 
-            if(existingCourse == null) return false;
+            
 
             if (existingCourse.Count() < 1 || newCourse.Count() < 1) return false;
 

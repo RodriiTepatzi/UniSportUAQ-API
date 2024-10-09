@@ -371,8 +371,10 @@ namespace UniSportUAQ_API.Controllers
                 var scheduleStart = schedule.StartHour;
                 var scheduleEnd = schedule.EndHour;
 
-                if (todayName != scheduleDay || todayNameSpa != scheduleDay) return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.CourseWrongScheduleAttendance });
-
+                if (todayName != scheduleDay)
+                {
+                    if (todayNameSpa != scheduleDay) return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.CourseWrongScheduleAttendance });
+                }
                 if (currentTimeSpan < scheduleStart || currentTimeSpan > scheduleEnd) return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.CourseWrongScheduleAttendance });
 
             }
@@ -425,7 +427,7 @@ namespace UniSportUAQ_API.Controllers
 
             //check schedules to check if is class and hour day
             var today = _utilsService.GetServerDateAsync();
-            var todayName = today.ToString("dddd", new CultureInfo("en-En")).ToLower();
+            var todayName = today.ToString("dddd", new CultureInfo("en-Us")).ToLower();
             var todayNameSpa = today.ToString("dddd", new CultureInfo("es-Es")).ToLower();
             var currentTimeSpan = new TimeSpan(today.Hour, today.Minute, today.Second);
 
@@ -437,8 +439,10 @@ namespace UniSportUAQ_API.Controllers
                 var scheduleStart = schedule.StartHour;
                 var scheduleEnd = schedule.EndHour;
 
-                if (todayName != scheduleDay || todayNameSpa != scheduleDay) return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.CourseWrongScheduleAttendance });
-
+                if (todayName != scheduleDay) 
+                {
+                    if (todayNameSpa != scheduleDay) return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.CourseWrongScheduleAttendance });
+                }
                 if (currentTimeSpan < scheduleStart || currentTimeSpan > scheduleEnd) return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.CourseWrongScheduleAttendance });
 
             }
