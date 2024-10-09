@@ -42,16 +42,22 @@ namespace UniSportUAQ_API.Controllers
         public async Task<IActionResult> GetSubjectById(string id)
         {
 
-            if (!Guid.TryParse(id, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
-
+            if (!Guid.TryParse(id, out _)) return BadRequest(new BaseResponse<SubjectDTO> { Error = ResponseErrors.AttributeIdInvalidlFormat });
             var result = await _subjectsService.GetByIdAsync(id);
 
-            if (result == null) return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+            if (result == null) return Ok(new BaseResponse<SubjectDTO> { Error = ResponseErrors.DataNotFound });
 
-            return Ok(new DataResponse { Data = result.ToDictionary(), ErrorMessage = null });
+            var subjectDTO = new SubjectDTO
+            {
+                Id = result.Id,
+                Name = result.Name,
+                CoursePictureUrl = result.CoursePictureUrl
+            };
 
+            return Ok(new BaseResponse<SubjectDTO> { Data = subjectDTO });
 
         }
+
 
         [HttpGet]
         [Route("count")]
@@ -62,7 +68,8 @@ namespace UniSportUAQ_API.Controllers
             var count = SubjectCounts.Count();
             return Ok(new BaseResponse<int> { Data = count });
         }
-        [HttpGet]
+
+        [ [HttpGet]
         [Route("all")]
         [Authorize]
         public async Task<IActionResult> GetAllAsync()
@@ -87,7 +94,6 @@ namespace UniSportUAQ_API.Controllers
 
             return Ok(new BaseResponse<List<SubjectDTO>> { Data = subjectList });
 
-
         }
 
 
@@ -98,12 +104,12 @@ namespace UniSportUAQ_API.Controllers
         {
 
             //attrib validations
-            if (string.IsNullOrEmpty(subject.Name)) return BadRequest(new DataResponse { Data = null, ErrorMessage = "name: " + ResponseMessages.BAD_REQUEST });
+            if (string.IsNullOrEmpty(subject.Name)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeNameEmpty });
 
             //name existence
             var courseNameCheck = await _subjectsService.GetAllAsync(i => i.Name!.ToLower() == subject.Name.ToLower());
 
-            if (courseNameCheck.Count() < 0) return Ok(new DataResponse { Data = null, ErrorMessage = "subject name: " + ResponseMessages.ENTITY_EXISTS });
+            if (courseNameCheck.Count() < 0) return Ok(new BaseResponse<bool> { Error = ResponseErrors.EntityNotExist });
 
             //check picture
             string? url = null;
@@ -123,7 +129,7 @@ namespace UniSportUAQ_API.Controllers
                         }
                         catch (FormatException)
                         {
-                            return BadRequest(new BaseResponse<bool> { Data = false });
+                            return Ok(new BaseResponse<bool> { Data = false });
                         }
 
                         string baseDirectory = _hostingEnvironment.WebRootPath ?? throw new InvalidOperationException("WebRootPath is not set.");
@@ -166,22 +172,17 @@ namespace UniSportUAQ_API.Controllers
 
             if (url != null)
             {
-
-
                 newSubject.CoursePictureUrl = url;
-
-
             }
 
             //add to EF database
             var registSubject = _subjectsService.AddAsync(newSubject);
 
-            if (registSubject == null) return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.ServerDataBaseError });
+            if (registSubject == null) return Ok(new BaseResponse<bool> { Error = ResponseErrors.ServerDataBaseError });
 
+            if (url == null) Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.ConvertImageError });
 
-            if (url == null) Ok(new BaseResponse<bool> { Data = true, Error = ResponseErrors.ConvertImageError });
-
-            return Ok(new BaseResponse<bool> { Data = true });
+            return Ok(new BaseResponse<object> { Data = true });
         }
 
         [HttpPut]
@@ -191,28 +192,28 @@ namespace UniSportUAQ_API.Controllers
         {
 
             //attrib val
-            if (!Guid.TryParse(subject.Id, out _)) return BadRequest(new DataResponse { Data = null, ErrorMessage = "Id: " + ResponseMessages.BAD_REQUEST });
-            if (!string.IsNullOrEmpty(subject.Name)) return BadRequest(new DataResponse { Data = null, ErrorMessage = "name: " + ResponseMessages.BAD_REQUEST });
-            if (!string.IsNullOrEmpty(subject.CoursePictureUrl)) return BadRequest(new DataResponse { Data = null, ErrorMessage = "urlpicture: " + ResponseMessages.BAD_REQUEST });
+            if (!Guid.TryParse(subject.Id, out _)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeIdInvalidlFormat });
+            if (!string.IsNullOrEmpty(subject.Name)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeNameEmpty });
+            if (!string.IsNullOrEmpty(subject.CoursePictureUrl)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeSchemaEmpty });
 
             //verify name existene
 
             var subjectNameCheck = await _subjectsService.GetAllAsync(i => i.Name!.ToLower() == subject.Name!.ToLower());
 
-            if (subjectNameCheck == null) return BadRequest(new DataResponse { Data = null, ErrorMessage = "subject name: " + ResponseMessages.ENTITY_EXISTS });
+            if (subjectNameCheck == null) return Ok(new BaseResponse<bool> { Error = ResponseErrors.EntityNotExist });
 
             var ModifySubject = await _subjectsService.GetByIdAsync(subject.Id);
 
             //update object
-            if (ModifySubject == null) return NotFound();
+            if (ModifySubject == null) return Ok(new BaseResponse<bool> { Error = ResponseErrors.EntityNotExist });
 
             ModifySubject.Name = subject.Name;
 
             var result = await _subjectsService.UpdateAsync(ModifySubject);
 
-            if (result == null) return Ok(new DataResponse { Data = null, ErrorMessage = "subject:" + ResponseMessages.INTERNAL_ERROR });
+            if (result == null) return Ok(new BaseResponse<bool> { Error = ResponseErrors.ServerDataBaseErrorUpdating });
 
-            return Ok(new DataResponse { Data = result.ToDictionary(), ErrorMessage = null });
+            return Ok(new BaseResponse<bool> { Data = true });
 
         }
 
@@ -228,7 +229,7 @@ namespace UniSportUAQ_API.Controllers
 
             var subject = await _subjectsService.GetByIdAsync(id);
 
-            if (subject == null) return NotFound();
+            if (subject == null) return Ok(new BaseResponse<bool> { Error = ResponseErrors.EntityNotExist });
 
             if (subject.CoursePictureUrl != null || !string.IsNullOrEmpty(subject.CoursePictureUrl))
             {
