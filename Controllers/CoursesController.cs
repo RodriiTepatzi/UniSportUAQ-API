@@ -818,7 +818,7 @@ namespace UniSportUAQ_API.Controllers
 
             }
 
-            return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.InscriptionNotAecredit });
+            return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.InscriptionNotAccredit });
 
         }
 
