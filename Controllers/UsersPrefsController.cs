@@ -18,23 +18,24 @@ namespace UniSportUAQ_API.Controllers
 
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly UsersPrefsService _usersPrefsService;
-        public UsersPrefsController(UserManager<ApplicationUser> userManager, UsersPrefsService usersPrefsService) 
+        public UsersPrefsController(UserManager<ApplicationUser> userManager, UsersPrefsService usersPrefsService)
         {
             _userManager = userManager;
             _usersPrefsService = usersPrefsService;
         }
 
-       
+
 
         [HttpGet]
         [Authorize]
         [Route("prefcurrent")]
-        public async Task<IActionResult> GetUserPrefCurrentUser(){ 
+        public async Task<IActionResult> GetUserPrefCurrentUser()
+        {
 
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (userId == null)
             {
-                return Unauthorized(new BaseResponse<ApplicationUser>
+                return Unauthorized(new BaseResponse<UserPrefDTO>
                 {
                     Error = ResponseErrors.AuthInvalidToken
                 });
@@ -43,7 +44,7 @@ namespace UniSportUAQ_API.Controllers
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null)
             {
-                return NotFound(new BaseResponse<ApplicationUser>
+                return Ok(new BaseResponse<UserPrefDTO>
                 {
                     Error = ResponseErrors.AuthUserNotFound
                 });
@@ -53,26 +54,28 @@ namespace UniSportUAQ_API.Controllers
 
             var UsersPrefs = await _usersPrefsService.GetAllAsync(i => i.UserId == id);
 
-            if (UsersPrefs.Count() < 1) return NotFound(new BaseResponse<ApplicationUser>
+            if (UsersPrefs.Count() < 1) return Ok(new BaseResponse<UserPrefDTO>
             {
                 Error = ResponseErrors.AuthUserNotFound
             });
 
             var UserPref = UsersPrefs.FirstOrDefault();
 
-            var response = new UserPrefDTO {
+            var response = new UserPrefDTO
+            {
                 Id = UserPref!.Id,
                 UserId = UserPref.UserId,
                 Language = UserPref.Language,
             };
 
-            return Ok(new BaseResponse<UserPrefDTO> { Data = response});
+            return Ok(new BaseResponse<UserPrefDTO> { Data = response });
         }
 
         [HttpPost]
         [Authorize]
         [Route("current/create")]
-        public async Task<IActionResult> CreateCurrentUserPrefs([FromBody] UserPrefsSchema userPrefsSchema) {
+        public async Task<IActionResult> CreateCurrentUserPrefs([FromBody] UserPrefsSchema userPrefsSchema)
+        {
 
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (userId == null)
@@ -86,7 +89,7 @@ namespace UniSportUAQ_API.Controllers
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null)
             {
-                return NotFound(new BaseResponse<bool>
+                return Ok(new BaseResponse<bool>
                 {
                     Error = ResponseErrors.AuthUserNotFound
                 });
@@ -96,14 +99,13 @@ namespace UniSportUAQ_API.Controllers
 
             var UsersPrefs = await _usersPrefsService.GetAllAsync(i => i.UserId == id);
 
-            if (UsersPrefs.Any()) return BadRequest(new BaseResponse<bool>
+            if (UsersPrefs.Any()) return Ok(new BaseResponse<bool>
             {
                 Error = ResponseErrors.UserPrefAlreadyExist
             });
 
-
-
-            var NewUserPref = new UserPreferences { 
+            var NewUserPref = new UserPreferences
+            {
 
                 Id = Guid.NewGuid().ToString(),
                 UserId = user.Id,
@@ -113,8 +115,7 @@ namespace UniSportUAQ_API.Controllers
 
             var create = await _usersPrefsService.AddAsync(NewUserPref);
 
-            if (create == null) BadRequest(new BaseResponse<bool> { Error = ResponseErrors.ServerDataBaseError});
-
+            if (create == null) Ok(new BaseResponse<bool> { Error = ResponseErrors.ServerDataBaseError });
 
             return Ok(new BaseResponse<bool> { Data = true });
 
@@ -139,7 +140,7 @@ namespace UniSportUAQ_API.Controllers
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null)
             {
-                return NotFound(new BaseResponse<bool>
+                return Ok(new BaseResponse<bool>
                 {
                     Error = ResponseErrors.AuthUserNotFound
                 });
@@ -151,7 +152,8 @@ namespace UniSportUAQ_API.Controllers
 
             //if does not exist create one
 
-            if (!UsersPrefs.Any()) {
+            if (!UsersPrefs.Any())
+            {
 
                 var NewUserPref = new UserPreferences
                 {
@@ -164,8 +166,7 @@ namespace UniSportUAQ_API.Controllers
 
                 var create = await _usersPrefsService.AddAsync(NewUserPref);
 
-                if (create == null) BadRequest(new BaseResponse<bool> { Error = ResponseErrors.ServerDataBaseError });
-
+                if (create == null) Ok(new BaseResponse<bool> { Error = ResponseErrors.ServerDataBaseError });
 
                 return Ok(new BaseResponse<bool> { Data = true });
 
@@ -184,8 +185,7 @@ namespace UniSportUAQ_API.Controllers
 
             var update = await _usersPrefsService.UpdateAsync(UpdUserPref);
 
-            if (update == null) BadRequest(new BaseResponse<bool> { Error = ResponseErrors.ServerDataBaseError });
-
+            if (update == null) Ok(new BaseResponse<bool> { Error = ResponseErrors.ServerDataBaseError });
 
             return Ok(new BaseResponse<bool> { Data = true });
 
