@@ -69,7 +69,7 @@ namespace UniSportUAQ_API.Controllers
             return Ok(new BaseResponse<int> { Data = count });
         }
 
-        [ [HttpGet]
+        [HttpGet]
         [Route("all")]
         [Authorize]
         public async Task<IActionResult> GetAllAsync()
