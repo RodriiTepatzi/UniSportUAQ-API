@@ -24,6 +24,7 @@ namespace UniSportUAQ_API.Data.Consts
 		public static ErrorBase UserNotAnAdmin = new ErrorBase { Code = "USR003", Description = "User founded but is not an Admin" };
 		//Entity
 		public static ErrorBase EntityNotExist = new ErrorBase { Code = "ENT001", Description = "Entity/Object Does not exist" };
+        public static ErrorBase EntityExist = new ErrorBase { Code = "ENT002", Description = "Entity/Object already exist" };
         //Files
 
         public static ErrorBase ConvertImageError = new ErrorBase { Code = "FIL001", Description = "Can not convert the data you provided into a image"};
@@ -39,11 +40,11 @@ namespace UniSportUAQ_API.Data.Consts
         public static ErrorBase AttributeNameEmpty = new ErrorBase { Code = "ATTR006", Description = "Name Empty" };
         public static ErrorBase AttributeHorariosEmpty = new ErrorBase { Code = "ATTR007", Description = "horarios Empty" };
         public static ErrorBase AttributeEmptyOrNull = new ErrorBase { Code = "ATTR008", Description = "Invalid attribute format, empty or null" };
-
+        public static ErrorBase AttributeDateInvalidFormat = new ErrorBase { Code = "ATTR009", Description = "Invalid date format" };
         //Filters
-        
-		//server
-		public static ErrorBase ServerDataBaseError = new ErrorBase { Code = "DB001", Description = "Internal System Error" };
+
+        //server
+        public static ErrorBase ServerDataBaseError = new ErrorBase { Code = "DB001", Description = "Internal System Error" };
 		//system
 		public static ErrorBase SysErrorPromoting = new ErrorBase { Code = "SYS001", Description = "Only promote a student to either Instructor/Admin." };
 
