@@ -343,7 +343,7 @@ namespace UniSportUAQ_API.Controllers
         }
 
         [HttpPost]
-        [Route("register/all/{courseid}")]
+        [Route("register/all/{courseId}")]
         [Authorize]
         public async Task<IActionResult> RegisterAllAttendances([FromBody] List<AttendanceSchema> Attendances, string courseId) {
 
