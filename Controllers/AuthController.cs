@@ -77,11 +77,10 @@ namespace UniSportUAQ_API.Controllers
 			{
 				var accessToken = GenerateJwtToken(user);
 				var refreshToken = GenerateRefreshToken();
+
 				
-
-
                 if (model.RememberMe == true) user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(180);
-				else user.RefreshTokenExpiryTime = DateTime.UtcNow.AddMinutes(120);
+                if (model.RememberMe == false) user.RefreshTokenExpiryTime = DateTime.UtcNow.AddMinutes(120);
 				
 
 				user.RefreshToken = refreshToken;
