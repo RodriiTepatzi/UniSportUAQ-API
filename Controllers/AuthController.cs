@@ -80,8 +80,8 @@ namespace UniSportUAQ_API.Controllers
 				
 
 
-                if (model.RememberMe) user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(180);
-				else user.RefreshTokenExpiryTime = DateTime.UtcNow.AddMinutes(30);
+                if (model.RememberMe == true) user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(180);
+				else user.RefreshTokenExpiryTime = DateTime.UtcNow.AddMinutes(120);
 				
 
 				user.RefreshToken = refreshToken;
