@@ -50,16 +50,21 @@ namespace UniSportUAQ_API.Controllers
             if (carta != null)
             {
 
-
-                var filePath = carta.Url;
-                var fileBytes = System.IO.File.ReadAllBytes(filePath!);
-                //clean file name
-                var fileName = filePath!.Split('\\').Last();
-                return Ok(File(fileBytes, "aplication/pdf", fileName));
+                try
+                {
+                    var filePath = carta.Url;
+                    var fileBytes = System.IO.File.ReadAllBytes(filePath!);
+                    //clean file name
+                    var fileName = filePath!.Split('\\').Last();
+                    return Ok(File(fileBytes, "aplication/pdf", fileName));
+                }
+                catch { 
+                    return Ok(new BaseResponse<bool> { Error = ResponseErrors.DataNotFound});
+                }
 
             }
 
-            return NotFound();
+            return Ok(new BaseResponse<bool> { Error = ResponseErrors.DataNotFound }); 
         }
 
         [HttpGet]

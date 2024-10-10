@@ -563,7 +563,7 @@ namespace UniSportUAQ_API.Controllers
 
             var result = await _atenndancesService.UpdateAsync(oldAttendance);
 
-            if (result is not null) return Ok(new BaseResponse<object> { Data = result, Error = null });
+            if (result is not null) return Ok(new BaseResponse<bool> { Data = true, Error = null });
 
             return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.ServerDataBaseErrorUpdating });
 
