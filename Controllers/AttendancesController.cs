@@ -526,7 +526,7 @@ namespace UniSportUAQ_API.Controllers
             var currentTimeSpan = new TimeSpan(today.Hour, today.Minute, today.Second);
 
             //check date course
-            foreach (var schedule in course.Horarios!)
+            foreach (var schedule in schedules)
             {
 
                 var scheduleDay = schedule.Day!.ToLower();
