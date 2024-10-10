@@ -514,6 +514,8 @@ namespace UniSportUAQ_API.Controllers
             var course = await _coursesService.GetByIdAsync(courseId, i => i.Horarios!);
 
             if(course == null) return Ok(new BaseResponse<bool> { Error = ResponseErrors.EntityNotExist });
+            if(course.Horarios == null) return Ok(new BaseResponse<bool> { Error = ResponseErrors.EntityNotExist });
+            if (!course.Horarios.Any()) return Ok(new BaseResponse<bool> { Error = ResponseErrors.EntityNotExist });
 
             //check schedules to check if is class and hour day
             var today = _utilsService.GetServerDateAsync();
