@@ -193,8 +193,7 @@ namespace UniSportUAQ_API.Controllers
 
             //attrib val
             if (!Guid.TryParse(subject.Id, out _)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeIdInvalidlFormat });
-            if (!string.IsNullOrEmpty(subject.Name)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeNameEmpty });
-            if (!string.IsNullOrEmpty(subject.CoursePictureUrl)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeSchemaEmpty });
+            if (string.IsNullOrEmpty(subject.Name)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeNameEmpty });
 
             //verify name existene
 
