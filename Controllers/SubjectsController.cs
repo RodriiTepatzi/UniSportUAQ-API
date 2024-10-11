@@ -109,7 +109,7 @@ namespace UniSportUAQ_API.Controllers
             //name existence
             var courseNameCheck = await _subjectsService.GetAllAsync(i => i.Name!.ToLower() == subject.Name.ToLower());
 
-            if (courseNameCheck.Count() < 0) return Ok(new BaseResponse<bool> { Error = ResponseErrors.EntityNotExist });
+            if (courseNameCheck.Count() < 0) return Ok(new BaseResponse<bool> { Error = ResponseErrors.EntityExist });
 
             //check picture
             string? url = null;
