@@ -81,7 +81,7 @@ namespace UniSportUAQ_API.Controllers
                 Data.Add(timePeriodDTO);
             }
 
-            return Ok(new BaseResponse<List<TimePeriodDTO>> { Data = Data, Error = ResponseErrors.DataNotFound });
+            return Ok(new BaseResponse<List<TimePeriodDTO>> { Data = Data });
         }
 
         //get type
@@ -114,12 +114,12 @@ namespace UniSportUAQ_API.Controllers
                 Data.Add(timePeriodDTO);
             }
 
-            return Ok(new BaseResponse<List<TimePeriodDTO>> { Data = Data, Error = ResponseErrors.DataNotFound });
+            return Ok(new BaseResponse<List<TimePeriodDTO>> { Data = Data});
         }
 
 
         [HttpGet]
-        [Route("datestart")]
+        [Route("datestart/{date}")]
         [Authorize]
 
         public async Task<IActionResult> GetTimePeriodByDateStart(string date)
@@ -150,7 +150,7 @@ namespace UniSportUAQ_API.Controllers
 
             }
 
-            return Ok(new BaseResponse<List<TimePeriodDTO>> { Data = Data, Error = ResponseErrors.DataNotFound });
+            return Ok(new BaseResponse<List<TimePeriodDTO>> { Data = Data });
         }
 
         //get date end
@@ -188,20 +188,37 @@ namespace UniSportUAQ_API.Controllers
 
             }
 
-            return Ok(new BaseResponse<List<TimePeriodDTO>> { Data = Data, Error = ResponseErrors.DataNotFound });
+            return Ok(new BaseResponse<List<TimePeriodDTO>> { Data = Data });
+        }
+
+        //get current time period
+        [HttpGet]
+        [Route("isinscriptionperiod")]
+        [Authorize]
+        public async Task<IActionResult> GetCurrentTimePeriod(){
+
+            var periods = await _timePeriodsService.GetAllAsync(i =>
+                i.DateEnd > DateTime.Now &&
+                i.DateStart <= DateTime.Now
+            );
+
+            if(periods.Any()) return Ok(new BaseResponse<bool> { Data = true });
+
+            return Ok(new BaseResponse<bool> { Data = false });
         }
 
 
         //post 
         [HttpPost]
         [Route("create")]
-        [AllowAnonymous]
+        [Authorize]
         public async Task<IActionResult> CreateTimePeriod([FromBody] TimePeriodsSchema period)
         {
 
             //validate register attrributes
-            if (string.IsNullOrEmpty(period.Period)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeIdInvalidlFormat });
-            if (string.IsNullOrEmpty(period.Type)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeIdInvalidlFormat });
+            if (period == null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeSchemaEmpty });
+            if (string.IsNullOrEmpty(period.Period)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeNameEmpty });
+            if (string.IsNullOrEmpty(period.Type)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeTypeEmpty });
             //revew period start end no colition
             if (period.DateStart >= period.DateEnd) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.CourseHorarioConfict });
 
@@ -228,7 +245,7 @@ namespace UniSportUAQ_API.Controllers
 
             var periodAdded = await _timePeriodsService.AddAsync(newPeriod);
 
-            if (periodAdded is not null) return Ok(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
+            if (periodAdded  == null) return Ok(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
 
             return Ok(new BaseResponse<bool> { Data = true });
         }
@@ -245,20 +262,19 @@ namespace UniSportUAQ_API.Controllers
             if (string.IsNullOrEmpty(timePeriodSchema.Period)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
             if (string.IsNullOrEmpty(timePeriodSchema.Type)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
 
-            //search exist entity
-            var result = await _timePeriodsService.GetAllAsync();
-            var oldTimePeriod = result.FirstOrDefault(per => per.Id == timePeriodSchema.Id);
+            //search exist entity and not conflict with other schedules
+            var result = await _timePeriodsService.GetAllAsync(i =>
+            i.Id != timePeriodSchema.Id &&
+            i.Period!.ToLower() == timePeriodSchema.Period.ToLower() ||
+            i.DateStart < timePeriodSchema.DateStart &&
+            i.DateEnd > timePeriodSchema.DateStart);
+
+            if (result.Any()) return Ok(new BaseResponse<bool> { Error = ResponseErrors.EntityExist});
+
+            var oldTimePeriod = await _timePeriodsService.GetByIdAsync(timePeriodSchema.Id);
 
             if (oldTimePeriod == null) return Ok(new BaseResponse<bool> { Error = ResponseErrors.EntityNotExist });
 
-            //verify dates
-            foreach (var per in result)
-            {
-                if (per.Period!.ToLower() == timePeriodSchema.Period.ToLower() && per.Id != oldTimePeriod.Id)
-                    return Ok(new BaseResponse<bool> { Error = ResponseErrors.EntityExist });
-                if (IsScheduleConflict(per.DateStart, per.DateEnd, timePeriodSchema.DateStart, timePeriodSchema.DateEnd) && per.Id != oldTimePeriod.Id)
-                    return Ok(new BaseResponse<bool> { Error = ResponseErrors.EntityExist });
-            }
 
             //update existing entity without creating a new instance
             oldTimePeriod.Period = timePeriodSchema.Period;

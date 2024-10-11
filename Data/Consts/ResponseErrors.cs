@@ -41,6 +41,7 @@ namespace UniSportUAQ_API.Data.Consts
         public static ErrorBase AttributeHorariosEmpty = new ErrorBase { Code = "ATTR007", Description = "horarios Empty" };
         public static ErrorBase AttributeEmptyOrNull = new ErrorBase { Code = "ATTR008", Description = "Invalid attribute format, empty or null" };
         public static ErrorBase AttributeDateInvalidFormat = new ErrorBase { Code = "ATTR009", Description = "Invalid date format" };
+        public static ErrorBase AttributeTypeEmpty = new ErrorBase { Code = "ATTR010", Description = "Type Empty" };
         //Filters
 
         //server
