@@ -207,14 +207,12 @@ namespace UniSportUAQ_API.Controllers
 
 
             //check exist
-            var result = await _timePeriodsService.GetAllAsync();
+            var result = await _timePeriodsService.GetAllAsync(i => 
+            i.Period!.ToLower() == period.Period.ToLower() ||
+            i.DateStart < period.DateStart &&
+            i.DateEnd > period.DateStart);
 
-            foreach (var per in result)
-            {
-                if (per.Period!.ToLower() == period.Period.ToLower()) return Ok(new BaseResponse<bool> { Error = ResponseErrors.EntityExist });
-                if (IsScheduleConflict(per.DateStart, per.DateEnd, period.DateStart, period.DateEnd)) return Ok(new BaseResponse<bool> { Error = ResponseErrors.CourseHorarioConfict });
-
-            }
+            if (result.Any())  return Ok(new BaseResponse<bool> { Error = ResponseErrors.CourseHorarioConfict });
 
             //if (result.Any()) return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.ENTITY_EXISTS });
 
