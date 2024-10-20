@@ -259,6 +259,26 @@ namespace UniSportUAQ_API.Controllers
             return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.ServerDataBaseErrorUpdating });
         }
 
+        [HttpPut]
+        [Route("deactivate/{id}")]
+        [Authorize]
+        public async Task<IActionResult> DeactivateCourse( string Id) 
+        {
+            if (string.IsNullOrEmpty(Id) || string.IsNullOrWhiteSpace(Id)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeIdInvalidlFormat});
+
+            var course = await _coursesService.GetByIdAsync(Id);
+
+            if (course == null) return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.EntityNotExist });
+
+            course.IsActive = false;
+
+            var courseSaved = await _coursesService.UpdateAsync(course);
+
+            if(courseSaved == null) return Ok(new BaseResponse<bool> { Error = ResponseErrors.ServerDataBaseErrorUpdating });
+
+            return Ok(new BaseResponse<bool> { Data = true });
+        }
+
         [HttpPost]
         [Route("create")]
         [Authorize]
