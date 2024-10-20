@@ -168,12 +168,8 @@ namespace UniSportUAQ_API.Controllers
             {
                 Id = Guid.NewGuid().ToString(),
                 Name = subject.Name,
+                CoursePictureUrl = url,
             };
-
-            if (url != null)
-            {
-                newSubject.CoursePictureUrl = url;
-            }
 
             //add to EF database
             var registSubject = _subjectsService.AddAsync(newSubject);
