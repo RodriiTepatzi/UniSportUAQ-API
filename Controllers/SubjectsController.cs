@@ -46,6 +46,7 @@ namespace UniSportUAQ_API.Controllers
             var result = await _subjectsService.GetByIdAsync(id);
 
             if (result == null) return Ok(new BaseResponse<SubjectDTO> { Error = ResponseErrors.DataNotFound });
+            if (result.IsActive == false) return Ok(new BaseResponse<SubjectDTO> { Error = ResponseErrors.DataNotFound }); 
 
             var subjectDTO = new SubjectDTO
             {
@@ -75,7 +76,7 @@ namespace UniSportUAQ_API.Controllers
         public async Task<IActionResult> GetAllAsync()
         {
 
-            var SubjectCounts = await _subjectsService.GetAllAsync();
+            var SubjectCounts = await _subjectsService.GetAllAsync(i => i.IsActive == true);
 
             List<SubjectDTO> subjectList = new List<SubjectDTO>();
 
@@ -169,6 +170,7 @@ namespace UniSportUAQ_API.Controllers
                 Id = Guid.NewGuid().ToString(),
                 Name = subject.Name,
                 CoursePictureUrl = url,
+                IsActive = true,
             };
 
             //add to EF database
@@ -339,6 +341,27 @@ namespace UniSportUAQ_API.Controllers
 
 
 
+        }
+
+        [HttpPut]
+        [Route("deactivate/{id}")]
+        [Authorize]
+
+        public async Task<IActionResult> DeactivateSubject(string id) {
+
+            if(string.IsNullOrEmpty(id) || string.IsNullOrWhiteSpace(id)) return BadRequest(new BaseResponse<bool> {  Error = ResponseErrors.AttributeIdInvalidlFormat });
+
+            var subject = await _subjectsService.GetByIdAsync(id);
+
+            if (subject == null) return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.EntityNotExist});
+
+            subject.IsActive = false;
+
+            var subjectUpdated = await _subjectsService.UpdateAsync(subject);
+
+            if (subjectUpdated == null) return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.ServerDataBaseErrorUpdating });
+
+            return Ok(new BaseResponse<bool> { Data = true }); 
         }
 
         private async Task<bool> DeleteFileAsync(string filePath)

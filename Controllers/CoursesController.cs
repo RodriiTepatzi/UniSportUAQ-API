@@ -279,6 +279,33 @@ namespace UniSportUAQ_API.Controllers
             return Ok(new BaseResponse<bool> { Data = true });
         }
 
+        [HttpPut]
+        [Route("deactivate/{id}/subject")]
+        [Authorize]
+        public async Task<IActionResult> DeactivateCourseAndSubject(string Id)
+        {
+            if (string.IsNullOrEmpty(Id) || string.IsNullOrWhiteSpace(Id)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeIdInvalidlFormat });
+
+            var course = await _coursesService.GetByIdAsync(Id, i => i.Subject!);
+            
+
+            if (course == null) return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.EntityNotExist });
+            if (course.Subject == null) return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.EntityNotExist });
+
+            course.IsActive = false;
+            course.Subject.IsActive = false;
+
+            var courseSaved = await _coursesService.UpdateAsync(course);
+            
+            if (courseSaved == null) return Ok(new BaseResponse<bool> { Error = ResponseErrors.ServerDataBaseErrorUpdating });
+
+            var subjectSaved = await _subjectsService.UpdateAsync(course.Subject);
+
+            if (subjectSaved == null) return Ok(new BaseResponse<bool> { Error = ResponseErrors.ServerDataBaseErrorUpdating });
+
+            return Ok(new BaseResponse<bool> { Data = true });
+        }
+
         [HttpPost]
         [Route("create")]
         [Authorize]
