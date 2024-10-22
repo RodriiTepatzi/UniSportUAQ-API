@@ -21,12 +21,10 @@ namespace UniSportUAQ_API.Controllers
 	public class AuthController : ControllerBase
 	{
 		private readonly UserManager<ApplicationUser> _userManager;
-		private readonly IConfiguration _configuration;
 
-		public AuthController(UserManager<ApplicationUser> userManager, IConfiguration configuration)
+		public AuthController(UserManager<ApplicationUser> userManager)
 		{
 			_userManager = userManager;
-			_configuration = configuration;
 		}
 
 		[HttpPost("register")]
@@ -295,14 +293,16 @@ namespace UniSportUAQ_API.Controllers
 			new Claim(ClaimTypes.NameIdentifier, user.Id)
 		};
 
-			var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
+			
+
+			var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("JWT_KEY")!));
 			var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
 			var token = new JwtSecurityToken(
-				issuer: _configuration["Jwt:Issuer"],
-				audience: _configuration["Jwt:Audience"],
+				issuer: Environment.GetEnvironmentVariable("JWT_ISSUER"),
+				audience: Environment.GetEnvironmentVariable("JWT_AUDIENCE"),
 				claims: claims,
-				expires: DateTime.Now.AddMinutes(Convert.ToDouble(_configuration["Jwt:ExpiresInMinutes"])),
+				expires: DateTime.Now.AddMinutes(Convert.ToDouble(Environment.GetEnvironmentVariable("JWT_EXPIRES"))),
 				signingCredentials: creds);
 
 			return new JwtSecurityTokenHandler().WriteToken(token);
@@ -323,7 +323,7 @@ namespace UniSportUAQ_API.Controllers
 			var tokenValidationParameters = new TokenValidationParameters
 			{
 				ValidateIssuerSigningKey = true,
-				IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!)),
+				IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("JWT_KEY")!)),
 				ValidateIssuer = false,
 				ValidateAudience = false,
 				ValidateLifetime = false,

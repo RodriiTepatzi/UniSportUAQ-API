@@ -77,6 +77,7 @@ namespace UniSportUAQ_API.Migrations
                 {
                     Id = table.Column<string>(type: "varchar(255)", nullable: false),
                     Name = table.Column<string>(type: "longtext", nullable: false),
+                    IsActive = table.Column<bool>(type: "tinyint(1)", nullable: false),
                     CoursePictureUrl = table.Column<string>(type: "longtext", nullable: true)
                 },
                 constraints: table =>

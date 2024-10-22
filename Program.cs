@@ -21,6 +21,9 @@ using UniSportUAQ_API.Controllers;
 using UniSportUAQ_API.Hubs;
 using Hangfire.Dashboard;
 using Microsoft.Extensions.Options;
+using Hangfire.MySql;
+using System.Transactions;
+using DotNetEnv;
 
 namespace UniSportUAQ_API
 {
@@ -36,10 +39,16 @@ namespace UniSportUAQ_API
             builder.Services.AddControllersWithViews();
 
             Configuration = builder.Configuration;
+            Env.Load();
+
+            var mysqlConnectionString = Environment.GetEnvironmentVariable("MYSQL_CONNECTION_STRING");
+            var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER");
+            var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE");
+            var jwtKey = Environment.GetEnvironmentVariable("JWT_KEY");
 
             builder.Services.AddDbContext<AppDbContext>(
                 options => options.UseMySQL(
-                    Configuration.GetConnectionString("MySQLConnectionString")!,
+                    mysqlConnectionString!,
                     providerOptions => providerOptions.EnableRetryOnFailure()
                 ));
 
@@ -72,10 +81,10 @@ namespace UniSportUAQ_API
             {
                 o.TokenValidationParameters = new TokenValidationParameters
                 {
-                    ValidIssuer = builder.Configuration["Jwt:Issuer"],
-                    ValidAudience = builder.Configuration["Jwt:Audience"],
+                    ValidIssuer = jwtIssuer,
+                    ValidAudience = jwtAudience,
                     IssuerSigningKey = new SymmetricSecurityKey
-                    (Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)),
+                    (Encoding.UTF8.GetBytes(jwtKey!)),
                     ValidateIssuer = true,
                     ValidateAudience = true,
                     ValidateLifetime = true,
@@ -113,16 +122,22 @@ namespace UniSportUAQ_API
             builder.Services.AddHttpContextAccessor();
             builder.Services.AddSwaggerGen();
 
-            //builder.Services.AddHangfire((sp, config) =>
-            //{
-            //    var connectionHangfire = sp.GetRequiredService<IConfiguration>().GetConnectionString("DefaultConnectionString");
-            //    config.MySql(connectionHangfire);
-            //});
+            builder.Services.AddHangfire((sp, config) =>
+            {
+                config.UseStorage(new MySqlStorage(mysqlConnectionString, new MySqlStorageOptions
+                {
+                    TransactionIsolationLevel = IsolationLevel.ReadCommitted,
+                    QueuePollInterval = TimeSpan.FromSeconds(15),
+                    JobExpirationCheckInterval = TimeSpan.FromHours(1),
+                    CountersAggregateInterval = TimeSpan.FromMinutes(5),
+                    PrepareSchemaIfNecessary = true,
+                    DashboardJobListLimit = 50000,
+                    TransactionTimeout = TimeSpan.FromMinutes(1),
+                    TablesPrefix = "Hangfire"
+                }));
+            });
 
             builder.Services.AddHangfireServer();
-
-
-
 
 			var app = builder.Build();
 
