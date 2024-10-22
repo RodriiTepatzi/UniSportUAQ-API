@@ -22,9 +22,10 @@ namespace UniSportUAQ_API.Data.Base
 
 				return result.Entity;
 			}
-			catch
+			catch(Exception ex)
 			{
-				return null;
+                
+                return null;
 			}
 		}
 
@@ -51,12 +52,12 @@ namespace UniSportUAQ_API.Data.Base
 
 			return await query.ToListAsync();
 		}
-
-		public async Task<IEnumerable<T>> GetAllAsync(Expression<Func<T, bool>> filter, params Expression<Func<T, object>>[] includeProperties)
+		public async Task<IEnumerable<T>> GetAllAsync(
+			Expression<Func<T, bool>> filter,
+			params Expression<Func<T, object>>[] includeProperties)
 		{
 			IQueryable<T> query = _context.Set<T>();
 
-			// Apply filter if provided
 			if (filter != null)
 			{
 				query = query.Where(filter);
@@ -65,6 +66,40 @@ namespace UniSportUAQ_API.Data.Base
 			if (includeProperties != null)
 			{
 				query = includeProperties.Aggregate(query, (current, includeProperty) => current.Include(includeProperty));
+			}
+
+
+			return await query.ToListAsync();
+		}
+
+
+		public async Task<IEnumerable<T>> GetAllAsync(
+			Expression<Func<T, bool>> filter,
+			int? startIndex = null,
+			int? endIndex = null,
+			params Expression<Func<T, object>>[] includeProperties)
+		{
+			IQueryable<T> query = _context.Set<T>();
+
+			if (filter != null)
+			{
+				query = query.Where(filter);
+			}
+
+			if (includeProperties != null)
+			{
+				query = includeProperties.Aggregate(query, (current, includeProperty) => current.Include(includeProperty));
+			}
+
+			if (startIndex.HasValue)
+			{
+				query = query.Skip(startIndex.Value);
+			}
+
+			if (endIndex.HasValue)
+			{
+				int count = (endIndex.Value - (startIndex ?? 0)) + 1;
+				query = query.Take(count);
 			}
 
 			return await query.ToListAsync();

@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Diagnostics.CodeAnalysis;
 using UniSportUAQ_API.Data.Base;
 
 namespace UniSportUAQ_API.Data.Models
@@ -15,6 +16,7 @@ namespace UniSportUAQ_API.Data.Models
 		public string? PictureUrl { get; set; }
 		public string? Name { get; set; }
 		public string? LastName { get; set; }
+		
 		public int Group { get; set; }
 		public int Semester { get; set; }
 
@@ -36,6 +38,15 @@ namespace UniSportUAQ_API.Data.Models
 		[StringLength(10)]
 		public string? StudyPlan { get; set; }
 		public DateTime RegisteredDateTime { get; set; }
+
+		
+        public UserPreferences? UserPreferences { get; set; }
+
+
+        // Authentication
+
+        public string? RefreshToken { get; set; }
+		public DateTime? RefreshTokenExpiryTime { get; set; }
 
 		public Dictionary<string, object> ToDictionary => new Dictionary<string, object>
 		{

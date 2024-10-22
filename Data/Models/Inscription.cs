@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Diagnostics.CodeAnalysis;
 using UniSportUAQ_API.Data.Base;
 
 namespace UniSportUAQ_API.Data.Models
@@ -25,6 +26,11 @@ namespace UniSportUAQ_API.Data.Models
 
         public bool Accredit { get; set; }
 
+        public bool UnEnrolled { get; set; }
+
+        [AllowNull]
+        public string? CartaId { get; set; }
+
         [Required]
 		[DefaultValue(false)]
 		public bool IsFinished { get; set; }
@@ -35,7 +41,10 @@ namespace UniSportUAQ_API.Data.Models
         [ForeignKey("CourseId")]
         public Course? Course { get; set; }
 
-		public Dictionary<string, object> ToDictionary() => new Dictionary<string, object>
+        [ForeignKey("CartaId")]
+        public CartaLiberacion? CartaLiberacion { get; set; }
+
+        public Dictionary<string, object> ToDictionary() => new Dictionary<string, object>
 		{
 			{ nameof(Id), Id is not null ? Id:"" },
 			{ nameof(DateInscription), DateInscription },
@@ -43,7 +52,7 @@ namespace UniSportUAQ_API.Data.Models
 			{ nameof(Course), Course is not null ? Course.Dictionary : ""  },
 			{ nameof(Grade), Grade},
 			{ nameof(Accredit), Accredit},
-			{ nameof(IsFinished), IsFinished}
+            { nameof(IsFinished), IsFinished}
 		};
 
 		public Dictionary<string, object> ToDictionaryWithNoStudent() => new Dictionary<string, object>
