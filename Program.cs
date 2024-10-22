@@ -15,7 +15,6 @@ using UniSportUAQ_API.Data.Models;
 using UniSportUAQ_API.Data.Services;
 using UniSportUAQ_API.Models;
 using Hangfire;
-using Hangfire.SqlServer;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using UniSportUAQ_API.Controllers;
@@ -38,13 +37,14 @@ namespace UniSportUAQ_API
 
             Configuration = builder.Configuration;
 
-			builder.Services.AddDbContext<AppDbContext>(
-				options => options.UseSqlServer(
-					Configuration.GetConnectionString("DefaultConnectionString"),
-					providerOptions => providerOptions.EnableRetryOnFailure()
-				));
+            builder.Services.AddDbContext<AppDbContext>(
+                options => options.UseMySQL(
+                    Configuration.GetConnectionString("MySQLConnectionString")!,
+                    providerOptions => providerOptions.EnableRetryOnFailure()
+                ));
 
-			builder.Services.AddCors(options =>
+
+            builder.Services.AddCors(options =>
 			{
 				options.AddPolicy("AllowAll",
 					builder =>
@@ -113,10 +113,11 @@ namespace UniSportUAQ_API
             builder.Services.AddHttpContextAccessor();
             builder.Services.AddSwaggerGen();
 
-            builder.Services.AddHangfire((sp, config) => {
-                var connectionHangfire = sp.GetRequiredService<IConfiguration>().GetConnectionString("DefaultConnectionString");
-                config.UseSqlServerStorage(connectionHangfire);
-            });
+            //builder.Services.AddHangfire((sp, config) =>
+            //{
+            //    var connectionHangfire = sp.GetRequiredService<IConfiguration>().GetConnectionString("DefaultConnectionString");
+            //    config.MySql(connectionHangfire);
+            //});
 
             builder.Services.AddHangfireServer();
 

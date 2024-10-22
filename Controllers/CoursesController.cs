@@ -9,7 +9,6 @@ using UniSportUAQ_API.Data.DTO;
 
 using Hangfire;
 using System.Globalization;
-using UniSportUAQ_API.Migrations;
 using Hangfire.Storage;
 using Microsoft.AspNetCore.SignalR;
 using UniSportUAQ_API.Hubs;
