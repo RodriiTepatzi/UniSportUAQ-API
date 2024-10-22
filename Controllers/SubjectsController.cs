@@ -46,6 +46,7 @@ namespace UniSportUAQ_API.Controllers
             var result = await _subjectsService.GetByIdAsync(id);
 
             if (result == null) return Ok(new BaseResponse<SubjectDTO> { Error = ResponseErrors.DataNotFound });
+            if (result.IsActive == false) return Ok(new BaseResponse<SubjectDTO> { Error = ResponseErrors.DataNotFound });
 
             var subjectDTO = new SubjectDTO
             {
@@ -75,7 +76,7 @@ namespace UniSportUAQ_API.Controllers
         public async Task<IActionResult> GetAllAsync()
         {
 
-            var SubjectCounts = await _subjectsService.GetAllAsync();
+            var SubjectCounts = await _subjectsService.GetAllAsync(i => i.IsActive == true);
 
             List<SubjectDTO> subjectList = new List<SubjectDTO>();
 
@@ -168,12 +169,9 @@ namespace UniSportUAQ_API.Controllers
             {
                 Id = Guid.NewGuid().ToString(),
                 Name = subject.Name,
+                CoursePictureUrl = url,
+                IsActive = true,
             };
-
-            if (url != null)
-            {
-                newSubject.CoursePictureUrl = url;
-            }
 
             //add to EF database
             var registSubject = _subjectsService.AddAsync(newSubject);
@@ -343,6 +341,53 @@ namespace UniSportUAQ_API.Controllers
 
 
 
+        }
+
+        [HttpPut]
+        [Route("deactivate/{id}")]
+        [Authorize]
+
+        public async Task<IActionResult> DeactivateSubject(string id)
+        {
+
+            if (string.IsNullOrEmpty(id) || string.IsNullOrWhiteSpace(id)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeIdInvalidlFormat });
+
+            var subject = await _subjectsService.GetByIdAsync(id, i => i.Courses!);
+
+            if (subject == null) return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.EntityNotExist });
+
+            subject.IsActive = false;
+
+            
+
+            if (subject.Courses != null)
+            {
+
+                if (subject.Courses.Any(c => c.IsActive && c.CurrentUsers > 0)) return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.SubjectCoursesNotEnded});
+
+                var idList = subject.Courses.Select(x => x.Id).ToList();
+
+                try
+                {
+
+                    _context.Courses
+                        .Where(f => idList.Contains(f.Id))
+                        .ExecuteUpdate(f => f.SetProperty(x => x.IsActive, x => false));
+
+                }
+                catch
+                {
+                    return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.ServerDataBaseErrorUpdating });
+                }
+
+            }
+
+            var subjectUpdated = await _subjectsService.UpdateAsync(subject);
+
+            if (subjectUpdated == null) return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.ServerDataBaseErrorUpdating });
+
+
+            return Ok(new BaseResponse<bool> { Data = true });
         }
 
         private async Task<bool> DeleteFileAsync(string filePath)

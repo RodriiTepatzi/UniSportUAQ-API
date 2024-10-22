@@ -68,7 +68,7 @@ namespace UniSportUAQ_API.Data.Consts
 		public static ErrorBase CourseEndInscriptionProblem = new ErrorBase { Code = "COU008", Description = "Courses ended BUT Could not end inscriptions for the folowing users id" };
         public static ErrorBase CourseInscriptionAttendanceProblemUpdate = new ErrorBase { Code = "COU009", Description = "Can not update the following attendance(s) please provide this identifiers" };
         public static ErrorBase CourseHasEnded = new ErrorBase { Code = "COU010", Description = "This course has already ended" };
-        public static ErrorBase CourseHasNotEnded = new ErrorBase { Code = "COU011", Description = "This course has NOT ended" };
+        public static ErrorBase CourseHasNotEnded = new ErrorBase { Code = "COU011", Description = "This course has NOT ended, or there is students pendient to evaluate" };
         public static ErrorBase CourseStartOrEndateMinValue = new ErrorBase { Code = "COU012", Description = "The Start or endate are not in the correct format it is reciving in min value" };
         public static ErrorBase CourseStartEndateContradiction = new ErrorBase { Code = "COU013", Description = "The Start or endate are in contradiction verify if stardate < endate" };
         public static ErrorBase CourseWrongScheduleAttendance = new ErrorBase { Code = "COU014", Description = "You can only register attendances in the course respective schedule" };
@@ -84,6 +84,8 @@ namespace UniSportUAQ_API.Data.Consts
         //carta
         public static ErrorBase CartasErrorGenerating = new ErrorBase { Code = "CART001", Description = "Not possible to generate cartas for the following Expedientes, please provide us this expedienst and course Id" };
         public static ErrorBase CartasAlreadyExist= new ErrorBase { Code = "CART002", Description = "Not possible to generate cartas because there is alreadya a carta for this inscription" };
+        //subject
+        public static ErrorBase SubjectCoursesNotEnded = new ErrorBase { Code = "SUBJ001", Description = "One or many courses has not ended, please verify all the courses has ended correclty" };
 
     }
 }
