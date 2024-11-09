@@ -1,8 +1,7 @@
-Env Example
-
-# Default Connection Strings
+#Env Example
+## Default Connection Strings
 MYSQL_CONNECTION_STRING=Server=192.168.32.10;Port=3306;Database=deportes_uaq;User=root;Password=root;
-# JWT Settings
+## JWT Settings
 JWT_ISSUER='issue'
 JWT_AUDIENCE='audience'
 JWT_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJJc3N1ZXIgKGlzcykiOiJJc3N1ZXIiLCJJc3N1ZWQgQXQgKGlhdCkiOiIyMDI0LTAyLTE0VDAxOjUyOjAzLjc1MloiLCJFeHBpcmF0aW9uIFRpbWUgKGV4cCkiOiIyMDI0LTAyLTE0VDAyOjUyOjAzLjc1MloiLCJTdWJqZWN0IChzdWIpIjoiU3ViamVjdCIsIlVzZXJuYW1lIChhdWQpIjoiSmF2YUd1aWRlcyIsIlJvbGUiOiJBRE1JTiJ9.VoFvJXk8ZM9SqB8K6E-89TjAWfS-dTwhD6NufQlin9c'
