@@ -1,0 +1,5 @@
+MYSQL_CONNECTION_STRING="Server=148.220.52.140;Port=3023;Database= adfasdfasdf;User=admin;Password=admin;"
+JWT_ISSUER="issue"
+JWT_AUDIENCE="audience"
+JWT_KEY="key"
+JWT_EXPIRES=60
