@@ -58,14 +58,17 @@ namespace UniSportUAQ_API
 				options.AddPolicy("AllowAll",
 					builder =>
 					{
-						builder.WithOrigins("https://localhost:port", "https://deportetroyanos.azurewebsites.net")
+						builder.WithOrigins("https://0.0.0.0:5000", "https://0.0.0.0:5001", "https://deportetroyanos.azurewebsites.net")
 							   .AllowAnyHeader()
 							   .AllowAnyMethod()
 							   .AllowCredentials();  // Importante para SignalR
 					});
 			});
 
-			builder.Services.AddSignalR();
+
+            
+
+            builder.Services.AddSignalR();
 
 			builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
 				.AddEntityFrameworkStores<AppDbContext>();
