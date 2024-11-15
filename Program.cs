@@ -58,7 +58,7 @@ namespace UniSportUAQ_API
 				options.AddPolicy("AllowAll",
 					builder =>
 					{
-						builder.WithOrigins("https://0.0.0.0:5000", "https://0.0.0.0:5001", "https://deportetroyanos.azurewebsites.net")
+						builder.WithOrigins("https://127.0.0.1:5000", "https://127.0.0.1:5001", "https://deportetroyanos.azurewebsites.net")
 							   .AllowAnyHeader()
 							   .AllowAnyMethod()
 							   .AllowCredentials();  // Importante para SignalR
