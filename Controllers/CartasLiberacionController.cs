@@ -254,7 +254,7 @@ namespace UniSportUAQ_API.Controllers
                     //Generate byteArray
                     byte[] streamBytes = GeneratePDf(data);
 
-                    if (streamBytes.Length < 1) return Ok(new BaseResponse<string> { Data = "stream bytes = 0", Error = ResponseErrors.CartasErrorGenerating });
+                    if (streamBytes.Length < 1) return Ok(new BaseResponse<bool> {  Error = ResponseErrors.CartasErrorGenerating });
 
                     //convert to memory stream
                     MemoryStream stream = new MemoryStream(streamBytes);
@@ -309,10 +309,10 @@ namespace UniSportUAQ_API.Controllers
                 }
                 catch
                 {
-                    return BadRequest(new BaseResponse<string> { Data = "catch", Error = ResponseErrors.CartasErrorGenerating });
+                    return BadRequest(new BaseResponse<bool> {  Error = ResponseErrors.CartasErrorGenerating });
                 }
             }
-            return Ok(new BaseResponse<string> { Data = "Inscript == null", Error = ResponseErrors.CartasErrorGenerating });
+            return Ok(new BaseResponse<bool> {  Error = ResponseErrors.CartasErrorGenerating });
         }
 
 
