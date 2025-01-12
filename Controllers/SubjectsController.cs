@@ -59,46 +59,46 @@ namespace UniSportUAQ_API.Controllers
 
         }
 
-
         [HttpGet]
-        [Route("count")]
         [Authorize]
-        public async Task<IActionResult> GetCountAsync()
-        {
-            var SubjectCounts = await _subjectsService.GetAllAsync();
-            var count = SubjectCounts.Count();
-            return Ok(new BaseResponse<int> { Data = count });
-        }
+		public async Task<IActionResult> GetAllAsync([FromQuery] string? q, [FromQuery] int pageNumber = 1, [FromQuery]int pageSize = 10, [FromQuery] bool isActive = true)
+		{
+			IEnumerable<Subject>? totalSubjects = null;
 
-        [HttpGet]
-        [Route("all")]
-        [Authorize]
-        public async Task<IActionResult> GetAllAsync()
-        {
+			if (q is not null)
+			{
+				totalSubjects = await _subjectsService.GetAllAsync(s => s.IsActive == isActive && s.Name!.Contains(q));
+			}
+			else {
+				totalSubjects = await _subjectsService.GetAllAsync(s => s.IsActive == isActive);
+			}
 
-            var SubjectCounts = await _subjectsService.GetAllAsync(i => i.IsActive == true);
+			var paginatedSubjects = totalSubjects
+				.Skip((pageNumber - 1) * pageSize)
+				.Take(pageSize)
+				.Select(subject => new SubjectDTO
+				{
+					Id = subject.Id,
+					Name = subject.Name,
+					CoursePictureUrl = subject.CoursePictureUrl
+				}).ToList();
 
-            List<SubjectDTO> subjectList = new List<SubjectDTO>();
+			var response = new BaseResponse<PaginatedResponse<List<SubjectDTO>>>
+			{
+				Data = new PaginatedResponse<List<SubjectDTO>>
+				{
+					Data = paginatedSubjects,
+					TotalCount = totalSubjects.Count(),
+					PageNumber = pageNumber,
+					PageSize = pageSize
+				}
+			};
 
-            foreach (var subject in SubjectCounts)
-            {
-                var item = new SubjectDTO
-                {
-                    Id = subject.Id,
-                    Name = subject.Name,
-                    CoursePictureUrl = subject.CoursePictureUrl
-                };
-
-                subjectList.Add(item);
-
-            }
-
-            return Ok(new BaseResponse<List<SubjectDTO>> { Data = subjectList });
-
-        }
+			return Ok(response);
+		}
 
 
-        [HttpPost]
+		[HttpPost]
         [Route("create")]
         [Authorize]
         public async Task<IActionResult> CreateSubject([FromBody] SubjectSchema subject)
