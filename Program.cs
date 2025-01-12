@@ -24,6 +24,7 @@ using Microsoft.Extensions.Options;
 using Hangfire.MySql;
 using System.Transactions;
 using DotNetEnv;
+using Hangfire.SqlServer;
 
 namespace UniSportUAQ_API
 {
@@ -47,7 +48,7 @@ namespace UniSportUAQ_API
             var jwtKey = Environment.GetEnvironmentVariable("JWT_KEY");
 
             builder.Services.AddDbContext<AppDbContext>(
-                options => options.UseMySQL(
+                options => options.UseSqlServer(
                     mysqlConnectionString!,
                     providerOptions => providerOptions.EnableRetryOnFailure()
                 ));
@@ -87,13 +88,20 @@ namespace UniSportUAQ_API
                     (Encoding.UTF8.GetBytes(jwtKey!)),
                     ValidateIssuer = true,
                     ValidateAudience = true,
-                    ValidateLifetime = true,
+                    ValidateLifetime = false,
                     ValidateIssuerSigningKey = true,
                     ClockSkew = TimeSpan.Zero,
 				};
 			});
 
-            builder.Services.AddControllers().AddJsonOptions(options =>
+			builder.Services.AddAuthorization(options =>
+			{ 
+				options.AddPolicy("RequireAdminRole", policy => policy.RequireRole("Admin"));
+				options.AddPolicy("RequireInstructorRole", policy => policy.RequireRole("Instructor"));
+				options.AddPolicy("RequireUserRole", policy => policy.RequireRole("User"));
+			});
+
+			builder.Services.AddControllers().AddJsonOptions(options =>
             {
                 options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
             });
@@ -124,16 +132,16 @@ namespace UniSportUAQ_API
 
             builder.Services.AddHangfire((sp, config) =>
             {
-                config.UseStorage(new MySqlStorage(mysqlConnectionString, new MySqlStorageOptions
+                config.UseStorage(new SqlServerStorage(mysqlConnectionString, new SqlServerStorageOptions
                 {
-                    TransactionIsolationLevel = IsolationLevel.ReadCommitted,
+                    //TransactionIsolationLevel = IsolationLevel.ReadCommitted,
                     QueuePollInterval = TimeSpan.FromSeconds(15),
                     JobExpirationCheckInterval = TimeSpan.FromHours(1),
                     CountersAggregateInterval = TimeSpan.FromMinutes(5),
                     PrepareSchemaIfNecessary = true,
                     DashboardJobListLimit = 50000,
                     TransactionTimeout = TimeSpan.FromMinutes(1),
-                    TablesPrefix = "Hangfire"
+                    //TablesPrefix = "Hangfire"
                 }));
             });
 
@@ -180,6 +188,7 @@ namespace UniSportUAQ_API
 			// DatabaseInitializer.FeedDatabase(app);
 			// DatabaseInitializer.FeedInscriptions(app);
 			// DatabaseInitializer.FeedAttendances(app);
+			//DatabaseInitializer.FeedRoles(app);
 
 			app.Run();
 		}

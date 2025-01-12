@@ -11,6 +11,8 @@ namespace UniSportUAQ_API.Data.DTO
         public string? InstructorId { get; set; }
         public int MaxUsers { get; set; }
         public int CurrentUsers { get; set; }
+		public string? WorkshopId { get; set; }
+		public int MinAttendances { get; set; }
         public List<HorarioDTO>? Schedules { get; set; }
         public string? Description { get; set; }
         public string? Link { get; set; }

@@ -16,7 +16,7 @@ using System;
 namespace UniSportUAQ_API.Controllers
 {
     [ApiController]
-    [Route("api/v1/subjects")]
+    [Route("api/v1/workshops")]
     public class SubjectsController : Controller
     {
         private readonly ISubjectsService _subjectsService;
@@ -37,7 +37,7 @@ namespace UniSportUAQ_API.Controllers
         }
 
         [HttpGet]
-        [Route("id/{id}")]
+        [Route("{id}")]
         [Authorize]
         public async Task<IActionResult> GetSubjectById(string id)
         {
@@ -215,7 +215,7 @@ namespace UniSportUAQ_API.Controllers
         }
 
         [HttpPut]
-        [Route("update/picture/subject/{id}")]
+        [Route("{id}/picture/update")]
         [Authorize]
         public async Task<IActionResult> UpdatePictureSubject([FromBody] ImageProfile imageData, string id)
         {
@@ -296,7 +296,7 @@ namespace UniSportUAQ_API.Controllers
         }
 
         [HttpPut]
-        [Route("remove/picture/{id}")]
+        [Route("{id}/picture/remove")]
         [Authorize]
         public async Task<IActionResult> DeleteSubjectPictureAsync(string id)
         {
@@ -343,8 +343,8 @@ namespace UniSportUAQ_API.Controllers
 
         }
 
-        [HttpPut]
-        [Route("deactivate/{id}")]
+        [HttpDelete]
+        [Route("{id}")]
         [Authorize]
 
         public async Task<IActionResult> DeactivateSubject(string id)

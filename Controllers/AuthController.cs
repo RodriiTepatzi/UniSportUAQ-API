@@ -21,10 +21,12 @@ namespace UniSportUAQ_API.Controllers
 	public class AuthController : ControllerBase
 	{
 		private readonly UserManager<ApplicationUser> _userManager;
+		private readonly RoleManager<IdentityRole> _roleManager;
 
-		public AuthController(UserManager<ApplicationUser> userManager)
+		public AuthController(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager)
 		{
 			_userManager = userManager;
+			_roleManager = roleManager;
 		}
 
 		[HttpPost("register")]
@@ -50,10 +52,15 @@ namespace UniSportUAQ_API.Controllers
 				Email = model.Email,
 				IsStudent = true,
 			};
+
 			var result = await _userManager.CreateAsync(user, model.Password!);
 
 			if (!result.Succeeded)
 				return BadRequest(new BaseResponse<RegisterModel> { Data = null, Error = ResponseErrors.AuthErrorCreatingUser });
+
+			var registeredUser = _userManager.FindByEmailAsync(model.Email!).Result;
+
+			if (registeredUser is not null) await _userManager.AddToRoleAsync(registeredUser, UserRoles.User);
 
 			return Ok();
 		}
@@ -73,7 +80,7 @@ namespace UniSportUAQ_API.Controllers
 
 			if (user != null && await _userManager.CheckPasswordAsync(user, model.Password!))
 			{
-				var accessToken = GenerateJwtToken(user);
+				var accessToken = await GenerateJwtToken(user);
 				var refreshToken = GenerateRefreshToken();
 
 				
@@ -143,7 +150,7 @@ namespace UniSportUAQ_API.Controllers
 				});
 			}
 
-			var newAccessToken = GenerateJwtToken(user);
+			var newAccessToken = await GenerateJwtToken(user);
 
 			await _userManager.UpdateAsync(user);
 
@@ -284,16 +291,19 @@ namespace UniSportUAQ_API.Controllers
 
 
 
-		private string GenerateJwtToken(IdentityUser user)
+		private async Task<string> GenerateJwtToken(IdentityUser user)
 		{
-			var claims = new[]
-			{
-			new Claim(JwtRegisteredClaimNames.Sub, user.Email!),
-			new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-			new Claim(ClaimTypes.NameIdentifier, user.Id)
-		};
+			var userApplication = await _userManager.FindByIdAsync(user.Id);
+			var userRoles = await _userManager.GetRolesAsync(userApplication!);
 
-			
+			var claims = new List<Claim>
+			{
+				new Claim(JwtRegisteredClaimNames.Sub, user.Email!),
+				new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+				new Claim(ClaimTypes.NameIdentifier, user.Id)
+			};
+
+			claims.AddRange(userRoles.Select(role => new Claim(ClaimTypes.Role, role)));
 
 			var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("JWT_KEY")!));
 			var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);

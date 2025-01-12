@@ -157,6 +157,7 @@ namespace UniSportUAQ_API.Controllers
                 IsInstructor = result.IsInstructor,
                 IsStudent = result.IsStudent,
                 PhoneNumber = result.PhoneNumber,
+                Email = result.Email,
             };
 
             return Ok(new BaseResponse<UserDTO> { Data = user });
@@ -505,7 +506,16 @@ namespace UniSportUAQ_API.Controllers
 
             var result = await _usersService.UpdateAsync(oldUser);
 
-            if (result == null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+			if (oldUser.IsInstructor) await _userManager.AddToRoleAsync(oldUser, UserRoles.Instructor);
+			else await _userManager.RemoveFromRoleAsync(oldUser, UserRoles.Instructor);
+
+			if (oldUser.IsStudent) await _userManager.AddToRoleAsync(oldUser, UserRoles.User);
+			else await _userManager.RemoveFromRoleAsync(oldUser, UserRoles.User);
+
+			if (oldUser.IsAdmin) await _userManager.AddToRoleAsync(oldUser, UserRoles.Admin);
+			else await _userManager.RemoveFromRoleAsync(oldUser, UserRoles.Admin);
+
+			if (result == null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 
             return Ok(new DataResponse { Data = oldUser.ToDictionary, ErrorMessage = null });
         }
