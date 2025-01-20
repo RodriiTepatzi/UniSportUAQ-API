@@ -62,7 +62,7 @@ namespace UniSportUAQ_API.Controllers
 
 			if (registeredUser is not null) await _userManager.AddToRoleAsync(registeredUser, UserRoles.User);
 
-			return Ok();
+			return Ok(new BaseResponse<bool> { Data = true });
 		}
 
 		[HttpPost("login")]

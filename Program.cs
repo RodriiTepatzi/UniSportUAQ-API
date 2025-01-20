@@ -59,7 +59,7 @@ namespace UniSportUAQ_API
 				options.AddPolicy("AllowAll",
 					builder =>
 					{
-						builder.WithOrigins("https://localhost:port", "https://deportetroyanos.azurewebsites.net")
+						builder.WithOrigins("https://localhost:port", "https://uaq.azurewebsites.net")
 							   .AllowAnyHeader()
 							   .AllowAnyMethod()
 							   .AllowCredentials();  // Importante para SignalR
@@ -149,6 +149,12 @@ namespace UniSportUAQ_API
 
 			var app = builder.Build();
 
+			using (var scope = app.Services.CreateScope())
+			{
+				var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+				dbContext.Database.Migrate();
+			}
+
 			// Configure the HTTP request pipeline.
 			if (!app.Environment.IsDevelopment())
 			{
@@ -188,7 +194,7 @@ namespace UniSportUAQ_API
 			// DatabaseInitializer.FeedDatabase(app);
 			// DatabaseInitializer.FeedInscriptions(app);
 			// DatabaseInitializer.FeedAttendances(app);
-			//DatabaseInitializer.FeedRoles(app);
+			DatabaseInitializer.FeedRoles(app);
 
 			app.Run();
 		}

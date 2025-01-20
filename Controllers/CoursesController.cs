@@ -126,70 +126,90 @@ namespace UniSportUAQ_API.Controllers
         }
 
         [HttpGet]
-        [Route("filter")]
         [Authorize]
-        public async Task<IActionResult> GetCoursesByFilter(
-            [FromQuery] string? q,
-            [FromQuery] string? id,
-            [FromQuery] string? instructorId,
-            [FromQuery] int? start,
-            [FromQuery] int? end,
-            [FromQuery] bool? isActive
-        )
-        {
-            var courses = new List<CourseDTO>();
+		public async Task<IActionResult> GetCoursesByFilter(
+			[FromQuery] string? q,
+			[FromQuery] string? id,
+			[FromQuery] string? instructorId,
+			[FromQuery] int pageNumber = 1,
+			[FromQuery] int pageSize = 10,
+			[FromQuery] bool? isActive = null
+		)
+		{
+			var start = (pageNumber - 1) * pageSize;
+			var end = start + pageSize;
 
-            var result = await _coursesService.GetAllAsync(u =>
-                (string.IsNullOrEmpty(instructorId) || u.InstructorId == instructorId) &&
-                (string.IsNullOrEmpty(id) || u.Id == id) &&
-                (string.IsNullOrEmpty(q) ||
-                 u.CourseName!.ToLower().Contains(q.ToLower()) ||
-                 u.Description!.ToLower().Contains(q.ToLower())) &&
-                (!isActive.HasValue || u.IsActive == isActive.Value),
-                start,
-                end,
-                c => c.Instructor!,
-                c => c.Horarios!
-            );
+			var result = await _coursesService.GetAllAsync(
+				u =>
+					(string.IsNullOrEmpty(instructorId) || u.InstructorId == instructorId) &&
+					(string.IsNullOrEmpty(id) || u.Id == id) &&
+					(string.IsNullOrEmpty(q) ||
+					 u.CourseName!.ToLower().Contains(q.ToLower()) ||
+					 u.Description!.ToLower().Contains(q.ToLower())) &&
+					(!isActive.HasValue || u.IsActive == isActive.Value),
+				start,
+				end,
+				c => c.Instructor!,
+				c => c.Horarios!
+			);
 
-            foreach (var item in result)
-            {
-                courses.Add(new CourseDTO
-                {
-                    Id = item.Id,
-                    CourseName = item.CourseName,
-                    InstructorName = item.Instructor!.FullName,
-                    InstructorPicture = item.Instructor.PictureUrl,
-                    InstructorId = item.InstructorId,
-                    MaxUsers = item.MaxUsers,
-                    CurrentUsers = item.CurrentUsers,
-                    Schedules = item.Horarios!.Select(h => new HorarioDTO
-                    {
-                        Id = h.Id,
-                        Day = h.Day,
-                        StartHour = h.StartHour,
-                        EndHour = h.EndHour,
-                        CourseId = h.CourseId,
-                    }).ToList(),
-                    Description = item.Description,
-                    Link = item.Link,
-                    Location = item.Location,
-                    IsVirtual = item.VirtualOrHybrid,
-                    CoursePictureUrl = item.CoursePictureUrl,
-                    StartDate = item.StartDate,
-                    EndDate = item.EndDate,
-					MinAttendances = item.MinAttendances,
-					WorkshopId = item.SubjectId,
-                });
-            }
+			var courses = result.Select(item => new CourseDTO
+			{
+				Id = item.Id,
+				CourseName = item.CourseName,
+				InstructorName = item.Instructor!.FullName,
+				InstructorPicture = item.Instructor.PictureUrl,
+				InstructorId = item.InstructorId,
+				MaxUsers = item.MaxUsers,
+				CurrentUsers = item.CurrentUsers,
+				Schedules = item.Horarios!.Select(h => new HorarioDTO
+				{
+					Id = h.Id,
+					Day = h.Day,
+					StartHour = h.StartHour,
+					EndHour = h.EndHour,
+					CourseId = h.CourseId,
+				}).ToList(),
+				Description = item.Description,
+				Link = item.Link,
+				Location = item.Location,
+				IsVirtual = item.VirtualOrHybrid,
+				CoursePictureUrl = item.CoursePictureUrl,
+				StartDate = item.StartDate,
+				EndDate = item.EndDate,
+				MinAttendances = item.MinAttendances,
+				WorkshopId = item.SubjectId,
+			}).ToList();
+
+			// Fetch total count of courses matching the filter
+			var totalCourses = (await _coursesService.GetAllAsync(
+				u =>
+					(string.IsNullOrEmpty(instructorId) || u.InstructorId == instructorId) &&
+					(string.IsNullOrEmpty(id) || u.Id == id) &&
+					(string.IsNullOrEmpty(q) ||
+					 u.CourseName!.ToLower().Contains(q.ToLower()) ||
+					 u.Description!.ToLower().Contains(q.ToLower())) &&
+					(!isActive.HasValue || u.IsActive == isActive.Value)
+			)).Count();
+
+			// Return the paginated response
+			return Ok(
+				new BaseResponse<PaginatedResponse<List<CourseDTO>>>
+				{
+					Data = new PaginatedResponse<List<CourseDTO>>
+					{
+						Data = courses,
+						TotalCount = totalCourses,
+						PageNumber = pageNumber,
+						PageSize = pageSize
+					}
+				}
+			);
+		}
 
 
-            if (result == null) return Ok(new BaseResponse<List<UserDTO>> { Data = new List<UserDTO>() });
-            else return Ok(new BaseResponse<List<CourseDTO>> { Data = courses });
-        }
 
-
-        [HttpPut]
+		[HttpPut]
         [Route("update")]
         [Authorize]
 		public async Task<IActionResult> UpdateCourse([FromBody] CourseSchema courseSchema)
@@ -364,7 +384,7 @@ namespace UniSportUAQ_API.Controllers
                 Description = courseSchema.Description,
                 IsActive = true,
                 Location = courseSchema.location,
-                MinAttendances = courseSchema.MinAttendances
+                MinAttendances = courseSchema.MinAttendances,
 
             };
             var result = await _coursesService.AddAsync(NewCourse);
