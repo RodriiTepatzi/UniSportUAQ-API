@@ -212,7 +212,7 @@ namespace UniSportUAQ_API.Controllers
                     Name = item.Student?.Name,
                     CourseId = item.CourseId,
                     CourseName = item.Course?.CourseName,
-                    EndDate = item.Course?.EndDate.Date.ToString(),
+                    EndDate = item.Course?.EndDate.ToString("s"),
                     Url = item.Url
                 };
 

@@ -116,6 +116,7 @@ namespace UniSportUAQ_API.Controllers
                     EndDate = result.EndDate,
 					WorkshopId = result.SubjectId,
 					MinAttendances = result.MinAttendances,
+					IsActive = result.IsActive
                 };
 
                 return Ok(new BaseResponse<object> { Data = response });
@@ -179,6 +180,7 @@ namespace UniSportUAQ_API.Controllers
 				EndDate = item.EndDate,
 				MinAttendances = item.MinAttendances,
 				WorkshopId = item.SubjectId,
+				IsActive = item.IsActive,
 			}).ToList();
 
 			// Fetch total count of courses matching the filter
