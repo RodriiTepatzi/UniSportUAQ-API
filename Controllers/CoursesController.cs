@@ -285,6 +285,14 @@ namespace UniSportUAQ_API.Controllers
 			}
 
 			var result = await _coursesService.UpdateAsync(course);
+
+            if (result is not null) {
+
+                var schedules = await _horariosService.GetAllAsync(c => c.CourseId == course.Id);
+
+                HangfireSetter(course, schedules.ToList());
+            }
+
 			return result is not null ?
 				Ok(new BaseResponse<bool> { Data = true }) :
 				Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.ServerDataBaseErrorUpdating });
