@@ -13,29 +13,13 @@ namespace UniSportUAQ_API.Data.Models
         public string? Id { get; set; }
 
         [Required]
-        public string? Period { get; set; }
-
-        [Required]
-        public string? Type { get; set; }
-
-        [Required]
         public DateTime DateStart { get; set; }
 
         [Required]
         public DateTime DateEnd { get; set; }
 
-        public Dictionary<string, object> Dictionary => new Dictionary<string, object>{
-
-
-                    { nameof(Id), Id ?? string.Empty },
-                    { nameof(Period), Period is not null ? Period : "" },
-                    { nameof(Type), Type is not null ? Type : "" },
-                    { nameof(DateStart),DateStart },
-                    { nameof(DateEnd),DateEnd },
-
-
-
-        };
+		[Required]
+		public bool IsActive { get; set; }
     }
 
 

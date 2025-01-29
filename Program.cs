@@ -24,7 +24,7 @@ using Microsoft.Extensions.Options;
 using Hangfire.MySql;
 using System.Transactions;
 using DotNetEnv;
-//checking deploy 2
+
 namespace UniSportUAQ_API
 {
     public class Program
@@ -54,28 +54,25 @@ namespace UniSportUAQ_API
 
 
             builder.Services.AddCors(options =>
-            {
-                options.AddPolicy("AllowAll",
-                    builder =>
-                    {
-                        builder.WithOrigins("https://127.0.0.1:5000", "https://127.0.0.1:5001", "https://deportetroyanos.azurewebsites.net")
-                               .AllowAnyHeader()
-                               .AllowAnyMethod()
-                               .AllowCredentials();  // Importante para SignalR
-                    });
-            });
+			{
+				options.AddPolicy("AllowAll",
+					builder =>
+					{
+						builder.WithOrigins("https://localhost:port", "https://uaq.azurewebsites.net")
+							   .AllowAnyHeader()
+							   .AllowAnyMethod()
+							   .AllowCredentials();  // Importante para SignalR
+					});
+			});
 
+			builder.Services.AddSignalR();
 
+			builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+				.AddEntityFrameworkStores<AppDbContext>();
 
+			builder.Services.AddMemoryCache();
 
-            builder.Services.AddSignalR();
-
-            builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
-                .AddEntityFrameworkStores<AppDbContext>();
-
-            builder.Services.AddMemoryCache();
-
-            builder.Services.AddAuthentication(options =>
+			builder.Services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -90,13 +87,20 @@ namespace UniSportUAQ_API
                     (Encoding.UTF8.GetBytes(jwtKey!)),
                     ValidateIssuer = true,
                     ValidateAudience = true,
-                    ValidateLifetime = true,
+                    ValidateLifetime = false,
                     ValidateIssuerSigningKey = true,
                     ClockSkew = TimeSpan.Zero,
-                };
-            });
+				};
+			});
 
-            builder.Services.AddControllers().AddJsonOptions(options =>
+			builder.Services.AddAuthorization(options =>
+			{ 
+				options.AddPolicy("RequireAdminRole", policy => policy.RequireRole("Admin"));
+				options.AddPolicy("RequireInstructorRole", policy => policy.RequireRole("Instructor"));
+				options.AddPolicy("RequireUserRole", policy => policy.RequireRole("User"));
+			});
+
+			builder.Services.AddControllers().AddJsonOptions(options =>
             {
                 options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
             });
@@ -142,66 +146,56 @@ namespace UniSportUAQ_API
 
             builder.Services.AddHangfireServer();
 
-            var app = builder.Build();
+			var app = builder.Build();
 
-            // Apply pending migrations automatically and create new migration if none exist using
-            using (var scope = app.Services.CreateScope())
-            {
-                var services = scope.ServiceProvider; var context = services.GetRequiredService<AppDbContext>(); try
-                {
-                    if (!context.Database.GetPendingMigrations().Any())
-                    {
-                        var migrationName = $"AutoMigration_{DateTime.Now:yyyyMMddHHmmss}";
-                        Console.WriteLine($"Creating new migration: {migrationName}");
-                        System.Diagnostics.Process.Start("dotnet", $"ef migrations add {migrationName}");
-                    }
-                    context.Database.Migrate();
-                    // Automigración
-                }
-                catch (Exception ex) { Console.WriteLine($"Error applying migrations: {ex.Message}"); }
-            }
+			using (var scope = app.Services.CreateScope())
+			{
+				var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+				dbContext.Database.Migrate();
+			}
 
-            // Configure the HTTP request pipeline.
-            if (!app.Environment.IsDevelopment())
-            {
-                app.UseExceptionHandler("/Home/Error");
-                app.UseHsts();
-            }
+			// Configure the HTTP request pipeline.
+			if (!app.Environment.IsDevelopment())
+			{
+				app.UseExceptionHandler("/Home/Error");
+				app.UseHsts();
+			}
 
-            app.UseHttpsRedirection();
-            app.UseStaticFiles();
+			app.UseHttpsRedirection();
+			app.UseStaticFiles();
 
-            app.UseRouting(); // Setup routing
+			app.UseRouting(); // Setup routing
 
-            app.UseCors("AllowAll");
+			app.UseCors("AllowAll");
 
-            app.UseSwagger(); // Swagger documentation
-            app.UseSwaggerUI();
+			app.UseSwagger(); // Swagger documentation
+			app.UseSwaggerUI();
 
-            // JWT Authentication middleware
-            app.UseAuthentication(); // Handle JWT tokens
-            app.UseAuthorization();  // Authorization middleware
+			// JWT Authentication middleware
+			app.UseAuthentication(); // Handle JWT tokens
+			app.UseAuthorization();  // Authorization middleware
 
-            // Map SignalR Hub after authentication is configured
-            app.MapHub<LessonHub>("/hubs/lessons"); // SignalR
+			// Map SignalR Hub after authentication is configured
+			app.MapHub<LessonHub>("/hubs/lessons"); // SignalR
 
-            // Map default route
-            app.MapControllerRoute(
-                name: "default",
-                pattern: "{controller=Home}/{action=Index}/{id?}");
+			// Map default route
+			app.MapControllerRoute(
+				name: "default",
+				pattern: "{controller=Home}/{action=Index}/{id?}");
 
-            // Configure Hangfire dashboard
-            app.UseHangfireDashboard("/hangfire", new DashboardOptions
-            {
-                Authorization = new IDashboardAuthorizationFilter[] { }
-            });
+			// Configure Hangfire dashboard
+			app.UseHangfireDashboard("/hangfire", new DashboardOptions
+			{
+				Authorization = new IDashboardAuthorizationFilter[] { }
+			});
 
-            // DatabaseInitializer.FeedUsersAndRoles(app);
-            // DatabaseInitializer.FeedDatabase(app);
-            // DatabaseInitializer.FeedInscriptions(app);
-            // DatabaseInitializer.FeedAttendances(app);
+			// DatabaseInitializer.FeedUsersAndRoles(app);
+			// DatabaseInitializer.FeedDatabase(app);
+			// DatabaseInitializer.FeedInscriptions(app);
+			// DatabaseInitializer.FeedAttendances(app);
+			DatabaseInitializer.FeedRoles(app);
 
-            app.Run();
-        }
+			app.Run();
+		}
     }
 }

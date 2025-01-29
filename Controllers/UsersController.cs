@@ -13,6 +13,8 @@ using UniSportUAQ_API.Data.Schemas;
 using System.IO;
 using System.Security.Claims;
 using UniSportUAQ_API.Data;
+using Firebase.Auth;
+using System.Linq.Expressions;
 
 
 namespace UniSportUAQ_API.Controllers
@@ -41,43 +43,7 @@ namespace UniSportUAQ_API.Controllers
             _context = appDbContext;
         }
 
-
-        [HttpGet]
-        [Route("all")]
-        [Authorize]
-        public async Task<IActionResult> GetAllUsers()
-        {
-            var result = await _usersService.GetAllAsync();
-
-            if (result.Count() < 1) return NotFound(new BaseResponse<object> { Data = result });
-
-            var data = new List<UserDTO>();
-
-            foreach (var item in result)
-            {
-
-                var gnrc = new UserDTO
-                {
-
-                    Id = item.Id,
-                    Expediente = item.Expediente,
-                    PictureUrl = item.PictureUrl,
-                    Name = item.Name,
-                    LastName = item.LastName,
-                    IsAdmin = item.IsAdmin,
-                    IsInstructor = item.IsInstructor,
-                    IsStudent = item.IsStudent,
-
-                };
-
-                data.Add(gnrc);
-            }
-
-            return Ok(new BaseResponse<List<UserDTO>> { Data = data });
-
-        }
-
-        [HttpGet]
+		[HttpGet]
         [Route("count")]
         [Authorize]
         public async Task<IActionResult> GetUsersCount()
@@ -90,52 +56,60 @@ namespace UniSportUAQ_API.Controllers
         }
 
         [HttpGet]
-        [Route("filter")]
         [Authorize]
 		public async Task<IActionResult> GetUsersByFilter(
 			[FromQuery] string? q,
 			[FromQuery] bool? admin,
 			[FromQuery] bool? student,
-			[FromQuery] bool? instructor)
+			[FromQuery] bool? instructor, 
+			[FromQuery] int pageNumber = 1, 
+			[FromQuery] int pageSize = 10
+		)
 		{
-			var users = new List<UserDTO>();
+			var startIndex = (pageNumber - 1) * pageSize;
+			var endIndex = startIndex + pageSize;
 
-			var allUsers = await _usersService.GetAllAsync(u =>
+			Expression<Func<ApplicationUser, bool>> filter = u =>
 				(!admin.HasValue || u.IsAdmin == admin.Value) &&
 				(!student.HasValue || u.IsStudent == student.Value) &&
-				(!instructor.HasValue || u.IsInstructor == instructor.Value)
-			);
+				(!instructor.HasValue || u.IsInstructor == instructor.Value) &&
+				(string.IsNullOrEmpty(q) ||
+				 u.Name!.ToLower().Contains(q.ToLower()) ||
+				 u.LastName!.ToLower().Contains(q.ToLower()) ||
+				 u.Expediente!.ToLower().Contains(q.ToLower()) ||
+				 u.Email!.ToLower().Contains(q.ToLower()) ||
+				 u.PhoneNumber!.ToLower().Contains(q.ToLower()));
 
-			var result = allUsers.AsEnumerable().Where(u =>
-				string.IsNullOrEmpty(q) ||
-				u.FullName!.ToLower().Contains(q.ToLower()) ||
-				u.Name!.ToLower().Contains(q.ToLower()) ||
-				u.LastName!.ToLower().Contains(q.ToLower()) ||
-				u.Expediente!.ToLower().Contains(q.ToLower()) ||
-				u.Email!.ToLower().Contains(q.ToLower()) ||
-				u.PhoneNumber!.ToLower().Contains(q.ToLower())
-			).ToList();
+			var result = await _usersService.GetAllAsync(filter, startIndex, endIndex);
 
-			foreach (var item in result)
-            {
-                users.Add(new UserDTO
-                {
-                    Id = item.Id,
-                    Expediente = item.Expediente,
-                    PictureUrl = item.PictureUrl,
-                    Name = item.Name,
-                    LastName = item.LastName,
-                    IsAdmin = item.IsAdmin,
-                    IsInstructor = item.IsInstructor,
-                    IsStudent = item.IsStudent,
-                    PhoneNumber = item.PhoneNumber,
-                });
-            }
+			var data = result.Select(item => new UserDTO
+			{
+				Id = item.Id,
+				Expediente = item.Expediente,
+				PictureUrl = item.PictureUrl,
+				Name = item.Name,
+				LastName = item.LastName,
+				IsAdmin = item.IsAdmin,
+				IsInstructor = item.IsInstructor,
+				IsStudent = item.IsStudent,
+			}).ToList();
+
+			var totalUsers = (await _usersService.GetAllAsync()).Count();
+
+			var response = new BaseResponse<PaginatedResponse<List<UserDTO>>>
+			{
+				Data = new PaginatedResponse<List<UserDTO>>
+				{
+					Data = data,
+					TotalCount = totalUsers,
+					PageNumber = pageNumber,
+					PageSize = pageSize
+				}
+			};
 
 
-            if (result == null) return Ok(new BaseResponse<List<UserDTO>> { Data = new List<UserDTO>() });
-            else return Ok(new BaseResponse<List<UserDTO>> { Data = users });
-        }
+			return Ok(response);
+		}
 
         [HttpGet]
         [Route("{id}")]
@@ -157,51 +131,10 @@ namespace UniSportUAQ_API.Controllers
                 IsInstructor = result.IsInstructor,
                 IsStudent = result.IsStudent,
                 PhoneNumber = result.PhoneNumber,
+                Email = result.Email,
             };
 
             return Ok(new BaseResponse<UserDTO> { Data = user });
-        }
-
-
-        [HttpGet]
-        [HttpGet]
-        [Route("admins/all/range/{start}/{end}")]
-        [Authorize]
-        public async Task<IActionResult> GetAdminsByRange(int start, int end)
-        {
-            if (start < 0 || end < start) return BadRequest(new BaseResponse<List<UserDTO>> { Data = null, Error = ResponseErrors.FilterStartEndContradiction });
-
-            var result = await _usersService.GetAllAsync(i => i.IsAdmin == true);
-
-            if (result.Count() < 1) return NotFound(new BaseResponse<object> { Data = result });
-
-            var adminsInRange = result.Skip(start).Take(end - start + 1).ToList();
-
-            if (adminsInRange.Count() < 1) return NotFound(new BaseResponse<object> { Data = adminsInRange });
-
-            var data = new List<UserDTO>();
-
-            foreach (var item in adminsInRange)
-            {
-
-                var admns = new UserDTO
-                {
-
-                    Id = item.Id,
-                    Expediente = item.Expediente,
-                    PictureUrl = item.PictureUrl,
-                    Name = item.Name,
-                    LastName = item.LastName,
-                    IsAdmin = item.IsAdmin,
-                    IsInstructor = item.IsInstructor,
-                    IsStudent = item.IsStudent,
-
-                };
-
-                data.Add(admns);
-            }
-
-            return Ok(new BaseResponse<List<UserDTO>> { Data = data });
         }
 
 
@@ -487,7 +420,8 @@ namespace UniSportUAQ_API.Controllers
             if (user.LastName == null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
             if (user.PhoneNumber == null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
             if (user.Email == null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
-            
+            if (user.PictureUrl == null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.BAD_REQUEST });
+
             var oldUser = await _usersService.GetByIdAsync(user.Id);
 
             if (oldUser == null) return Ok(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
@@ -504,7 +438,16 @@ namespace UniSportUAQ_API.Controllers
 
             var result = await _usersService.UpdateAsync(oldUser);
 
-            if (result == null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
+			if (oldUser.IsInstructor) await _userManager.AddToRoleAsync(oldUser, UserRoles.Instructor);
+			else await _userManager.RemoveFromRoleAsync(oldUser, UserRoles.Instructor);
+
+			if (oldUser.IsStudent) await _userManager.AddToRoleAsync(oldUser, UserRoles.User);
+			else await _userManager.RemoveFromRoleAsync(oldUser, UserRoles.User);
+
+			if (oldUser.IsAdmin) await _userManager.AddToRoleAsync(oldUser, UserRoles.Admin);
+			else await _userManager.RemoveFromRoleAsync(oldUser, UserRoles.Admin);
+
+			if (result == null) return BadRequest(new DataResponse { Data = null, ErrorMessage = ResponseMessages.OBJECT_NOT_FOUND });
 
             return Ok(new DataResponse { Data = oldUser.ToDictionary, ErrorMessage = null });
         }

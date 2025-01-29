@@ -16,8 +16,8 @@ namespace UniSportUAQ_API.Data
         {
             
             // Habilitamos el registro de datos sensibles
-            optionsBuilder.EnableSensitiveDataLogging();
-        }
+            optionsBuilder.EnableSensitiveDataLogging().LogTo(Console.WriteLine);
+		}
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
@@ -58,8 +58,13 @@ namespace UniSportUAQ_API.Data
                 .HasForeignKey<UserPreferences>(up => up.UserId)
 				.OnDelete(DeleteBehavior.NoAction);
 
-            // Configuración de la relación 1 a 1 entre Inscription y CartaLiberacion
-            modelBuilder.Entity<Inscription>()
+			modelBuilder.Entity<CartaLiberacion>()
+				.HasOne(cl => cl.Inscription)
+				.WithOne(i => i.CartaLiberacion)
+				.HasForeignKey<CartaLiberacion>(cl => cl.InscriptionId);
+
+			// Configuración de la relación 1 a 1 entre Inscription y CartaLiberacion
+			modelBuilder.Entity<Inscription>()
                 .HasOne(i => i.CartaLiberacion)
                 .WithOne(c => c.Inscription)
                 .HasForeignKey<CartaLiberacion>(c => c.InscriptionId)

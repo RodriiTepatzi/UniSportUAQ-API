@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using System;
 using UniSportUAQ_API.Data;
+using UniSportUAQ_API.Data.Consts;
 using UniSportUAQ_API.Data.Models;
 
 namespace UniSportUAQ_API.Data
@@ -115,7 +116,24 @@ namespace UniSportUAQ_API.Data
             }
         }
 
-        public async static void FeedDatabase(IApplicationBuilder applicationBuilder)
+		public async static void FeedRoles(IApplicationBuilder applicationBuilder)
+		{
+			using (var serviceScope = applicationBuilder.ApplicationServices.CreateScope())
+			{
+				var roleManager = serviceScope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+
+				if (!await roleManager.RoleExistsAsync(UserRoles.Admin))
+					await roleManager.CreateAsync(new IdentityRole(UserRoles.Admin));
+				if (!await roleManager.RoleExistsAsync(UserRoles.Instructor))
+					await roleManager.CreateAsync(new IdentityRole(UserRoles.Instructor));
+				if (!await roleManager.RoleExistsAsync(UserRoles.User))
+					await roleManager.CreateAsync(new IdentityRole(UserRoles.User));
+
+			}
+		}
+
+
+		public async static void FeedDatabase(IApplicationBuilder applicationBuilder)
         {
 
             using (var serviceScope = applicationBuilder.ApplicationServices.CreateScope())

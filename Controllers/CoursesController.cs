@@ -113,9 +113,10 @@ namespace UniSportUAQ_API.Controllers
                     IsVirtual = result.VirtualOrHybrid,
                     CoursePictureUrl = result.CoursePictureUrl,
                     StartDate = result.StartDate,
-                    EndDate = result.EndDate
-
-
+                    EndDate = result.EndDate,
+					WorkshopId = result.SubjectId,
+					MinAttendances = result.MinAttendances,
+					IsActive = result.IsActive
                 };
 
                 return Ok(new BaseResponse<object> { Data = response });
@@ -126,139 +127,179 @@ namespace UniSportUAQ_API.Controllers
         }
 
         [HttpGet]
-        [Route("filter")]
         [Authorize]
-        public async Task<IActionResult> GetCoursesByFilter(
-            [FromQuery] string? q,
-            [FromQuery] string? id,
-            [FromQuery] string? instructorId,
-            [FromQuery] int? start,
-            [FromQuery] int? end,
-            [FromQuery] bool? isActive
-        )
-        {
-            var courses = new List<CourseDTO>();
+		public async Task<IActionResult> GetCoursesByFilter(
+			[FromQuery] string? q,
+			[FromQuery] string? id,
+			[FromQuery] string? instructorId,
+			[FromQuery] int pageNumber = 1,
+			[FromQuery] int pageSize = 10,
+			[FromQuery] bool? isActive = null
+		)
+		{
+			var start = (pageNumber - 1) * pageSize;
+			var end = start + pageSize;
 
-            var result = await _coursesService.GetAllAsync(u =>
-                (string.IsNullOrEmpty(instructorId) || u.InstructorId == instructorId) &&
-                (string.IsNullOrEmpty(id) || u.Id == id) &&
-                (string.IsNullOrEmpty(q) ||
-                 u.CourseName!.ToLower().Contains(q.ToLower()) ||
-                 u.Description!.ToLower().Contains(q.ToLower())) &&
-                (!isActive.HasValue || u.IsActive == isActive.Value),
-                start,
-                end,
-                c => c.Instructor!,
-                c => c.Horarios!
-            );
+			var result = await _coursesService.GetAllAsync(
+				u =>
+					(string.IsNullOrEmpty(instructorId) || u.InstructorId == instructorId) &&
+					(string.IsNullOrEmpty(id) || u.Id == id) &&
+					(string.IsNullOrEmpty(q) ||
+					 u.CourseName!.ToLower().Contains(q.ToLower()) ||
+					 u.Description!.ToLower().Contains(q.ToLower())) &&
+					(!isActive.HasValue || u.IsActive == isActive.Value),
+				start,
+				end,
+				c => c.Instructor!,
+				c => c.Horarios!
+			);
 
-            foreach (var item in result)
-            {
-                courses.Add(new CourseDTO
-                {
-                    Id = item.Id,
-                    CourseName = item.CourseName,
-                    InstructorName = item.Instructor!.FullName,
-                    InstructorPicture = item.Instructor.PictureUrl,
-                    InstructorId = item.InstructorId,
-                    MaxUsers = item.MaxUsers,
-                    CurrentUsers = item.CurrentUsers,
-                    Schedules = item.Horarios!.Select(h => new HorarioDTO
-                    {
-                        Id = h.Id,
-                        Day = h.Day,
-                        StartHour = h.StartHour,
-                        EndHour = h.EndHour,
-                        CourseId = h.CourseId,
-                    }).ToList(),
-                    Description = item.Description,
-                    Link = item.Link,
-                    Location = item.Location,
-                    IsVirtual = item.VirtualOrHybrid,
-                    CoursePictureUrl = item.CoursePictureUrl,
-                    StartDate = item.StartDate,
-                    EndDate = item.EndDate
-                });
-            }
+			var courses = result.Select(item => new CourseDTO
+			{
+				Id = item.Id,
+				CourseName = item.CourseName,
+				InstructorName = item.Instructor!.FullName,
+				InstructorPicture = item.Instructor.PictureUrl,
+				InstructorId = item.InstructorId,
+				MaxUsers = item.MaxUsers,
+				CurrentUsers = item.CurrentUsers,
+				Schedules = item.Horarios!.Select(h => new HorarioDTO
+				{
+					Id = h.Id,
+					Day = h.Day,
+					StartHour = h.StartHour,
+					EndHour = h.EndHour,
+					CourseId = h.CourseId,
+				}).ToList(),
+				Description = item.Description,
+				Link = item.Link,
+				Location = item.Location,
+				IsVirtual = item.VirtualOrHybrid,
+				CoursePictureUrl = item.CoursePictureUrl,
+				StartDate = item.StartDate,
+				EndDate = item.EndDate,
+				MinAttendances = item.MinAttendances,
+				WorkshopId = item.SubjectId,
+				IsActive = item.IsActive,
+			}).ToList();
+
+			// Fetch total count of courses matching the filter
+			var totalCourses = (await _coursesService.GetAllAsync(
+				u =>
+					(string.IsNullOrEmpty(instructorId) || u.InstructorId == instructorId) &&
+					(string.IsNullOrEmpty(id) || u.Id == id) &&
+					(string.IsNullOrEmpty(q) ||
+					 u.CourseName!.ToLower().Contains(q.ToLower()) ||
+					 u.Description!.ToLower().Contains(q.ToLower())) &&
+					(!isActive.HasValue || u.IsActive == isActive.Value)
+			)).Count();
+
+			// Return the paginated response
+			return Ok(
+				new BaseResponse<PaginatedResponse<List<CourseDTO>>>
+				{
+					Data = new PaginatedResponse<List<CourseDTO>>
+					{
+						Data = courses,
+						TotalCount = totalCourses,
+						PageNumber = pageNumber,
+						PageSize = pageSize
+					}
+				}
+			);
+		}
 
 
-            if (result == null) return Ok(new BaseResponse<List<UserDTO>> { Data = new List<UserDTO>() });
-            else return Ok(new BaseResponse<List<CourseDTO>> { Data = courses });
-        }
 
-
-        [HttpPut]
+		[HttpPut]
         [Route("update")]
         [Authorize]
-        public async Task<IActionResult> UpdateCourse([FromBody] CourseSchema courseSchema)
-        {
-            if (string.IsNullOrEmpty(courseSchema.Id) || string.IsNullOrWhiteSpace(courseSchema.Id)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
-            if (string.IsNullOrEmpty(courseSchema.CourseName) || string.IsNullOrWhiteSpace(courseSchema.CourseName)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
-            if (courseSchema.InstructorId is null) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
-            if (courseSchema.MaxUsers <= 0) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
-            if (courseSchema.EndDate == DateTime.MinValue || courseSchema.StartDate == DateTime.MinValue) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.CourseStartOrEndateMinValue });
-            if (courseSchema.StartDate >= courseSchema.EndDate) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.CourseStartEndateContradiction });
+		public async Task<IActionResult> UpdateCourse([FromBody] CourseSchema courseSchema)
+		{
+			if (string.IsNullOrEmpty(courseSchema.Id))
+				return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
 
+			if (string.IsNullOrEmpty(courseSchema.CourseName))
+				return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
 
+			if (courseSchema.InstructorId is null)
+				return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
 
-            var course = await _coursesService.GetByIdAsync(courseSchema.Id, i => i.Horarios!);
+			if (courseSchema.MaxUsers <= 0)
+				return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeEmptyOrNull });
 
-            var horarios = await _horariosService.GetAllAsync(i => i.CourseId == courseSchema.Id);
+			if (courseSchema.StartDate == DateTime.MinValue || courseSchema.EndDate == DateTime.MinValue)
+				return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.CourseStartOrEndateMinValue });
 
-            if (course == null || horarios.Count() < 1) return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.EntityNotExist});
+			if (courseSchema.StartDate >= courseSchema.EndDate)
+				return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.CourseStartEndateContradiction });
 
-            List<string> failedHorarios = new List<string>();
+			var course = await _coursesService.GetByIdAsync(courseSchema.Id, i => i.Horarios!);
+			if (course == null)
+				return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.EntityNotExist });
 
+			var dbSchedules = await _horariosService.GetAllAsync(i => i.CourseId == courseSchema.Id);
 
-            course.CourseName = courseSchema.CourseName;
-            course.MaxUsers = courseSchema.MaxUsers;
-            course.Description = courseSchema.Description;
-            course.MinAttendances = courseSchema.MinAttendances;
-            course.StartDate = courseSchema.StartDate;
-            course.EndDate = courseSchema.EndDate;
-            course.Description = courseSchema.Description;
-            course.MaxUsers = courseSchema.MaxUsers;
-            course.Location = courseSchema.location;
+			course.CourseName = courseSchema.CourseName;
+			course.MaxUsers = courseSchema.MaxUsers;
+			course.Description = courseSchema.Description;
+			course.MinAttendances = courseSchema.MinAttendances;
+			course.StartDate = courseSchema.StartDate;
+			course.EndDate = courseSchema.EndDate;
+			course.Location = courseSchema.location;
 
-            if (courseSchema.Schedules!.Any())
-            {
+			var newSchedules = courseSchema.Schedules ?? new List<HorarioSchema>();
 
-                foreach (var oldhorario in horarios)
-                {
+			var schedulesToDelete = dbSchedules.Where(dbSchedule =>
+				!newSchedules.Any(newSchedule => newSchedule.Day == dbSchedule.Day)).ToList();
 
-                    foreach (var newHorario in courseSchema.Schedules!)
-                    {
+			var schedulesToCreate = newSchedules.Where(newSchedule =>
+				!dbSchedules.Any(dbSchedule => dbSchedule.Day == newSchedule.Day)).ToList();
 
-                        if (oldhorario.Id == newHorario.Id)
-                        {
-                            if (string.IsNullOrWhiteSpace(newHorario.Id)) return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.AttributeIdInvalidlFormat });
-                            oldhorario.Day = newHorario.Day;
-                            oldhorario.StartHour = newHorario.StartHour;
-                            oldhorario.EndHour = newHorario.EndHour;
+			foreach (var dbSchedule in dbSchedules)
+			{
+				var matchingNewSchedule = newSchedules.FirstOrDefault(newSchedule => newSchedule.Day == dbSchedule.Day);
+				if (matchingNewSchedule != null)
+				{
+					dbSchedule.StartHour = matchingNewSchedule.StartHour;
+					dbSchedule.EndHour = matchingNewSchedule.EndHour;
+					await _horariosService.UpdateAsync(dbSchedule);
+				}
+			}
 
-                            var updatedHr = await _horariosService.UpdateAsync(oldhorario);
+			foreach (var scheduleToCreate in schedulesToCreate)
+			{
+				var newSchedule = new Horario
+				{
+					CourseId = courseSchema.Id,
+					Day = scheduleToCreate.Day,
+					StartHour = scheduleToCreate.StartHour,
+					EndHour = scheduleToCreate.EndHour
+				};
+				await _horariosService.AddAsync(newSchedule);
+			}
 
-                            if (updatedHr == null) return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.ServerDataBaseErrorUpdating });
+			foreach (var scheduleToDelete in schedulesToDelete)
+			{
+				await _horariosService.DeleteAsync(scheduleToDelete.Id);
+			}
 
-                        }
-                    }
+			var result = await _coursesService.UpdateAsync(course);
 
-                }
+            if (result is not null) {
 
+                var schedules = await _horariosService.GetAllAsync(c => c.CourseId == course.Id);
+
+                HangfireSetter(course, schedules.ToList());
             }
 
-
-            horarios = await _horariosService.GetAllAsync(i => i.CourseId == courseSchema.Id);
-            HangfireSetter(course, horarios.ToList());
-            var result = await _coursesService.UpdateAsync(course);
-
-            if (result is not null && horarios != null) return Ok(new BaseResponse<bool> { Data = true });
+			return result is not null ?
+				Ok(new BaseResponse<bool> { Data = true }) :
+				Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.ServerDataBaseErrorUpdating });
+		}
 
 
-            return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.ServerDataBaseErrorUpdating });
-        }
-
-        [HttpPut]
+		[HttpPut]
         [Route("deactivate/{id}")]
         [Authorize]
         public async Task<IActionResult> DeactivateCourse( string Id) 
@@ -353,7 +394,7 @@ namespace UniSportUAQ_API.Controllers
                 Description = courseSchema.Description,
                 IsActive = true,
                 Location = courseSchema.location,
-                MinAttendances = courseSchema.MinAttendances
+                MinAttendances = courseSchema.MinAttendances,
 
             };
             var result = await _coursesService.AddAsync(NewCourse);
@@ -573,6 +614,10 @@ namespace UniSportUAQ_API.Controllers
                 }).ToList(),
                 CoursePictureUrl = course.CoursePictureUrl,
                 IsVirtual = course.VirtualOrHybrid,
+				MinAttendances = course.MinAttendances,
+				WorkshopId = course.SubjectId,
+				EndDate = course.EndDate,
+				StartDate = course.StartDate,
             };
 
             await _hubContext.Clients.All.SendAsync("CourseUpdated", courseDto);

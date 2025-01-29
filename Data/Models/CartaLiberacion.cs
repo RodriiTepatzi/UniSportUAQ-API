@@ -28,24 +28,17 @@ namespace UniSportUAQ_API.Data.Models
         [AllowNull]
         public string? InscriptionId { get; set; }
 
+		[Required]
+		public string? VerificationCode { get; set; }
+
         [ForeignKey("StudentId")]
         public ApplicationUser? Student { get; set; }
 
         [ForeignKey("CourseId")]
         public Course? Course { get; set; }
+
         [ForeignKey("InscriptionId")]
         public Inscription? Inscription { get; set; }
-
-        
-
-		public Dictionary<string, object> Dictionary => new Dictionary<string, object>
-		{
-			{ nameof(Id), Id ?? string.Empty },
-			{ nameof(StudentId), StudentId ?? string.Empty },
-			{ nameof(CourseId), CourseId ?? string.Empty },
-			{ nameof(Url), Url ?? string.Empty }
-		};
-
 	}
 }
 

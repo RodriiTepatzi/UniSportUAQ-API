@@ -7,8 +7,12 @@ using UniSportUAQ_API.Data.Models;
 using UniSportUAQ_API.Data.Schemas;
 using UniSportUAQ_API.Data.Interfaces;
 using UniSportUAQ_API.Data.Base;
+using Microsoft.EntityFrameworkCore.Query.Internal;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 using UniSportUAQ_API.Data.DTO;
 using System.Text;
+using System.Security.Policy;
+using Microsoft.Extensions.Hosting.Internal;
 
 
 
@@ -24,8 +28,9 @@ namespace UniSportUAQ_API.Controllers
         private readonly IStudentsService _studentsService;
         private readonly IInscriptionsService _inscriptionsService;
         private readonly IInstructorsService _instructorsService;
+		private readonly IWebHostEnvironment _hostingEnvironment;
 
-        public CartasLiberacionController(ICartasLiberacionService cartasLiberacionService, ICoursesService coursesService, IStudentsService studentsService, IInscriptionsService inscriptionsService, IInstructorsService instructorsService)
+		public CartasLiberacionController(ICartasLiberacionService cartasLiberacionService, ICoursesService coursesService, IStudentsService studentsService, IInscriptionsService inscriptionsService, IInstructorsService instructorsService, IWebHostEnvironment hostingEnvironment)
         {
 
             _cartasLiberacionService = cartasLiberacionService;
@@ -33,9 +38,9 @@ namespace UniSportUAQ_API.Controllers
             _studentsService = studentsService;
             _inscriptionsService = inscriptionsService;
             _instructorsService = instructorsService;
+			_hostingEnvironment = hostingEnvironment;
 
-
-        }
+		}
 
         [HttpGet]
         [Route("download-pdf/{id}")]
@@ -57,14 +62,13 @@ namespace UniSportUAQ_API.Controllers
                     var fileName = filePath!.Split('\\').Last();
                     return Ok(File(fileBytes, "aplication/pdf", fileName));
                 }
-                catch
-                {
-                    return Ok(new BaseResponse<bool> { Error = ResponseErrors.DataNotFound });
+                catch { 
+                    return Ok(new BaseResponse<bool> { Error = ResponseErrors.DataNotFound});
                 }
 
             }
 
-            return Ok(new BaseResponse<bool> { Error = ResponseErrors.DataNotFound });
+            return Ok(new BaseResponse<bool> { Error = ResponseErrors.DataNotFound }); 
         }
 
         [HttpGet]
@@ -96,8 +100,59 @@ namespace UniSportUAQ_API.Controllers
             }
 
             return Ok(new BaseResponse<CartaLiberacionDTO> { Data = null, Error = ResponseErrors.DataNotFound });
-
         }
+
+		[HttpGet]
+		[Route("verify/{code}")]
+		[Authorize]
+		public async Task<IActionResult> VerifyCarta(string code)
+		{
+			var exists = await _cartasLiberacionService.GetAllAsync(c => c.VerificationCode == code, c => c.Course!, c => c.Student!, c => c.Course!.Instructor!);
+
+			if (!exists.Any()) return Ok(new BaseResponse<bool> { Error = ResponseErrors.DataNotFound });
+
+			var data = exists.Select(item => new CartaVerificationDTO
+			{
+				Id = item.Id,
+				VerificationCode = item.VerificationCode,
+				Url = item.Url,
+				Student = new UserDTO
+				{
+					Id = item.Student!.Id,
+					Expediente = item.Student!.Expediente,
+					PictureUrl = item.Student!.PictureUrl,
+					Name = item.Student!.Name,
+					LastName = item.Student!.LastName,
+					IsAdmin = item.Student!.IsAdmin,
+					IsInstructor = item.Student!.IsInstructor,
+					IsStudent = item.Student!.IsStudent,
+				},
+				Instructor = new UserDTO
+				{
+					Id = item.Course!.Instructor!.Id,
+					Expediente = item.Course!.Instructor!.Expediente,
+					PictureUrl = item.Course!.Instructor!.PictureUrl,
+					Name = item.Course!.Instructor!.Name,
+					LastName = item.Course!.Instructor!.LastName,
+					IsAdmin = item.Course!.Instructor!.IsAdmin,
+					IsInstructor = item.Course!.Instructor!.IsInstructor,
+					IsStudent = item.Course!.Instructor!.IsStudent,
+				},
+				Course = new CourseDTO
+				{
+					Id = item.Course!.Id,
+					CourseName = item.Course!.CourseName,
+					StartDate = item.Course!.StartDate,
+					EndDate = item.Course!.EndDate,
+				}
+
+			}).First();
+
+			return Ok(new BaseResponse<CartaVerificationDTO>
+			{
+				Data = data
+			});
+		}
 
 
         [HttpGet]
@@ -157,7 +212,7 @@ namespace UniSportUAQ_API.Controllers
                     Name = item.Student?.Name,
                     CourseId = item.CourseId,
                     CourseName = item.Course?.CourseName,
-                    EndDate = item.Course?.EndDate.Date.ToString(),
+                    EndDate = item.Course?.EndDate.ToString("s"),
                     Url = item.Url
                 };
 
@@ -188,15 +243,8 @@ namespace UniSportUAQ_API.Controllers
 
             if (!isInscribed.Any()) return Ok(new BaseResponse<bool> { Error = ResponseErrors.CourseNotFoundInscription });
 
-            //check if ulid exist
-            string id = Ulid.NewUlid().ToString().Substring(0, 7);
-            var carta1 = await _cartasLiberacionService.GetByIdAsync(id);
+            //check if carta exist
 
-            while (carta1 != null && carta1.Id == id) 
-            {
-                id = Ulid.NewUlid().ToString().Substring(0, 7);
-                carta1 = await _cartasLiberacionService.GetByIdAsync(id);
-            }
 
             //check existance and limit of liberation
             var result = await _cartasLiberacionService.GetAllAsync(c => c.StudentId == schema.StudentId!, c => c.Course!, c => c.Student!);
@@ -235,63 +283,79 @@ namespace UniSportUAQ_API.Controllers
                 if (inscript!.IsFinished is false) return Ok(new BaseResponse<bool> { Error = ResponseErrors.CourseHasNotEnded });
                 if (inscript!.Accredit is false) return Ok(new BaseResponse<bool> { Error = ResponseErrors.InscriptionNotAccredit });
 
-                
+				var verificationCode = string.Empty;
 
-                try
+				bool isUnique = false;
+
+				do
+				{
+					verificationCode = GenerateCode();
+
+					var verificationCodeExists = await _cartasLiberacionService.GetAllAsync(c => c.VerificationCode == verificationCode);
+
+					isUnique = !verificationCodeExists.Any();
+				}
+				while (!isUnique);
+
+				try
                 {
                     var data = new CartaModel
                     {
-                        Id = id,
                         Expediente = student!.Expediente,
                         StudentName = student.FullName,
                         Grupo = student.Group,
                         StudyPlan = student.StudyPlan,
                         CourseName = course!.CourseName,
-                        InstructorName = instructor!.FullName
+                        InstructorName = instructor!.FullName,
+						VerificationCode = verificationCode,
                     };
-
 
                     //Generate byteArray
                     byte[] streamBytes = GeneratePDf(data);
 
-                    if (streamBytes.Length < 1) return Ok(new BaseResponse<bool> {  Error = ResponseErrors.CartasErrorGenerating });
+                    if (streamBytes.Length < 1) return Ok(new BaseResponse<bool> { Error = ResponseErrors.CartasErrorGenerating });
 
                     //convert to memory stream
                     MemoryStream stream = new MemoryStream(streamBytes);
 
-                    //generate fileaname
-                    string filename = student!.Expediente + "_" + course!.CourseName + "_" + course.Id + ".pdf";
+					// string filename = student!.Expediente! + "_" + course!.CourseName + "_" + course.Id + ".pdf";
+					string filename = student!.Expediente! + "_" + course.Id + ".pdf";
 
-                    //get file route
-                    string projectPath = Directory.GetCurrentDirectory();
-                    string folderPath = Path.Combine(projectPath, "CartasLiberacion");
+					string baseDirectory = _hostingEnvironment.WebRootPath ?? throw new InvalidOperationException("WebRootPath is not set.");
 
-                    // Crear la carpeta si no existe
-                    if (!Directory.Exists(folderPath))
+					string folderPath = Path.Combine(baseDirectory, "constancias");
+					string guidName = Guid.NewGuid().ToString();
+
+					if (!Directory.Exists(folderPath))
+					{
+						Directory.CreateDirectory(folderPath);
+					}
+
+					string filePath = Path.Combine(folderPath, student!.Expediente! + "_" + course.Id + ".pdf");
+
+					using (var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None, 4096, useAsync: true))
+					{
+						await fileStream.WriteAsync(streamBytes, 0, streamBytes.Length);
+						await fileStream.FlushAsync();
+					}
+
+					// var url = $"/constancias/{student!.Expediente!}_{course!.CourseName}_{course.Id}.pdf";
+					var url = $"/constancias/{student!.Expediente!}_{course.Id}.pdf";
+
+
+					//save in hangfire
+					//string? url = await _cartasLiberacionService.UploadLetterAsync(stream, filename);
+
+
+					var carta = new CartaLiberacion
                     {
-                        Directory.CreateDirectory(folderPath);
-                    }
 
-                    string localPath = Path.Combine(folderPath, filename);
-                    await System.IO.File.WriteAllBytesAsync(localPath, streamBytes);
-
-                    stream.Close();
-
-
-                    //save in hangfire
-                    //string? url = await _cartasLiberacionService.UploadLetterAsync(stream, filename);
-
-
-                    //create bew object carta
-                    var carta = new CartaLiberacion
-                    {
-
-                        Id = id,
+                        Id = Guid.NewGuid().ToString(),
                         CourseId = schema.CourseId!,
                         StudentId = schema.StudentId!,
-                        Url = localPath,
+                        Url = url,
                         InscriptionId = inscript.Id,
-
+						VerificationCode = verificationCode
                     };
 
                     inscript.CartaId = carta.Id;
@@ -309,10 +373,10 @@ namespace UniSportUAQ_API.Controllers
                 }
                 catch
                 {
-                    return BadRequest(new BaseResponse<bool> {  Error = ResponseErrors.CartasErrorGenerating });
+                    return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.CartasErrorGenerating });
                 }
             }
-            return Ok(new BaseResponse<bool> {  Error = ResponseErrors.CartasErrorGenerating });
+            return Ok(new BaseResponse<bool> { Error = ResponseErrors.CartasErrorGenerating });
         }
 
 
@@ -328,19 +392,19 @@ namespace UniSportUAQ_API.Controllers
             //expedientes carta that could not generate
             List<string> FailedExpedientes = new List<string>();
 
-            //check course exist
+            //check cours exist
             var course = await _coursesService.GetByIdAsync(courseId);
 
             //check if ended
-            if (course == null) return NotFound(new BaseResponse<bool> { Error = ResponseErrors.CourseNotFound });
+            if (course == null) return NotFound(new BaseResponse<bool> { Error = ResponseErrors.CourseNotFound});
 
             //return course is not over yet
-            if (course.IsActive == true) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.CourseHasNotEnded });
+            if (course.IsActive == true) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.CourseHasNotEnded});
 
             //get all ins for that course
 
             var inscriptions = await _inscriptionsService.GetAllAsync(i =>
-                i.CourseId == courseId &&
+                i.CourseId == courseId && 
                 i.UnEnrolled == false &&
                 i.Accredit == true,
                 i => i.Course!,
@@ -348,37 +412,39 @@ namespace UniSportUAQ_API.Controllers
                 i => i.Course!.Instructor!);
 
             //return not found inscriptions related to this course
-            if (!inscriptions.Any()) return NotFound(new BaseResponse<bool> { Error = ResponseErrors.CourseNoneInscription });
+            if (!inscriptions.Any()) return NotFound(new BaseResponse<bool> { Error = ResponseErrors.CourseNoneInscription});
 
             foreach (var inscription in inscriptions)
             {
 
-                string id = Ulid.NewUlid().ToString().Substring(0, 7);
-                var carta1 = await _cartasLiberacionService.GetByIdAsync(id);
-
-                while (carta1 != null && carta1.Id == id)
-                {
-                    id = Ulid.NewUlid().ToString().Substring(0, 7);
-                    carta1 = await _cartasLiberacionService.GetByIdAsync(id);
-                }
-
                 if (inscription.CartaId == null)
                 {
+					var verificationCode = string.Empty;
 
-                    try
+					bool isUnique = false;
+
+					do
+					{
+						verificationCode = GenerateCode();
+
+						var verificationCodeExists = await _cartasLiberacionService.GetAllAsync(c => c.VerificationCode == verificationCode);
+
+						isUnique = !verificationCodeExists.Any();
+					}
+					while (!isUnique);
+
+					try
                     {
-                       
                         var data = new CartaModel
                         {
-                            Id = id,
                             Expediente = inscription.Student!.Expediente,
                             StudentName = inscription.Student!.FullName,
                             Grupo = inscription.Student!.Group,
                             StudyPlan = inscription.Student!.StudyPlan,
                             CourseName = inscription.Course!.CourseName,
-                            InstructorName = inscription.Course!.Instructor!.FullName
-                        };
-
+                            InstructorName = inscription.Course!.Instructor!.FullName,
+							VerificationCode = verificationCode
+						};
 
                         //Generate byteArray
                         byte[] streamBytes = GeneratePDf(data);
@@ -388,38 +454,47 @@ namespace UniSportUAQ_API.Controllers
                         //convert to memory stream
                         MemoryStream stream = new MemoryStream(streamBytes);
 
-                        //generate fileaname
-                        string filename = inscription.Student!.Expediente! + "_" + course!.CourseName + "_" + course.Id + ".pdf";
+						//generate fileaname
+						// string filename = inscription.Student!.Expediente! + "_" + course!.CourseName +"_"+ course.Id + ".pdf";
+						string filename = inscription.Student!.Expediente! + "_" + course.Id + ".pdf";
 
-                        //get file route
-                        string projectPath = Directory.GetCurrentDirectory();
-                        string folderPath = Path.Combine(projectPath, "CartasLiberacion");
+						string baseDirectory = _hostingEnvironment.WebRootPath ?? throw new InvalidOperationException("WebRootPath is not set.");
 
-                        // Crear la carpeta si no existe
-                        if (!Directory.Exists(folderPath))
+						string folderPath = Path.Combine(baseDirectory, "constancias");
+						string guidName = Guid.NewGuid().ToString();
+
+						if (!Directory.Exists(folderPath))
+						{
+							Directory.CreateDirectory(folderPath);
+						}
+
+						string filePath = Path.Combine(folderPath, inscription.Student!.Expediente! + "_" + course.Id + ".pdf");
+
+						using (var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None, 4096, useAsync: true))
+						{
+							await fileStream.WriteAsync(streamBytes, 0, streamBytes.Length);
+							await fileStream.FlushAsync();
+						}
+
+						// var url = $"/constancias/{inscription.Student!.Expediente!}_{course!.CourseName}_{course.Id}.pdf";
+						var url = $"/constancias/{inscription.Student!.Expediente!}_{course.Id}.pdf";
+
+
+						//save in hangfire
+						//string? url = await _cartasLiberacionService.UploadLetterAsync(stream, filename);
+
+
+						//create bew object carta
+						var carta = new CartaLiberacion
                         {
-                            Directory.CreateDirectory(folderPath);
-                        }
 
-                        string localPath = Path.Combine(folderPath, filename);
-                        await System.IO.File.WriteAllBytesAsync(localPath, streamBytes);
-
-
-                        //save in hangfire
-                        //string? url = await _cartasLiberacionService.UploadLetterAsync(stream, filename);
-
-
-                        //create bew object carta
-                        var carta = new CartaLiberacion
-                        {
-
-                            Id = id,
+                            Id = Guid.NewGuid().ToString(),
                             CourseId = inscription.CourseId!,
                             StudentId = inscription.StudentId!,
-                            Url = localPath,
+                            Url = url,
                             InscriptionId = inscription.Id,
-
-                        };
+							VerificationCode = verificationCode
+						};
 
                         inscription.CartaId = carta.Id;
 
@@ -440,8 +515,7 @@ namespace UniSportUAQ_API.Controllers
                         FailedExpedientes.Add(inscription.Student!.Expediente! + ": stream error");
                     }
                 }
-                else
-                {
+                else {
                     FailedExpedientes.Add(inscription.Student!.Expediente! + ": already has a carta liberacion");
                 }
 
@@ -453,18 +527,12 @@ namespace UniSportUAQ_API.Controllers
 
         }
 
-
-
-
-        //create carta local
-
         private byte[] GeneratePDf(CartaModel data)
         {
 
 
             using (MemoryStream outputStream = new MemoryStream())
             {
-                byte[] outbyte = new byte[0];
 
 
                 try
@@ -475,13 +543,6 @@ namespace UniSportUAQ_API.Controllers
                     // Crear un documento PDF
                     Document document = new Document();
                     PdfWriter writer = PdfWriter.GetInstance(document, outputStream);
-
-                    writer.SetEncryption(
-                        null, // Contraseña de usuario (null permite abrir el PDF sin contraseña)
-                        Encoding.UTF8.GetBytes("deportestroyanos#1"), // Contraseña del propietario
-                        PdfWriter.ALLOW_PRINTING, // Permisos permitidos (solo permitir impresión)
-                        PdfWriter.ENCRYPTION_AES_128 // Tipo de cifrado
-                    );
                     document.Open();
 
                     // Fuentes y estilos
@@ -538,23 +599,23 @@ namespace UniSportUAQ_API.Controllers
 
                     // Cuerpo del documento
                     Paragraph body = new Paragraph
-                        {
-                            new Phrase("Por el presente medio:\n\n", bodyFont),
-                            new Phrase("Se informa de la liberación en relación con la participación del alumno "+data.StudentName+" con expediente "+data.Expediente+" en el taller "+data.CourseName+". En reconocimiento del cumplimiento satisfactorio con los requisitos establecidos y ha finalizado exitosamente su participación en el taller nos complace emitir este documento de liberación.\n\n", bodyFont),
-                            new Phrase("Por medio de esta carta, "+data.InstructorName+" declara que el alumno "+data.StudentName+" ha completado el curso correspondiente al taller deportivo con éxito y ha cumplido con todas las obligaciones y responsabilidades requeridas durante su participación en el mismo.\n\n", bodyFont),
-                            new Phrase("Le agradecemos sinceramente su interés y participación en nuestro taller deportivo.\n\n", bodyFont),
-                            new Phrase("Esperamos haber contribuido positivamente a su desarrollo y crecimiento en el ámbito deportivo, y le deseamos éxito continuo en sus futuras actividades y metas deportivas.\n", bodyFont)
-                        };
+            {
+                new Phrase("Por el presente medio:\n\n", bodyFont),
+                new Phrase("Se informa de la liberación en relación con la participación del alumno "+data.StudentName+" con expediente "+data.Expediente+" en el taller "+data.CourseName+". En reconocimiento del cumplimiento satisfactorio con los requisitos establecidos y ha finalizado exitosamente su participación en el taller nos complace emitir este documento de liberación.\n\n", bodyFont),
+                new Phrase("Por medio de esta carta, "+data.InstructorName+" declara que el alumno "+data.StudentName+" ha completado el curso correspondiente al taller deportivo con éxito y ha cumplido con todas las obligaciones y responsabilidades requeridas durante su participación en el mismo.\n\n", bodyFont),
+                new Phrase("Le agradecemos sinceramente su interés y participación en nuestro taller deportivo.\n\n", bodyFont),
+                new Phrase("Esperamos haber contribuido positivamente a su desarrollo y crecimiento en el ámbito deportivo, y le deseamos éxito continuo en sus futuras actividades y metas deportivas.\n", bodyFont)
+        };
                     body.SpacingAfter = 20;
                     document.Add(body);
 
                     // Firma
                     Paragraph firma = new Paragraph
-                        {
-                            new Phrase("ATENTAMENTE,\n\n", bodyFont),
-                            new Phrase(data.InstructorName+"\n", bodyFont), // Reemplazar con el nombre del instructor real
-                            new Phrase(data.CourseName+"\n", bodyFont) // Reemplazar con el nombre del taller real
-                        };
+            {
+                new Phrase("ATENTAMENTE,\n\n", bodyFont),
+                new Phrase(data.InstructorName+"\n", bodyFont), // Reemplazar con el nombre del instructor real
+                new Phrase(data.CourseName+"\n", bodyFont) // Reemplazar con el nombre del taller real
+        };
                     firma.Alignment = Element.ALIGN_CENTER;
                     firma.SpacingAfter = 50;
                     document.Add(firma);
@@ -577,34 +638,51 @@ namespace UniSportUAQ_API.Controllers
                     // Añadir la tabla de firmas al documento
                     document.Add(signatureTable);
 
-                    Paragraph id = new Paragraph 
-                    {
-                        new Phrase("Numero de serie: " + data.Id, bodyFont)
-                    };
-                    id.SpacingBefore = 50;
-                    document.Add(id);
-                    // Cerrar el documento
-                    document.Close();
+					Paragraph verificationCode = new Paragraph
+					{
+						new Phrase("Código de Verificación:\n", subHeaderFont),
+						new Phrase(data.VerificationCode + "\n\n", bodyFont) 
+					};
+
+					verificationCode.Alignment = Element.ALIGN_CENTER;
+					document.Add(verificationCode);
+
+					// Cerrar el documento
+					document.Close();
 
                     //convertir a bytes[]
-                    outbyte = outputStream.ToArray();
+                    byte[] outbyte = outputStream.ToArray();
 
 
                     // Devolver el MemoryStream
                     return outbyte;
 
                 }
-                catch (Exception EX)
+                catch
                 {
-                    Console.WriteLine("EXCEPTION:" + EX);
-
+                    byte[] outbyte = new byte[0];
                     return outbyte;
                 }
             }
-
-
         }
 
 
-    }
+
+		private string GenerateCode()
+		{
+			int length = 10;
+
+			const string characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+			StringBuilder codeBuilder = new StringBuilder();
+			Random random = new Random();
+
+			for (int i = 0; i < length; i++)
+			{
+				int index = random.Next(characters.Length);
+				codeBuilder.Append(characters[index]);
+			}
+
+			return codeBuilder.ToString();
+		}
+	}
 }

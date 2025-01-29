@@ -135,221 +135,10 @@ namespace UniSportUAQ_API.Controllers
             return Ok(new BaseResponse<List<AttendanceDTO>> { Data = data, Error = null });
         }
 
-        [HttpGet]
-        [Route("course/{courseid}/day/{day}")]
-        [Authorize]
-        public async Task<IActionResult> GetAttendancesByCourseIdByDayAsync(string courseid, string day)
-        {
-            if (!Guid.TryParse(courseid, out _)) return BadRequest(new BaseResponse<List<AttendanceDTO>> { Error = ResponseErrors.AttributeIdInvalidlFormat });
 
-            if (!DateTime.TryParse(day, out _)) return BadRequest(new BaseResponse<List<AttendanceDTO>> { Error = ResponseErrors.AttributeDateInvalidFormat });
-
-            var result = await _atenndancesService.GetAllAsync(a => a.CourseId == courseid,
-                a => a.Course!,
-                a => a.Student!,
-                a => a.Course!.Instructor!
-            );
-
-            DateTime dayDate = DateTime.Parse(day);
-
-            var data = new List<AttendanceDTO>();
-
-            foreach (var item in result)
-            {
-                if (item.Date.Date == dayDate.Date)
-                {
-                    var attendanceDTO = new AttendanceDTO
-                    {
-                        Id = item.Id,
-                        StudentId = item.StudentId,
-                        CourseId = courseid,
-                        Date = item.Date,
-                        AttendanceClass = item.AttendanceClass
-                    };
-                    data.Add(attendanceDTO);
-                }
-            }
-
-            return Ok(new BaseResponse<List<AttendanceDTO>> { Data = data, Error = null });
-        }
-
-        [HttpGet]
-        [Route("course/{courseid}/student/{studentid}")]
-        [Authorize]
-        public async Task<IActionResult> GetAttendancesByCourseIdStudentIdAsync(string courseid, string studentid)
-        {
-
-            if (!Guid.TryParse(courseid, out _)) return BadRequest(new BaseResponse<List<AttendanceDTO>> { Error = ResponseErrors.AttributeIdInvalidlFormat });
-
-            if (!Guid.TryParse(studentid, out _)) return BadRequest(new BaseResponse<List<AttendanceDTO>> { Error = ResponseErrors.AttributeIdInvalidlFormat });
-
-            var result = await _atenndancesService.GetAllAsync(a => a.CourseId == courseid && a.StudentId == studentid,
-                a => a.Course!,
-                a => a.Student!,
-                a => a.Course!.Instructor!
-            );
-
-            var data = new List<AttendanceDTO>();
-
-            foreach (var item in result)
-            {
-                var attendanceDTO = new AttendanceDTO
-                {
-                    Id = item.Id,
-                    StudentId = item.StudentId,
-                    CourseId = courseid,
-                    Date = item.Date,
-                    AttendanceClass = item.AttendanceClass
-                };
-                data.Add(attendanceDTO);
-            }
-
-            return Ok(new BaseResponse<List<AttendanceDTO>> { Data = data, Error = null });
-
-        }
-
-        [HttpGet]
-        [Route("course/{courseid}/start/{start}/end/{end}")]
-        [Authorize]
-        public async Task<IActionResult> GetAttendancesByCourseTimeLapse(string courseId, string start, string end)
-        {
-
-            if (!Guid.TryParse(courseId, out _)) return BadRequest(new BaseResponse<List<AttendanceDTO>> { Error = ResponseErrors.AttributeIdInvalidlFormat });
-
-            if (!DateTime.TryParse(start, out _)) return BadRequest(new BaseResponse<List<AttendanceDTO>> { Error = ResponseErrors.AuthInvalidData });
-
-            if (!DateTime.TryParse(end, out _)) return BadRequest(new BaseResponse<List<AttendanceDTO>> { Error = ResponseErrors.AuthInvalidData });
-
-            DateTime dateStart = DateTime.Parse(start).Date;
-            DateTime dateEnd = DateTime.Parse(end).Date;
-
-            var result = await _atenndancesService.GetAllAsync(a => a.CourseId == courseId && a.Date >= dateStart && a.Date <= dateEnd,
-                a => a.Course!,
-                a => a.Student!,
-                a => a.Course!.Instructor!
-            );
-
-            if (result == null || !result.Any()) return Ok(new BaseResponse<List<AttendanceDTO>> { Error = ResponseErrors.DataNotFound });
-
-            var data = new List<AttendanceDTO>();
-
-            foreach (var element in result)
-            {
-                var attendanceDTO = new AttendanceDTO
-                {
-                    Id = element.Id,
-                    StudentId = element.StudentId,
-                    CourseId = courseId,
-                    Date = element.Date,
-                    AttendanceClass = element.AttendanceClass
-                };
-                data.Add(attendanceDTO);
-            }
-
-            return Ok(new BaseResponse<List<AttendanceDTO>> { Data = data, Error = null });
-        }
-
-
-        [HttpGet]
-        [Route("course/{courseid}/student/{studentid}/start/{start}/end/{end}")]
-        [Authorize]
-        public async Task<IActionResult> GetAttendancesByCourseStudentTimeLapse(string courseId, string studentId, string start, string end)
-        {
-
-            if (!Guid.TryParse(courseId, out _)) return BadRequest(new BaseResponse<List<AttendanceDTO>> { Error = ResponseErrors.AttributeIdInvalidlFormat });
-
-            if (!Guid.TryParse(studentId, out _)) return BadRequest(new BaseResponse<List<AttendanceDTO>> { Error = ResponseErrors.AttributeIdInvalidlFormat });
-
-            if (!DateTime.TryParse(start, out _)) return BadRequest(new BaseResponse<List<AttendanceDTO>> { Error = ResponseErrors.AuthInvalidData });
-
-            if (!DateTime.TryParse(end, out _)) return BadRequest(new BaseResponse<List<AttendanceDTO>> { Error = ResponseErrors.AuthInvalidData });
-
-            DateTime dateStart = DateTime.Parse(start).Date;
-            DateTime dateEnd = DateTime.Parse(end).Date;
-
-            var result = await _atenndancesService.GetAllAsync(a => a.CourseId == courseId && a.StudentId == studentId && a.Date >= dateStart && a.Date <= dateEnd,
-                a => a.Course!,
-                a => a.Student!,
-                a => a.Course!.Instructor!
-            );
-
-            if (result == null) return Ok(new BaseResponse<List<AttendanceDTO>> { Error = ResponseErrors.DataNotFound });
-
-            var data = new List<AttendanceDTO>();
-
-            foreach (var element in result)
-            {
-                var attendanceDTO = new AttendanceDTO
-                {
-                    Id = element.Id,
-                    StudentId = element.StudentId,
-                    CourseId = courseId,
-                    Date = element.Date,
-                    AttendanceClass = element.AttendanceClass
-                };
-                data.Add(attendanceDTO);
-            }
-
-            return Ok(new BaseResponse<List<AttendanceDTO>> { Data = data, Error = null });
-        }
-
-
-
-        [HttpGet]
-        [Route("course/{courseid}/student/{studentid}/day/{day}")]
-        [Authorize]
-        public async Task<IActionResult> GetAttendanceByDayAsync(string courseId, string studentId, string day)
-        {
-
-            if (!Guid.TryParse(courseId, out _)) return BadRequest(new BaseResponse<AttendanceDTO> { Error = ResponseErrors.AttributeIdInvalidlFormat });
-
-            if (!Guid.TryParse(studentId, out _)) return BadRequest(new BaseResponse<AttendanceDTO> { Error = ResponseErrors.AttributeIdInvalidlFormat });
-
-            if (!DateTime.TryParse(day, out _)) return BadRequest(new BaseResponse<AttendanceDTO> { Error = ResponseErrors.AuthInvalidData });
-
-            var result = await _atenndancesService.GetAllAsync(a =>
-                a.CourseId == courseId &&
-                a.StudentId == studentId,
-                a => a.Course!,
-                a => a.Student!,
-                a => a.Course!.Instructor!
-            );
-
-            DateTime date = DateTime.Parse(day).Date;
-
-            List<AttendanceDTO> resultList = new List<AttendanceDTO>();
-
-            foreach (var attendance in result)
-            {
-                if (attendance.Date.Date == date.Date)
-                {
-
-
-                    var attendanceDTO = new AttendanceDTO
-                    {
-                        Id = attendance.Id,
-                        StudentId = attendance.StudentId,
-                        CourseId = attendance.CourseId,
-                        Date = attendance.Date,
-                        AttendanceClass = attendance.AttendanceClass
-                    };
-
-                    resultList.Add(attendanceDTO);
-
-                }
-            }
-
-
-            return Ok(new BaseResponse<List<AttendanceDTO>> { Data = resultList, Error = null });
-        }
-
-
-
-
-        [HttpPost]
         [Route("create")]
+		[HttpPost]
         [Authorize]
-
         public async Task<IActionResult> CreateAttendanceAsync([FromBody] AttendanceSchema attendanceSchema)
         {
 
@@ -432,123 +221,139 @@ namespace UniSportUAQ_API.Controllers
 
         }
 
-        [HttpPost]
-        [Route("register/all/{courseId}")]
-        [Authorize]
-        public async Task<IActionResult> RegisterAllAttendances([FromBody] List<AttendanceSchema> Attendances, string courseId) {
+		[HttpPost]
+		[Route("register/all/{courseId}")]
+		[Authorize]
+		public async Task<IActionResult> RegisterAllAttendances([FromBody] List<AttendanceSchema> Attendances, string courseId)
+		{
+			if (string.IsNullOrEmpty(courseId) || string.IsNullOrWhiteSpace(courseId))
+				return BadRequest(new BaseResponse<bool> { Data = false, Error = ResponseErrors.AttributeIdInvalidlFormat });
+
+			if (!Attendances.Any())
+				return BadRequest(new BaseResponse<bool> { Data = false, Error = ResponseErrors.AttributeSchemaEmpty });
+
+			var course = await _coursesService.GetByIdAsync(courseId);
+			var schedules = await _horariosService.GetAllAsync(i => i.CourseId == courseId);
+
+			if (course == null || schedules.Count() < 0)
+				return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.CourseNotFound });
+
+			
+			var serverTime = DateTime.UtcNow;
+
+			var mexicoCityTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Central Standard Time");
+			var today = TimeZoneInfo.ConvertTimeFromUtc(serverTime, mexicoCityTimeZone);
+
+			var todayName = today.ToString("dddd", new CultureInfo("en-US")).ToLower();
+			var currentTimeSpan = new TimeSpan(today.Hour, today.Minute, today.Second);
+
+			List<Attendance> newAttendances = new List<Attendance>();
+
+			bool isWithinSchedule = false;
+
+			foreach (var schedule in schedules)
+			{
+				var scheduleDay = schedule.Day!.ToLower();
+
+				if (scheduleDay == todayName && currentTimeSpan >= schedule.StartHour && currentTimeSpan <= schedule.EndHour)
+				{
+					isWithinSchedule = true;
+					break;
+				}
+			}
+
+			if (!isWithinSchedule)
+			{
+				return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.CourseWrongScheduleAttendance });
+			}
+
+			foreach (var attendance in Attendances)
+			{
+				if (string.IsNullOrEmpty(attendance.CourseId) || string.IsNullOrWhiteSpace(attendance.CourseId))
+					return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.AttributeEmptyOrNull });
+
+				if (string.IsNullOrEmpty(attendance.StudentId) || string.IsNullOrWhiteSpace(attendance.StudentId))
+					return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.AttributeEmptyOrNull });
+
+				var NewAttendance = new Attendance
+				{
+					Id = Guid.NewGuid().ToString(),
+					CourseId = courseId,
+					StudentId = attendance.StudentId,
+					Date = attendance.Date,
+					AttendanceClass = attendance.AttendanceClass,
+				};
+
+				newAttendances.Add(NewAttendance);
+			}
+
+			try
+			{
+				await _context.AddRangeAsync(newAttendances);
+				await _context.SaveChangesAsync();
+			}
+			catch (DbUpdateException)
+			{
+				return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.ServerDataBaseError });
+			}
+
+			return Ok(new BaseResponse<bool> { Data = true });
+		}
 
 
-            if (string.IsNullOrEmpty(courseId) || string.IsNullOrWhiteSpace(courseId)) return BadRequest(new BaseResponse<bool> { Data = false, Error = ResponseErrors.AttributeIdInvalidlFormat });
-            if (!Attendances.Any()) return BadRequest(new BaseResponse<bool> { Data = false, Error = ResponseErrors.AttributeSchemaEmpty });
+		[Authorize(Roles = UserRoles.Instructor)]
+		[HttpGet]
+		[Route("available/course/{courseId}")]
+		public async Task<IActionResult> CheckCourseAviableAttendance(string courseId)
+		{
+			if (string.IsNullOrEmpty(courseId) || string.IsNullOrWhiteSpace(courseId))
+				return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeIdInvalidlFormat });
 
-            var course = await _coursesService.GetByIdAsync(courseId);
-            var schedules = await _horariosService.GetAllAsync(i => i.CourseId == courseId);
+			var course = await _coursesService.GetByIdAsync(courseId, i => i.Horarios!);
+			if (course == null)
+				return Ok(new BaseResponse<bool> { Error = ResponseErrors.EntityNotExist });
 
-            if (course == null || schedules.Count() < 0) return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.CourseNotFound });
+			var schedules = await _horariosService.GetAllAsync(i => i.CourseId == course.Id);
+			if (schedules == null || !schedules.Any())
+				return Ok(new BaseResponse<bool> { Error = ResponseErrors.CourseNoSchedule });
 
-            var today = _utilsService.GetServerDateAsync();
-            var todayName = today.ToString("dddd", new CultureInfo("en-En")).ToLower();
-            var todayNameSpa = today.ToString("dddd", new CultureInfo("es-Es")).ToLower();
-            var currentTimeSpan = new TimeSpan(today.Hour, today.Minute, today.Second);
+			var serverTime = DateTime.UtcNow;
 
-            List<Attendance> newAttendances = new List<Attendance>();
+			var mexicoCityTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Central Standard Time");
+			var today = TimeZoneInfo.ConvertTimeFromUtc(serverTime, mexicoCityTimeZone);
 
+			var todayName = today.ToString("dddd", new CultureInfo("en-US")).ToLower();
+			var currentTimeSpan = new TimeSpan(today.Hour, today.Minute, today.Second);
 
-            //check date course
-            foreach (var schedule in schedules) {
+			foreach (var schedule in schedules)
+			{
+				var scheduleDay = schedule.Day!.ToLower();
+				if (scheduleDay == todayName && currentTimeSpan >= schedule.StartHour && currentTimeSpan <= schedule.EndHour)
+				{
+					var attendances = await _atenndancesService.GetAllAsync(a =>
+						a.CourseId == course.Id &&
+						a.Date.Date == today.Date);
 
-                var scheduleDay = schedule.Day!.ToLower();
-                var scheduleStart = schedule.StartHour;
-                var scheduleEnd = schedule.EndHour;
+					if (attendances.Any())
+					{
+						return Ok(new BaseResponse<bool>
+						{
+							Data = false,
+							Error = ResponseErrors.CourseAlreadyPassedAttendnaces
+						});
+					}
+					else
+					{
+						return Ok(new BaseResponse<bool> { Data = true, });
+					}
+				}
+			}
 
-                if (todayName != scheduleDay)
-                {
-                    if (todayNameSpa != scheduleDay) return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.CourseWrongScheduleAttendance });
-                }
-                if (currentTimeSpan < scheduleStart || currentTimeSpan > scheduleEnd) return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.CourseWrongScheduleAttendance });
-
-            }
-
-            foreach (var attendance in Attendances) {
-
-                if (string.IsNullOrEmpty(attendance.CourseId) || string.IsNullOrWhiteSpace(attendance.CourseId)) return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.AttributeEmptyOrNull });
-                if (string.IsNullOrEmpty(attendance.StudentId) || string.IsNullOrWhiteSpace(attendance.CourseId)) return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.AttributeEmptyOrNull });
-
-                var NewAttendance = new Attendance {
-
-                    Id = Guid.NewGuid().ToString(),
-                    CourseId = courseId,
-                    StudentId = attendance.StudentId,
-                    Date = attendance.Date,
-                    AttendanceClass = attendance.AttendanceClass,
-
-                };
-
-
-                newAttendances.Add(NewAttendance);
-            }
-
-            try
-            {
-                await _context.AddRangeAsync(newAttendances);
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateException)
-            {
-
-                return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.ServerDataBaseError });
-
-            }
-
-            return Ok(new BaseResponse<bool> { Data = true });
-        }
-
-        [HttpGet]
-        [Route("available/course/{courseId}")]
-        [Authorize]
-        public async Task<IActionResult> CheckCourseAviableAttendance(string courseId) {
-
-            //validate course id
-            if (string.IsNullOrEmpty(courseId) || string.IsNullOrWhiteSpace(courseId)) return BadRequest(new BaseResponse<bool> { Error = ResponseErrors.AttributeIdInvalidlFormat });
-            //check course existence
-            var course = await _coursesService.GetByIdAsync(courseId, i => i.Horarios!);
-
-            if(course == null) return Ok(new BaseResponse<bool> { Error = ResponseErrors.EntityNotExist });
-            var schedules = await _horariosService.GetAllAsync(i=> i.CourseId == course.Id);
-
-            if(schedules == null) return Ok(new BaseResponse<bool> { Error = ResponseErrors.CourseNoSchedule });
-            if (!schedules.Any()) return Ok(new BaseResponse<bool> { Error = ResponseErrors.CourseNoSchedule });
-
-            //check schedules to check if is class and hour day
-            var today = _utilsService.GetServerDateAsync();
-            var todayName = today.ToString("dddd", new CultureInfo("en-Us")).ToLower();
-            var todayNameSpa = today.ToString("dddd", new CultureInfo("es-Es")).ToLower();
-            var currentTimeSpan = new TimeSpan(today.Hour, today.Minute, today.Second);
-
-            //check date course
-            foreach (var schedule in schedules)
-            {
-
-                var scheduleDay = schedule.Day!.ToLower();
-                var scheduleStart = schedule.StartHour;
-                var scheduleEnd = schedule.EndHour;
-
-                if (todayName != scheduleDay) 
-                {
-                    if (todayNameSpa != scheduleDay) return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.CourseWrongScheduleAttendance });
-                }
-                if (currentTimeSpan < scheduleStart || currentTimeSpan > scheduleEnd) return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.CourseWrongScheduleAttendance });
-
-            }
-
-            //return true or false
-
-            return Ok(new BaseResponse<bool> { Data = true });
-        }
+			return Ok(new BaseResponse<bool> { Data = false, Error = ResponseErrors.CourseWrongScheduleAttendance });
+		}
 
 
-
-        [HttpPut]
+		[HttpPut]
         [Route("update")]
         [Authorize]
         public async Task<IActionResult> UpdateAttendanceAsync([FromBody] AttendanceSchema attendanceSchema)
